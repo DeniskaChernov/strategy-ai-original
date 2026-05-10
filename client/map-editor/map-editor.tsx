@@ -235,6 +235,14 @@ export function MapEditor({user,mapData,project,onBack,isNew,onProfile,onToggleT
     try{return localStorage.getItem("sa_map_sb_collapsed")==="1";}catch{return false;}
   });
   useEffect(()=>{try{localStorage.setItem("sa_map_sb_collapsed",sidebarCollapsed?"1":"0");}catch{}},[sidebarCollapsed]);
+  const ZEN_LS_KEY="sa_map_zen";
+  const[zenMode,setZenMode]=useState<boolean>(()=>{try{return localStorage.getItem(ZEN_LS_KEY)==="1";}catch{return false;}});
+  useEffect(()=>{try{localStorage.setItem(ZEN_LS_KEY,zenMode?"1":"0");}catch{}},[zenMode]);
+  useEffect(()=>{
+    if(zenMode)document.body.classList.add("sa-map-zen");
+    else document.body.classList.remove("sa-map-zen");
+    return()=>document.body.classList.remove("sa-map-zen");
+  },[zenMode]);
   useEffect(()=>{
     document.body.classList.add("sa-route-map");
     return()=>{document.body.classList.remove("sa-route-map");};
@@ -621,21 +629,22 @@ ${slides}
     if(!nodes.length)return;
     const xs=nodes.map(n=>n.x),ys=nodes.map(n=>n.y);
     const minX=Math.min(...xs),maxX=Math.max(...xs)+240,minY=Math.min(...ys),maxY=Math.max(...ys)+128;
-    const pad=60;
-    const scaleX=(W-pad*2)/(maxX-minX||1),scaleY=(H-120)/(maxY-minY||1);
+    const pad=72;
+    const scaleX=(W-pad*2)/(maxX-minX||1),scaleY=(H-152)/(maxY-minY||1);
     const zoom=Math.max(.2,Math.min(1.5,Math.min(scaleX,scaleY)));
     const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
-    const nx=W/2-cx*zoom,ny=(H-60)/2-cy*zoom;
+    const nx=W/2-cx*zoom,ny=(H-72)/2-cy*zoom;
     viewRef.current={x:nx,y:ny,zoom};setView({x:nx,y:ny,zoom});
   }
 
   function autoLayout(){
     const sorted=topSort(nodes,edges);
+    const GRID_START=72,COL=350,ROW=210;
     const newNodes=nodes.map(n=>{
       const idx=sorted.findIndex(s=>s.id===n.id);
       const safeIdx=idx<0?nodes.indexOf(n):idx;
       const col=safeIdx%4,row=Math.floor(safeIdx/4);
-      return{...n,x:snap(60+col*300),y:snap(60+row*180)};
+      return{...n,x:snap(GRID_START+col*COL),y:snap(GRID_START+row*ROW)};
     });
     pushUndo(nodes,edges);setNodes(newNodes);addToast(t("layout_applied","⌥ Авто-раскладка применена"),"info");
     setTimeout(fitView,50);
@@ -761,7 +770,7 @@ ${ctx}
       else if((e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key==="A"){e.preventDefault();setShowAI(a=>!a);if(selNode)setSelNode(null);}
       else if((e.ctrlKey||e.metaKey)&&e.key==="c"&&selNode){setClipboard(selNode);addToast(t("copied","📋 Скопировано"),"info");}
       else if((e.ctrlKey||e.metaKey)&&e.key==="v"&&clipboard){const copy={...clipboard,id:uid(),x:clipboard.x+60,y:clipboard.y+60};pushUndo(nodes,edges);setNodes(ns=>[...ns,copy]);addToast(t("pasted","📋 Вставлено"),"info");}
-      else if(e.key==="Escape"){if(ctxMenu)setCtxMenu(null);else{setConnecting(false);setConnectSrc(null);setSelNode(null);setSelNodes(new Set());}}
+      else if(e.key==="Escape"){if(zenMode){setZenMode(false);return;}if(ctxMenu)setCtxMenu(null);else{setConnecting(false);setConnectSrc(null);setSelNode(null);setSelNodes(new Set());}}
       else if((e.key==="Delete"||e.key==="Backspace")&&(selNode||selNodes.size)&&!connecting){
         const toDel=selNodes.size?Array.from(selNodes):[selNode.id];
         pushUndo(nodes,edges);
@@ -783,7 +792,7 @@ ${ctx}
     }
     window.addEventListener("keydown",onKey);
     return()=>window.removeEventListener("keydown",onKey);
-  },[selNode,selEdge,selNodes,clipboard,connecting,undoStack,redoStack,nodes,edges,ctxMenu]);
+  },[selNode,selEdge,selNodes,clipboard,connecting,undoStack,redoStack,nodes,edges,ctxMenu,zenMode]);
 
   function onSvgMouseDown(e){
     const isTouch=e.pointerType==="touch";
@@ -931,7 +940,7 @@ ${ctx}
             <>
               {API_BASE&&<NotifBell unread={notifUnread} onClick={()=>setShowNotifs(true)}/>}
               {!readOnly&&(
-                <div style={{display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:600,color:saveState==="saving"?"#f09428":saveState==="error"?"#f04458":"#12c482"}}>
+                <div role="status" aria-live="polite" aria-relevant="text" style={{display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:600,color:saveState==="saving"?"#f09428":saveState==="error"?"#f04458":"#12c482"}}>
                   {saveState==="saving"?<><span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⟳</span> {t("saving","Сохраняю")}</>:saveState==="error"?<>✗ {t("save_error","Ошибка")}</>:<>✓ {t("saved_short","Сохранено")}</>}
                 </div>
               )}
@@ -968,6 +977,8 @@ ${ctx}
             {ib(!undoStack.length,"Отменить (Ctrl+Z)",undo,<>↩</>,{opacity:undoStack.length?.9:.35})}
             {ib(!redoStack.length,"Повторить (Ctrl+Y)",redo,<>↪</>,{opacity:redoStack.length?.9:.35})}
             </>}
+            {sep}
+            {user&&ib(zenMode,t("map_zen_hint","Только карта: скрыть вторую панель, FAB и миникарту (Esc — выход)"),()=>setZenMode(z=>!z),<>🌿</>,zenMode?{borderColor:"rgba(16,185,129,.45)",background:"rgba(16,185,129,.12)",color:"#34d399"}:{})}
           </div>
 
           {sep}
@@ -1005,7 +1016,7 @@ ${ctx}
             </button>
             )}
             {!shellUi&&(
-            <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:600,color:saveState==="saving"?"#f09428":saveState==="error"?"#f04458":"#12c482",transition:"color .25s ease, opacity .25s ease"}}>
+            <div role="status" aria-live="polite" aria-relevant="text" style={{display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:600,color:saveState==="saving"?"#f09428":saveState==="error"?"#f04458":"#12c482",transition:"color .25s ease, opacity .25s ease"}}>
               {saveState==="saving"?<><span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⟳</span> {t("saving","Сохраняю")}</>:saveState==="error"?<><span>✗</span> {t("save_error","Ошибка сохранения")} <button className="btn-interactive" onClick={retrySave} style={{marginLeft:4,padding:"2px 8px",borderRadius:6,border:"1px solid rgba(239,68,68,.4)",background:"rgba(239,68,68,.1)",color:"#f04458",cursor:"pointer",fontSize:12,fontWeight:700}}>{t("retry","Повторить")}</button></>:<><span style={{animation:"successPop .35s ease"}}>✓</span> {t("saved_short","Сохранено")}</>}
             </div>
             )}
@@ -1014,7 +1025,7 @@ ${ctx}
           </div>
         </div>
 
-        {user&&onOpenContentPlanHub&&!(shellUi&&sidebarCollapsed)&&(
+        {user&&onOpenContentPlanHub&&!(shellUi&&sidebarCollapsed)&&!zenMode&&(
           <div className={shellUi?"sa-map-cp-strip":undefined} style={{padding:shellUi?undefined:"10px 16px",borderBottom:shellUi?undefined:"1px solid var(--border)",background:shellUi?undefined:"var(--surface2)"}}>
             <div className={shellUi?"cp-strip-label":undefined} style={{fontSize:10.5,fontWeight:800,color:"var(--text5)",textTransform:"uppercase",letterSpacing:.08,textAlign:"center",marginBottom:shellUi?0:8}}>{t("cp_map_strip_label","Контент-план и разделы")}</div>
             <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:shellUi?14:12,flexWrap:"wrap"}}>
@@ -1029,6 +1040,7 @@ ${ctx}
           </div>
         )}
 
+        {!zenMode&&(<>
         {/* ROW 2 — view tools + panels + export (в shell вторая строка — экспорт, без вылезания за экран) */}
         <div style={{minHeight:shellUi?56:52,display:"flex",alignItems:"center",gap:isMobile?6:shellUi?12:10,padding:isMobile?"10px 16px":shellUi?"10px 20px":"0 24px",flexWrap:isMobile?"wrap":shellUi?"wrap":"nowrap",width:"100%",minWidth:0,boxSizing:"border-box"}}>
 
@@ -1145,6 +1157,7 @@ ${ctx}
           </div>
 
         </div>
+        </>)}
       </div>
       {/* canvas — в оболочке макета: .sa-screen-map + .sa-canvas-wrap (точки через :: при grid) */}
       <div className="sa-screen-map screen on" style={{flex:1,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"}}>
@@ -1260,7 +1273,7 @@ ${ctx}
           </div>
         )}
         {ctxMenu&&<div style={{position:"fixed",inset:0,zIndex:399}} onClick={()=>setCtxMenu(null)}/>}
-        {showMini&&<MiniMap nodes={nodes} edges={edges} viewX={view.x} viewY={view.y} zoom={view.zoom} canvasW={W} canvasH={H} onJump={(x,y)=>{viewRef.current={...viewRef.current,x,y};setView(v=>({...v,x,y}));}} theme={theme} statusMap={STATUS}/>}
+        {showMini&&!zenMode&&<MiniMap nodes={nodes} edges={edges} viewX={view.x} viewY={view.y} zoom={view.zoom} canvasW={W} canvasH={H} onJump={(x,y)=>{viewRef.current={...viewRef.current,x,y};setView(v=>({...v,x,y}));}} theme={theme} statusMap={STATUS}/>}
         {toasts.map(toast=><Toast key={toast.id} msg={toast.msg} type={toast.type} onClose={()=>setToasts(ts=>ts.filter(x=>x.id!==toast.id))}/>)}
         {selNode&&(
           <RichEditorPanel
@@ -1367,6 +1380,7 @@ ${ctx}
             onFollowLink={async(n:any)=>{if(n.link)window.location.href=n.link;}}
           />
         )}
+        {!zenMode&&(
         <div className={"zoom-ctrl"+(shellUi?" map-toolbar":"")+" glass-card"} style={{position:"absolute",bottom:shellUi?20:28,left:shellUi?"50%":28,transform:shellUi?"translateX(-50%)":undefined,display:"flex",gap:8,alignItems:"center",zIndex:30,padding:"10px 16px",borderRadius:16,border:shellUi?"none":undefined,boxShadow:shellUi?undefined:"var(--glass-shadow-accent,none),0 8px 32px rgba(0,0,0,.2)"}}>
           <button className="zoom-ctrl-btn" onClick={()=>{const nz=Math.min(3,view.zoom*1.2);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}} title={t("zoom_in","Увеличить")} style={{width:36,height:36,borderRadius:10,border:"none",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
           <div style={{fontSize:14,color:"var(--text3)",fontWeight:700,minWidth:48,textAlign:"center"}}>{Math.round(view.zoom*100)}%</div>
@@ -1379,6 +1393,7 @@ ${ctx}
             </>
           )}
         </div>
+        )}
       </div>
       </div>
     </>
@@ -1404,19 +1419,19 @@ ${ctx}
           showContentPlan={!!onOpenContentPlanHub}
           onContentPlan={onOpenContentPlanHub||undefined}
           showTrialBanner={(user?.tier||"free")==="free"}
-          onLogoClick={() => onShellGlobalNav?.("projects")}
+          onLogoClick={() => onShellGlobalNav?.("dashboard")}
           collapsed={sidebarCollapsed}
           t={t}
         />
         <div className="sa-main" style={{flex:1,minWidth:0,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden"}}>{_mapMain}</div>
-        <FloatingAiAssistant t={t} variant="app" onOpenFullChat={() => setShowAI(true)} />
+        {!zenMode&&<FloatingAiAssistant t={t} variant="app" onOpenFullChat={() => setShowAI(true)} />}
       </div>
     </div>
   ):(
     <div className={"sa-strategy-ui "+(theme==="dark"?"dk":"lt")} data-theme={theme} data-palette={palette} style={{width:"100%",maxWidth:"100%",height:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Inter',system-ui,sans-serif",position:"relative",overflow:"hidden",boxSizing:"border-box"}}>
       <StrategyShellBg/>
       <div style={{flex:1,minHeight:0,position:"relative",zIndex:1,overflow:"hidden",display:"flex",flexDirection:"column"}}>{_mapMain}</div>
-      <FloatingAiAssistant t={t} variant="app" onOpenFullChat={() => setShowAI(true)} />
+      {!zenMode&&<FloatingAiAssistant t={t} variant="app" onOpenFullChat={() => setShowAI(true)} />}
     </div>
   );
 }

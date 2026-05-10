@@ -3118,7 +3118,7 @@ export default function App(){
                 }catch{}
               }}
               onShellGlobalNav={(nav)=>{
-                if(nav==="projects"){setMapData(null);setProject(null);setScreen("projects");}
+                if(nav==="projects"||nav==="dashboard"){setMapData(null);setProject(null);setScreen("projects");}
                 if(nav==="contentPlan")setScreen("contentPlanHub");
               }}
               aiChatMsgs={aiChatMsgs}
