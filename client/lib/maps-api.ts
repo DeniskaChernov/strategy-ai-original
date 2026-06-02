@@ -19,6 +19,21 @@ export async function getMaps(projectId: string): Promise<any[]> {
   return a.map(normalizeMap);
 }
 
+// Параллельная загрузка карт для нескольких проектов — устраняет N+1
+// (раньше карты грузились последовательно в for-цикле await getMaps).
+export async function getMapsByProject(projectIds: string[]): Promise<Record<string, any[]>> {
+  const entries = await Promise.all(
+    (projectIds || []).map(async (id) => {
+      try {
+        return [id, await getMaps(id)] as const;
+      } catch {
+        return [id, [] as any[]] as const;
+      }
+    })
+  );
+  return Object.fromEntries(entries);
+}
+
 export async function saveMap(projectId: string, map: any): Promise<any> {
   if (API_BASE) {
     try {

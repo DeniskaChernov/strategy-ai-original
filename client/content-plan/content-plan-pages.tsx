@@ -43,7 +43,7 @@ import {
   defaultNodes,
   topSort,
 } from "../lib/map-utils";
-import { getMaps, saveMap, deleteMap, getContentPlan, saveContentPlan } from "../lib/maps-api";
+import { getMaps, getMapsByProject, saveMap, deleteMap, getContentPlan, saveContentPlan } from "../lib/maps-api";
 import { AI_KNOWLEDGE, AI_STRICT_RULES, AI_TIER, OB_TIER, MAP_TIER } from "../lib/ai-prompts";
 import { LangCtx, useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
@@ -100,7 +100,7 @@ export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,on
   const{notifs,setNotifs,notifUnread,setNotifUnread,notifLoading,loadNotifications}=useNotifications(showNotifs,user?.email);
   const tier=TIERS[user?.tier||"free"]||TIERS.free;
 
-  useEffect(()=>{(async()=>{setLoading(true);try{const ps=await getProjects(user.email);setProjects(ps);const mm:Record<string,any[]>={};for(const p of ps){mm[p.id]=await getMaps(p.id);}setMapsByProj(mm);}catch{setProjects([]);setMapsByProj({});}finally{setLoading(false);}})();},[user?.email]);
+  useEffect(()=>{(async()=>{setLoading(true);try{const ps=await getProjects(user.email);setProjects(ps);setMapsByProj(await getMapsByProject(ps.map((p:any)=>p.id)));}catch{setProjects([]);setMapsByProj({});}finally{setLoading(false);}})();},[user?.email]);
   useEffect(()=>{document.title=t("cp_doc_hub_title","Strategy AI — Контент-план");},[t]);
 
   const allMapsForAI=Object.values(mapsByProj).flatMap((arr:any)=>Array.isArray(arr)?arr:[]);

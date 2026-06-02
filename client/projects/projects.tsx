@@ -43,7 +43,7 @@ import {
   defaultNodes,
   topSort,
 } from "../lib/map-utils";
-import { getMaps, saveMap, deleteMap, getContentPlan, saveContentPlan } from "../lib/maps-api";
+import { getMaps, getMapsByProject, saveMap, deleteMap, getContentPlan, saveContentPlan } from "../lib/maps-api";
 import { AI_KNOWLEDGE, AI_STRICT_RULES, AI_TIER, OB_TIER, MAP_TIER } from "../lib/ai-prompts";
 import { LangCtx, useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
@@ -154,9 +154,7 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
     setLoadErr(null);setLoading(true);
     try{
       const ps=await getProjects(user.email);setProjects(ps);
-      const mm:Record<string,MapLite[]>={};
-      for(const p of ps){mm[p.id]=await getMaps(p.id);}
-      setMaps(mm);
+      setMaps(await getMapsByProject(ps.map((p:any)=>p.id)) as Record<string,MapLite[]>);
     }catch(e:any){setLoadErr(e?.message||t("load_error","Ошибка загрузки"));setProjects([]);setMaps({});}
     finally{setLoading(false);}
   }

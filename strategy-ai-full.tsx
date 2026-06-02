@@ -46,7 +46,7 @@ import {
   defaultNodes,
   topSort,
 } from "./client/lib/map-utils";
-import { getMaps, saveMap, deleteMap, getContentPlan, saveContentPlan } from "./client/lib/maps-api";
+import { getMaps, getMapsByProject, saveMap, deleteMap, getContentPlan, saveContentPlan } from "./client/lib/maps-api";
 import { AI_KNOWLEDGE, AI_STRICT_RULES, AI_TIER, OB_TIER, MAP_TIER } from "./client/lib/ai-prompts";
 import { LangCtx, useLang } from "./client/lang-context";
 import { useIsMobile } from "./client/hooks/use-is-mobile";
@@ -94,7 +94,6 @@ import { MapEditor } from "./client/map-editor/map-editor";
 import { DashboardPage } from "./client/dashboard/dashboard-page";
 import { InsightsPage } from "./client/insights/insights-page";
 import { AiAdvisorPage } from "./client/ai-advisor/ai-advisor-page";
-import type { StrategyShellNav } from "./strategy-shell-sidebar";
 
 const ROLES_C  ={owner:"#6836f5",editor:"#12c482",viewer:"#a8a4c8"};
 const STATUS  ={planning:{c:"#6836f5"},active:{c:"#06b6d4"},completed:{c:"#12c482"},paused:{c:"#f09428"},blocked:{c:"#f04458"}};
@@ -265,7 +264,7 @@ function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,onLogout,
   const{notifs,setNotifs,notifUnread,setNotifUnread,notifLoading,loadNotifications}=useNotifications(showNotifs,user?.email);
   const tier=TIERS[user?.tier||"free"]||TIERS.free;
 
-  useEffect(()=>{(async()=>{setLoading(true);try{const ps=await getProjects(user.email);setProjects(ps);const mm:Record<string,any[]>={};for(const p of ps){mm[p.id]=await getMaps(p.id);}setMapsByProj(mm);}catch{setProjects([]);setMapsByProj({});}finally{setLoading(false);}})();},[user?.email]);
+  useEffect(()=>{(async()=>{setLoading(true);try{const ps=await getProjects(user.email);setProjects(ps);setMapsByProj(await getMapsByProject(ps.map((p:any)=>p.id)));}catch{setProjects([]);setMapsByProj({});}finally{setLoading(false);}})();},[user?.email]);
   useEffect(()=>{document.title=t("cp_doc_hub_title","Strategy AI — Контент-план");},[t]);
 
   const allMapsForAI=Object.values(mapsByProj).flatMap((arr:any)=>Array.isArray(arr)?arr:[]);
@@ -557,7 +556,7 @@ function ContentPlanProjectPage({user,project,maps,theme,onBackToHub,onOpenStrat
 type ProjectLite={id:string;name:string;owner:string;members?:Array<{email:string;role:string}>;createdAt?:number;created_at?:number};
 type MapLite={id:string;name?:string;isScenario?:boolean;nodes?:any[];edges?:any[]};
 
-function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTier,onProfile,theme,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onOpenContentPlanHub,onOpenContentPlanProject}){
+function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTier,onProfile,theme,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onOpenContentPlanHub,onOpenContentPlanProject,onGoToDashboard,onGoToAi,onGoToInsights}:any){
   const{t,lang,setLang}=useLang();
   const isMobile=useIsMobile();
   const ROLES=getROLES(t);
@@ -619,9 +618,7 @@ function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTier,onPr
     setLoadErr(null);setLoading(true);
     try{
       const ps=await getProjects(user.email);setProjects(ps);
-      const mm:Record<string,MapLite[]>={};
-      for(const p of ps){mm[p.id]=await getMaps(p.id);}
-      setMaps(mm);
+      setMaps(await getMapsByProject(ps.map((p:any)=>p.id)) as Record<string,MapLite[]>);
     }catch(e:any){setLoadErr(e?.message||t("load_error","Ошибка загрузки"));setProjects([]);setMaps({});}
     finally{setLoading(false);}
   }
@@ -702,6 +699,7 @@ function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTier,onPr
 
   function handleProjectsShellNav(nav:StrategyShellNav){
     if(nav==="projects")return;
+    if(nav==="dashboard"){onGoToDashboard?.();return;}
     if(nav==="settings"){onProfile();return;}
     if(nav==="map"){
       if(lastMapData&&lastProj)onOpenMap(lastMapData,lastProj,false,false);
@@ -710,10 +708,10 @@ function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTier,onPr
       return;
     }
     if(nav==="contentPlan"){onOpenContentPlanHub?.();return;}
-    if(nav==="ai"){setShowAIHub(true);return;}
+    if(nav==="ai"){if(onGoToAi)onGoToAi();else setShowAIHub(true);return;}
+    if(nav==="insights"){if(onGoToInsights){onGoToInsights();return;}setToast({msg:t("shell_insights_hint","Откройте карту — статистика на панели инструментов."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
     if(nav==="scenarios"){setToast({msg:t("shell_scenarios_hint","Откройте карту проекта — там доступна симуляция сценариев."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
     if(nav==="timeline"){setToast({msg:t("shell_timeline_hint","Откройте карту — диаграмма Gantt на панели инструментов."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
-    if(nav==="insights"){setToast({msg:t("shell_insights_hint","Откройте карту — статистика на панели инструментов."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
     if(nav==="team"){setToast({msg:t("shell_team_hint","Участники отображаются в карточке каждого проекта."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
   }
   const shellUi=!isMobile;

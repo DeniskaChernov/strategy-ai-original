@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getProjects } from "../api";
-import { getMaps } from "../lib/maps-api";
+import { getMapsByProject } from "../lib/maps-api";
 import { useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
 import { TIERS } from "../lib/tiers";
@@ -45,13 +45,12 @@ export function AiAdvisorPage({
     (async () => {
       try {
         const ps = await getProjects(user.email);
-        setProjects(Array.isArray(ps) ? ps : []);
+        const list = Array.isArray(ps) ? ps : [];
+        setProjects(list);
+        const byProj = await getMapsByProject(list.map((p: any) => p.id));
         const ns: any[] = []; const es: any[] = [];
-        for (const p of (ps || [])) {
-          try {
-            const ms = await getMaps(p.id);
-            for (const mm of (ms || [])) { (mm.nodes || []).forEach((n: any) => ns.push(n)); (mm.edges || []).forEach((e: any) => es.push(e)); }
-          } catch { /* — */ }
+        for (const ms of Object.values(byProj)) {
+          for (const mm of (ms || [])) { (mm.nodes || []).forEach((n: any) => ns.push(n)); (mm.edges || []).forEach((e: any) => es.push(e)); }
         }
         setAllNodes(ns); setAllEdges(es);
       } catch { setProjects([]); setAllNodes([]); setAllEdges([]); }

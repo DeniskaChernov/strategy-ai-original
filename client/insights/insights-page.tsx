@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { API_BASE, getProjects } from "../api";
-import { getMaps } from "../lib/maps-api";
+import { getMapsByProject } from "../lib/maps-api";
 import { useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
 import { TIERS } from "../lib/tiers";
@@ -48,10 +48,9 @@ export function InsightsPage({
       setLoading(true);
       try {
         const ps = await getProjects(user.email);
-        setProjects(Array.isArray(ps) ? ps : []);
-        const mm: Record<string, any[]> = {};
-        for (const p of (ps || [])) { try { mm[p.id] = await getMaps(p.id); } catch { mm[p.id] = []; } }
-        setMapsByProj(mm);
+        const list = Array.isArray(ps) ? ps : [];
+        setProjects(list);
+        setMapsByProj(await getMapsByProject(list.map((p: any) => p.id)));
       } catch { setProjects([]); setMapsByProj({}); }
       finally { setLoading(false); }
     })();
