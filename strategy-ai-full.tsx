@@ -94,6 +94,7 @@ import { MapEditor } from "./client/map-editor/map-editor";
 import { DashboardPage } from "./client/dashboard/dashboard-page";
 import { InsightsPage } from "./client/insights/insights-page";
 import { AiAdvisorPage } from "./client/ai-advisor/ai-advisor-page";
+import { ResetPasswordModal } from "./client/strategy-modals/reset-password-modal";
 
 const ROLES_C  ={owner:"#6836f5",editor:"#12c482",viewer:"#a8a4c8"};
 const STATUS  ={planning:{c:"#6836f5"},active:{c:"#06b6d4"},completed:{c:"#12c482"},paused:{c:"#f09428"},blocked:{c:"#f04458"}};
@@ -2538,6 +2539,7 @@ export default function App(){
   const[showProfile,setShowProfile]=useState(false);
   const[showTiers,setShowTiers]=useState(false);
   const[verifiedToast,setVerifiedToast]=useState(false);
+  const[resetToken,setResetToken]=useState<string|null>(null);
   const[paymentToast,setPaymentToast]=useState(false);
   const[authChecked,setAuthChecked]=useState(false);
   const[loadError,setLoadError]=useState<string|null>(null);
@@ -2672,6 +2674,13 @@ export default function App(){
       const paymentStatus=searchParams.get("payment");
       const paymentTierFromUrl=searchParams.get("tier");
       if(paymentStatus==="success"){
+        window.history.replaceState({},"",window.location.pathname);
+      }
+
+      // Обработка ссылки сброса пароля (?reset=token)
+      const resetTok=searchParams.get("reset");
+      if(resetTok){
+        setResetToken(resetTok);
         window.history.replaceState({},"",window.location.pathname);
       }
 
@@ -3209,6 +3218,7 @@ export default function App(){
           ✓ {t("payment_success","Оплата прошла успешно! Тариф обновлён.")}
         </div>
       )}
+      {resetToken&&<ResetPasswordModal token={resetToken} theme={theme} onClose={()=>setResetToken(null)}/>}
       {(screen==="landing"||screen==="legal"||screen==="notFound")&&<CookieConsent/>}
       </>
       </div>

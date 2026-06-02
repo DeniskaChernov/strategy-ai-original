@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { login, register } from "../api";
+import { login, register, forgotPassword, API_BASE } from "../api";
 import { useLang } from "../lang-context";
 
 export function AuthFormContent({
@@ -30,6 +30,8 @@ export function AuthFormContent({
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [mode, setMode] = useState<"auth" | "forgot">("auth");
+  const [resetSent, setResetSent] = useState(false);
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -71,6 +73,25 @@ export function AuthFormContent({
     setLoading(false);
     if (res.error) setErr(res.error);
     else onAuth(res.user, res.isNew || false);
+  }
+
+  async function submitForgot() {
+    if (!EMAIL_RE.test(email.trim())) {
+      setErr(t("invalid_email", "Введите корректный email"));
+      return;
+    }
+    setLoading(true);
+    setErr("");
+    const res = await forgotPassword(email);
+    setLoading(false);
+    if (res.error) setErr(res.error);
+    else setResetSent(true);
+  }
+
+  function backToAuth() {
+    setMode("auth");
+    setResetSent(false);
+    setErr("");
   }
 
   const inline = variant === "inline";
@@ -196,7 +217,41 @@ export function AuthFormContent({
           {subtitle && <div className="modal-sub">{subtitle}</div>}
         </div>
       )}
-      {!inline && <div style={{ marginBottom: 18 }}>{SegTabs}</div>}
+      {!inline && mode === "auth" && <div style={{ marginBottom: 18 }}>{SegTabs}</div>}
+      {mode === "forgot" ? (
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--t1)", marginBottom: 6 }}>{t("forgot_title", "Сброс пароля")}</div>
+          <div className="modal-sub" style={{ marginBottom: 16 }}>{t("forgot_desc", "Введите email — пришлём ссылку для создания нового пароля.")}</div>
+          {resetSent ? (
+            <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
+              <div style={{ fontSize: 34, marginBottom: 8 }} aria-hidden>📬</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--t1)", marginBottom: 6 }}>{t("forgot_sent_title", "Проверьте почту")}</div>
+              <div className="modal-sub" style={{ marginBottom: 18 }}>{t("forgot_sent_desc", "Если {email} зарегистрирован, мы отправили ссылку для сброса. Ссылка действует 1 час.").replace("{email}", email.trim())}</div>
+              <button type="button" className="modal-btn" onClick={backToAuth}>{t("back_to_login", "Вернуться ко входу")}</button>
+            </div>
+          ) : (
+            <>
+              <input
+                type="email"
+                className="modal-inp"
+                placeholder={t("email", "Email")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && submitForgot()}
+                autoComplete="email"
+                autoFocus
+              />
+              {err ? <div className="modal-err" style={{ marginBottom: 10 }}>{err}</div> : null}
+              <button type="button" className="modal-btn" onClick={submitForgot} disabled={loading} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, opacity: loading ? 0.65 : 1, cursor: loading ? "wait" : "pointer" }}>
+                {loading && <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,.35)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .7s linear infinite", flexShrink: 0 }} />}
+                {t("forgot_send", "Отправить ссылку")}
+              </button>
+              <button type="button" onClick={backToAuth} style={{ display: "block", margin: "12px auto 0", background: "none", border: "none", color: "var(--t3)", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>← {t("back_to_login", "Вернуться ко входу")}</button>
+            </>
+          )}
+        </div>
+      ) : (
+      <>
       {tab === "register" && <input className="modal-inp" placeholder={t("name", "Имя")} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />}
       <input
         type="email"
@@ -252,6 +307,13 @@ export function AuthFormContent({
         )}
         {tab === "login" ? t("sign_in", "Войти") : t("sign_up", "Зарегистрироваться")}
       </button>
+      {tab === "login" && API_BASE ? (
+        <button type="button" onClick={() => { setMode("forgot"); setErr(""); }} style={{ display: "block", margin: "12px auto 0", background: "none", border: "none", color: "var(--t3)", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
+          {t("forgot_link", "Забыли пароль?")}
+        </button>
+      ) : null}
+      </>
+      )}
     </div>
   );
 }

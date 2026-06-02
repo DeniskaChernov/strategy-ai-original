@@ -289,6 +289,29 @@ export async function login(email: string, pw: string) {
   return { user: u, isNew: false };
 }
 
+// Запрос письма для сброса пароля. Сервер всегда отвечает success
+// (не раскрывает, существует ли аккаунт).
+export async function forgotPassword(email: string): Promise<{ ok?: boolean; error?: string }> {
+  if (!API_BASE) return { error: 'Сброс пароля доступен только на сервере' };
+  try {
+    await apiFetch('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email: email.trim().toLowerCase() }) });
+    return { ok: true };
+  } catch (e: any) {
+    return { error: e?.message || 'Не удалось отправить письмо' };
+  }
+}
+
+// Установка нового пароля по токену из письма.
+export async function resetPassword(token: string, newPassword: string): Promise<{ ok?: boolean; error?: string }> {
+  if (!API_BASE) return { error: 'Сброс пароля доступен только на сервере' };
+  try {
+    await apiFetch('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) });
+    return { ok: true };
+  } catch (e: any) {
+    return { error: e?.message || 'Не удалось сбросить пароль' };
+  }
+}
+
 export async function patchUser(email: string, patch: any) {
   if (API_BASE) {
     try {
