@@ -37,8 +37,10 @@ export async function saveMap(projectId: string, map: any): Promise<any> {
       const d = await apiFetch(`/api/projects/${projectId}/maps/${map.id}`, { method: "PUT", body });
       return normalizeMap(d.map) || map;
     } catch (e: any) {
-      if (e.message?.includes("MAP_LIMIT") || e.message?.includes("Лимит карт")) throw e;
-      return map;
+      // Раньше ошибка проглатывалась и возвращалась исходная карта —
+      // из-за этого UI показывал «Сохранено», хотя данные не сохранились.
+      // Пробрасываем ошибку, чтобы вызывающий код показал статус «Ошибка» / тост.
+      throw e;
     }
   }
   const a = await getMaps(projectId);

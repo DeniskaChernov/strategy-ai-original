@@ -16,12 +16,12 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
   const tier=TIERS[user.tier]||TIERS.free;
   const isMobile=useIsMobile();
   const[tab,setTab]=useState("profile");
-  const[showDeleteConfirm,setShowDeleteConfirm]=useState(false);
+  const[showDeleteConfirm,setShowDeleteConfirm]=useState(false);const[delPw,setDelPw]=useState("");const[delErr,setDelErr]=useState("");
   const[selected,setSelected]=useState(user.tier||"free");
   const[buyPhase,setBuyPhase]=useState(null);
   const[name,setName]=useState(user.name||"");
   const[bio,setBio]=useState(user.bio||"");
-  const[cp,setCp]=useState("");const[np,setNp]=useState("");const[cf,setCf]=useState("");
+  const[cp,setCp]=useState("");const[np,setNp]=useState("");const[cf,setCf]=useState("");const[showPw,setShowPw]=useState(false);
   const[msg,setMsg]=useState(null);const[loading,setLoading]=useState(false);
   const[cardNum,setCardNum]=useState("");const[cardName,setCardName]=useState("");const[cardExp,setCardExp]=useState("");const[cardCvv,setCardCvv]=useState("");const[cardError,setCardError]=useState(null);
   // settings state
@@ -118,14 +118,17 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
     await new Promise(r=>setTimeout(r,2400));onClose();
   }
   async function handleDeleteAccount(){
-    setShowDeleteConfirm(false);
+    setDelErr("");
+    if(API_BASE&&!delPw){setDelErr(t("delete_need_pw","Введите пароль для подтверждения"));return;}
     setLoading(true);
     try{
       if(API_BASE){
-        await apiFetch("/api/auth/account",{method:"DELETE"});
+        await apiFetch("/api/auth/account",{method:"DELETE",body:JSON.stringify({password:delPw})});
         clearJWT();
+        setShowDeleteConfirm(false);setDelPw("");
         onClose();onLogout();return;
       }
+      setShowDeleteConfirm(false);
       const a=((await store.get("sa_acc"))||[]).filter((x:any)=>x.email!==user.email);
       await store.set("sa_acc",a);
       const allProj=(await store.get("sa_proj"))||[];
@@ -136,7 +139,10 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
       await clearSession();
       onClose();
       onLogout();
-    }catch(e){setMsg({t:t("delete_err","Ошибка при удалении"),ok:false});}
+    }catch(e:any){
+      const m=e?.message||t("delete_err","Ошибка при удалении");
+      if(showDeleteConfirm)setDelErr(m); else setMsg({t:m,ok:false});
+    }
     setLoading(false);
   }
   const[closing,setClosing]=useState(false);
@@ -247,11 +253,17 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
                 )}
                 <div style={{fontSize:15,fontWeight:800,color:"var(--text)",marginBottom:4}}>{t("change_password","Изменить пароль")}</div>
                 <div style={{fontSize:13.5,color:"var(--text4)",marginBottom:20}}>{t("pw_hint","Пароль должен быть не менее 6 символов")}</div>
-                <div style={{fontSize:13,fontWeight:700,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.7,marginBottom:8}}>{t("current_password","Текущий пароль")}</div>
-                <input style={fi} type="password" placeholder={t("current_password","Текущий пароль")} value={cp} onChange={e=>setCp(e.target.value)} onFocus={e=>e.target.style.borderColor="var(--accent-1)"} onBlur={e=>e.target.style.borderColor="var(--input-border)"}/>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                  <div style={{fontSize:13,fontWeight:700,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.7}}>{t("current_password","Текущий пароль")}</div>
+                  <button type="button" onClick={()=>setShowPw(v=>!v)} aria-pressed={showPw} style={{display:"inline-flex",alignItems:"center",gap:5,background:"transparent",border:"none",cursor:"pointer",color:"var(--text4)",fontSize:12,fontWeight:600,padding:0}}>
+                    {showPw?(<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M3 3l18 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M10.6 5.1A9.8 9.8 0 0112 5c5 0 9 4.5 10 7-0.4 1-1.2 2.2-2.4 3.3M6.3 6.3C4 7.7 2.6 9.9 2 12c1 2.5 5 7 10 7 1.6 0 3-0.4 4.3-1.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M9.5 9.6a3.5 3.5 0 004.9 4.9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>):(<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7s-9-4.5-10-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.8"/></svg>)}
+                    {showPw?t("pw_hide","Скрыть"):t("pw_show","Показать")}
+                  </button>
+                </div>
+                <input style={fi} type={showPw?"text":"password"} placeholder={t("current_password","Текущий пароль")} value={cp} onChange={e=>setCp(e.target.value)} autoComplete="current-password" onFocus={e=>e.target.style.borderColor="var(--accent-1)"} onBlur={e=>e.target.style.borderColor="var(--input-border)"}/>
                 <div style={{fontSize:13,fontWeight:700,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.7,marginBottom:8}}>{t("new_password_label","Новый пароль")}</div>
-                <input style={fi} type="password" placeholder={t("pw_hint","Мин. 6 символов")} value={np} onChange={e=>setNp(e.target.value)} onFocus={e=>e.target.style.borderColor="var(--accent-1)"} onBlur={e=>e.target.style.borderColor="var(--input-border)"}/>
-                <input style={fi} type="password" placeholder={t("confirm_password","Повторите новый пароль")} value={cf} onChange={e=>setCf(e.target.value)} onFocus={e=>e.target.style.borderColor="var(--accent-1)"} onBlur={e=>e.target.style.borderColor="var(--input-border)"}/>
+                <input style={fi} type={showPw?"text":"password"} placeholder={t("pw_hint","Мин. 6 символов")} value={np} onChange={e=>setNp(e.target.value)} autoComplete="new-password" onFocus={e=>e.target.style.borderColor="var(--accent-1)"} onBlur={e=>e.target.style.borderColor="var(--input-border)"}/>
+                <input style={fi} type={showPw?"text":"password"} placeholder={t("confirm_password","Повторите новый пароль")} value={cf} onChange={e=>setCf(e.target.value)} autoComplete="new-password" onFocus={e=>e.target.style.borderColor="var(--accent-1)"} onBlur={e=>e.target.style.borderColor="var(--input-border)"}/>
                 {np&&(
                   <div style={{marginBottom:12,padding:"10px 14px",borderRadius:10,background:"var(--surface)",border:"1px solid var(--border)"}}>
                     <div style={{fontSize:13,color:"var(--text4)",marginBottom:6}}>{t("pw_strength","Надёжность пароля")}</div>
@@ -280,10 +292,17 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
                   <div style={{position:"fixed",inset:0,zIndex:210,background:"var(--modal-overlay-bg,rgba(0,0,0,.6))",display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setShowDeleteConfirm(false)}>
                     <div role="alertdialog" aria-modal="true" aria-labelledby="sa-pf-delete-title" aria-describedby="sa-pf-delete-desc" style={{background:"var(--bg2)",borderRadius:"var(--radius-lg,16px)",border:"1px solid var(--border)",padding:"24px 28px",maxWidth:400,width:"100%",boxShadow:"0 24px 48px rgba(0,0,0,.5)"}} onClick={e=>e.stopPropagation()}>
                       <div id="sa-pf-delete-title" style={{fontSize:16,fontWeight:800,color:"var(--text)",marginBottom:8}}>{t("delete_account","Удалить аккаунт")}?</div>
-                      <div id="sa-pf-delete-desc" style={{fontSize:13.5,color:"var(--text3)",marginBottom:20}}>{t("delete_warning","Все данные будут удалены безвозвратно")}</div>
+                      <div id="sa-pf-delete-desc" style={{fontSize:13.5,color:"var(--text3)",marginBottom:16}}>{t("delete_warning","Все данные будут удалены безвозвратно")}</div>
+                      {API_BASE&&(
+                        <div style={{marginBottom:14}}>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--text4)",marginBottom:6}}>{t("confirm_with_password","Подтвердите паролем")}</div>
+                          <input type="password" value={delPw} onChange={e=>{setDelPw(e.target.value);if(delErr)setDelErr("");}} onKeyDown={e=>e.key==="Enter"&&handleDeleteAccount()} placeholder={t("password","Пароль")} autoComplete="current-password" style={{...fi,marginBottom:0,borderColor:delErr?"var(--red)":"var(--input-border)"}} autoFocus/>
+                          {delErr&&<div style={{fontSize:12.5,color:"var(--red)",marginTop:6}}>{delErr}</div>}
+                        </div>
+                      )}
                       <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
-                        <button type="button" onClick={()=>setShowDeleteConfirm(false)} style={{padding:"10px 20px",borderRadius:10,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text)",fontSize:13,fontWeight:600,cursor:"pointer"}}>{t("cancel","Отмена")}</button>
-                        <button type="button" onClick={handleDeleteAccount} style={{padding:"10px 20px",borderRadius:10,border:"none",background:"var(--red)",color:"var(--accent-on-bg,#fff)",fontSize:13,fontWeight:700,cursor:"pointer"}}>{t("delete_forever","Удалить навсегда")}</button>
+                        <button type="button" onClick={()=>{setShowDeleteConfirm(false);setDelPw("");setDelErr("");}} style={{padding:"10px 20px",borderRadius:10,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text)",fontSize:13,fontWeight:600,cursor:"pointer"}}>{t("cancel","Отмена")}</button>
+                        <button type="button" onClick={handleDeleteAccount} disabled={loading||(!!API_BASE&&!delPw)} style={{padding:"10px 20px",borderRadius:10,border:"none",background:"var(--red)",color:"var(--accent-on-bg,#fff)",fontSize:13,fontWeight:700,cursor:(loading||(!!API_BASE&&!delPw))?"not-allowed":"pointer",opacity:(loading||(!!API_BASE&&!delPw))?.6:1}}>{loading?t("deleting","Удаляю…"):t("delete_forever","Удалить навсегда")}</button>
                       </div>
                     </div>
                   </div>

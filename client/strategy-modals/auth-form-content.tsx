@@ -29,10 +29,40 @@ export function AuthFormContent({
   const [name, setName] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const pwStrength = (() => {
+    const v = pw || "";
+    if (!v) return { score: 0, label: "", color: "var(--b1)" };
+    let s = 0;
+    if (v.length >= 8) s++;
+    if (/[a-z]/.test(v) && /[A-Z]/.test(v)) s++;
+    if (/\d/.test(v)) s++;
+    if (/[^A-Za-z0-9]/.test(v)) s++;
+    if (v.length >= 12 && s >= 3) s = 4;
+    const map = [
+      { label: t("pw_weak", "Слабый"), color: "#f04458" },
+      { label: t("pw_weak", "Слабый"), color: "#f04458" },
+      { label: t("pw_fair", "Средний"), color: "#f59e0b" },
+      { label: t("pw_good", "Хороший"), color: "#3b82f6" },
+      { label: t("pw_strong", "Надёжный"), color: "#12c482" },
+    ];
+    return { score: s, ...map[s] };
+  })();
 
   async function submit() {
-    if (!email || !pw) {
+    if (!email || !pw || (tab === "register" && !name.trim())) {
       setErr(t("fill_fields", "Заполните все поля"));
+      return;
+    }
+    if (!EMAIL_RE.test(email.trim())) {
+      setErr(t("invalid_email", "Введите корректный email"));
+      return;
+    }
+    if (tab === "register" && pw.length < 6) {
+      setErr(t("pw_too_short", "Пароль не короче 6 символов"));
       return;
     }
     setLoading(true);
@@ -177,16 +207,44 @@ export function AuthFormContent({
         onKeyDown={(e) => e.key === "Enter" && submit()}
         autoComplete="email"
       />
-      <input
-        type="password"
-        className="modal-inp"
-        placeholder={t("password", "Пароль")}
-        value={pw}
-        onChange={(e) => setPw(e.target.value)}
-        style={{ marginBottom: err ? 8 : 4 }}
-        onKeyDown={(e) => e.key === "Enter" && submit()}
-        autoComplete={tab === "login" ? "current-password" : "new-password"}
-      />
+      <div style={{ position: "relative", marginBottom: tab === "register" && pw ? 6 : err ? 8 : 4 }}>
+        <input
+          type={showPw ? "text" : "password"}
+          className="modal-inp"
+          placeholder={t("password", "Пароль")}
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          style={{ marginBottom: 0, paddingRight: 46 }}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          autoComplete={tab === "login" ? "current-password" : "new-password"}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPw((v) => !v)}
+          aria-label={showPw ? t("pw_hide", "Скрыть пароль") : t("pw_show", "Показать пароль")}
+          aria-pressed={showPw}
+          title={showPw ? t("pw_hide", "Скрыть пароль") : t("pw_show", "Показать пароль")}
+          style={{ position: "absolute", right: 6, top: 0, bottom: 0, width: 38, display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", cursor: "pointer", color: "var(--t3)", padding: 0, transition: "color .18s ease, transform .18s ease" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--accent-1)"; (e.currentTarget as HTMLElement).style.transform = "scale(1.12)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--t3)"; (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
+        >
+          {showPw ? (
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M3 3l18 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M10.6 5.1A9.8 9.8 0 0112 5c5 0 9 4.5 10 7-0.4 1-1.2 2.2-2.4 3.3M6.3 6.3C4 7.7 2.6 9.9 2 12c1 2.5 5 7 10 7 1.6 0 3-0.4 4.3-1.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M9.5 9.6a3.5 3.5 0 004.9 4.9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+          ) : (
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7s-9-4.5-10-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.8"/></svg>
+          )}
+        </button>
+      </div>
+      {tab === "register" && pw ? (
+        <div style={{ marginBottom: err ? 8 : 6 }} aria-live="polite">
+          <div style={{ display: "flex", gap: 4, marginBottom: 5 }}>
+            {[0, 1, 2, 3].map((i) => (
+              <span key={i} style={{ flex: 1, height: 4, borderRadius: 4, background: i < pwStrength.score ? pwStrength.color : "var(--b1)", transition: "background .3s ease" }} />
+            ))}
+          </div>
+          <div style={{ fontSize: 11.5, color: pwStrength.color, fontWeight: 600 }}>{t("pw_strength", "Надёжность")}: {pwStrength.label}</div>
+        </div>
+      ) : null}
       {err ? <div className="modal-err" style={{ marginBottom: 10 }}>{err}</div> : null}
       <button type="button" className="modal-btn" onClick={submit} disabled={loading} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, opacity: loading ? 0.65 : 1, cursor: loading ? "wait" : "pointer" }}>
         {loading && (

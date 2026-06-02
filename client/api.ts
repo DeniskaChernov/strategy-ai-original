@@ -351,8 +351,10 @@ export async function saveProject(p: any) {
         });
         return normalizeProject(d.project);
       }
-    } catch {
-      return p;
+    } catch (e) {
+      // Ранее ошибка проглатывалась и возвращался исходный проект (ложный успех).
+      // Пробрасываем — вызывающий код обёрнут в try/catch и показывает тост.
+      throw e;
     }
   }
   const a = (await store.get('sa_proj')) || [];

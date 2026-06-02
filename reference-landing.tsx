@@ -14,6 +14,7 @@ import { ScrollProgress } from "./client/scroll-progress";
 import { MagneticButton } from "./client/magnetic-button";
 import { ScrollToTop } from "./client/scroll-to-top";
 import { useRipple } from "./client/use-ripple";
+import { safeInlineHtml } from "./client/lib/sanitize-html";
 
 type TFn = (key: string, fallback?: string) => string;
 
@@ -159,10 +160,10 @@ export function ReferenceLandingView({
           <h1
             className="hero-h1"
             dangerouslySetInnerHTML={{
-              __html: t(
+              __html: safeInlineHtml(t(
                 "ref_hero_h1_html",
                 'Стратегия,<br/><span class="grad-text">которая думает с вами</span>'
-              ),
+              )),
             }}
           />
           <p className="hero-sub">
@@ -404,7 +405,7 @@ export function ReferenceLandingView({
         </section>
 
         <div className="land-cta sr sr-scale in">
-          <div className="cta-title" dangerouslySetInnerHTML={{ __html: t("ref_cta_title_html", "Готовы к стратегии,<br/>которая доходит до исполнения?") }}/>
+          <div className="cta-title" dangerouslySetInnerHTML={{ __html: safeInlineHtml(t("ref_cta_title_html", "Готовы к стратегии,<br/>которая доходит до исполнения?")) }}/>
           <div className="cta-sub">{t("ref_cta_sub", "Бесплатный тариф. Создайте аккаунт и первую карту за пару минут.")}</div>
           <div className="cta-btns">
             <button type="button" className="btn-p lg" onClick={onGetStarted}>{t("ref_cta_btn", "Создать аккаунт →")}</button>

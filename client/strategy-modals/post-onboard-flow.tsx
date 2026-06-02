@@ -57,7 +57,13 @@ export function PostOnboardFlow({
     let proj = projs.find((p: any) => p.owner === u.email);
     if (!proj) {
       proj = { id: uid(), name: "Моя стратегия", owner: u.email, members: [{ email: u.email, role: "owner" }], createdAt: Date.now() };
-      await saveProject(proj);
+      try {
+        const saved = await saveProject(proj);
+        if (saved) proj = saved;
+      } catch (e) {
+        // Не роняем онбординг при сетевой ошибке — продолжаем с локальным проектом.
+        console.warn("onboarding: saveProject failed", e);
+      }
     }
     setTargetProject(proj);
     const maps = await getMaps(proj.id);

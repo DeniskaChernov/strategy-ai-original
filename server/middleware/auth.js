@@ -1,8 +1,18 @@
 const jwt = require('jsonwebtoken');
 const { pool } = require('../db');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'strategy-ai-secret-change-in-production';
+const DEFAULT_DEV_SECRET = 'strategy-ai-secret-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_DEV_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || (JWT_SECRET + '_refresh');
+
+// Безопасность: в production запрещаем запуск с дефолтным секретом —
+// иначе любой, кто знает значение по умолчанию, сможет подписывать токены.
+if (process.env.NODE_ENV === 'production' && JWT_SECRET === DEFAULT_DEV_SECRET) {
+  throw new Error('JWT_SECRET must be set to a strong unique value in production (default secret is not allowed).');
+}
+if (JWT_SECRET === DEFAULT_DEV_SECRET) {
+  console.warn('[auth] WARNING: using default JWT secret — set JWT_SECRET env var before deploying.');
+}
 const JWT_EXPIRES = '15m';         // Access token — короткоживущий
 const JWT_REFRESH_EXPIRES = '30d'; // Refresh token — долгоживущий
 
