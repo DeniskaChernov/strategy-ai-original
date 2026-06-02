@@ -3,6 +3,7 @@ import { API_BASE, getProjects } from "../api";
 import { getMapsByProject } from "../lib/maps-api";
 import { useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
+import { useCountUp } from "../hooks/use-count-up";
 import { TIERS } from "../lib/tiers";
 import { getSTATUS, getPRIORITY } from "../lib/strategy-labels";
 import { useNotifications } from "../hooks/use-notifications";
@@ -100,8 +101,14 @@ export function InsightsPage({
 
   const shellUi = !!user && !isMobile;
 
+  const CountUp = ({ n, suffix = "", loading: ld }: { n: number; suffix?: string; loading?: boolean }) => {
+    const v = useCountUp(ld ? 0 : n);
+    if (ld) return <>—</>;
+    return <>{Math.round(v)}{suffix}</>;
+  };
+
   const StatCard = ({ icon, value, label, sub, accent }: { icon: React.ReactNode; value: React.ReactNode; label: string; sub?: string; accent: string }) => (
-    <div className="glass-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: isMobile ? 16 : 20, display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
+    <div className="glass-card sa-lift" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: isMobile ? 16 : 20, display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
       <div style={{ fontSize: 18 }} aria-hidden>{icon}</div>
       <div style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, color: accent, letterSpacing: -1, lineHeight: 1 }}>{value}</div>
       <div>
@@ -135,10 +142,10 @@ export function InsightsPage({
       <div className={shellUi ? "scr" : undefined} style={{ flex: 1, overflowY: "auto", padding: shellUi ? "26px 28px 60px" : isMobile ? 16 : 24, position: "relative", zIndex: 5, minHeight: 0 }}>
         <div style={{ maxWidth: "min(1240px,100%)", width: "100%", margin: "0 auto" }}>
           <div className="sa-page-reveal" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: isMobile ? 12 : 16, marginBottom: 24 }}>
-            <StatCard icon="💚" value={loading ? "—" : m.health + "%"} label={t("ins_health", "Здоровье стратегии")} sub={m.health >= 70 ? t("ins_health_ok", "в норме") : t("ins_health_attention", "нужно внимание")} accent={m.health >= 70 ? "#34d399" : m.health >= 40 ? "#fbbf24" : "#f87171"} />
-            <StatCard icon="🎯" value={loading ? "—" : `${m.onTrack}/${m.total}`} label={t("ins_on_track", "В графике")} sub={t("ins_avg_progress", "ср. {p}%").replace("{p}", String(m.avg))} accent="#a78bfa" />
-            <StatCard icon="⚡" value={loading ? "—" : m.active} label={t("ins_active", "В работе")} sub={t("ins_completed_n", "{n} завершено").replace("{n}", String(m.completed))} accent="#22d3ee" />
-            <StatCard icon="⚠️" value={loading ? "—" : m.risks.length} label={t("ins_risks", "Риски")} sub={m.risks.length ? t("ins_monitoring", "мониторинг") : t("dash_all_clear", "всё спокойно")} accent={m.risks.length ? "#f87171" : "#34d399"} />
+            <StatCard icon="💚" value={<CountUp n={m.health} suffix="%" loading={loading} />} label={t("ins_health", "Здоровье стратегии")} sub={m.health >= 70 ? t("ins_health_ok", "в норме") : t("ins_health_attention", "нужно внимание")} accent={m.health >= 70 ? "#34d399" : m.health >= 40 ? "#fbbf24" : "#f87171"} />
+            <StatCard icon="🎯" value={loading ? "—" : <><CountUp n={m.onTrack} loading={loading} />/{m.total}</>} label={t("ins_on_track", "В графике")} sub={t("ins_avg_progress", "ср. {p}%").replace("{p}", String(m.avg))} accent="#a78bfa" />
+            <StatCard icon="⚡" value={<CountUp n={m.active} loading={loading} />} label={t("ins_active", "В работе")} sub={t("ins_completed_n", "{n} завершено").replace("{n}", String(m.completed))} accent="#22d3ee" />
+            <StatCard icon="⚠️" value={<CountUp n={m.risks.length} loading={loading} />} label={t("ins_risks", "Риски")} sub={m.risks.length ? t("ins_monitoring", "мониторинг") : t("dash_all_clear", "всё спокойно")} accent={m.risks.length ? "#f87171" : "#34d399"} />
           </div>
 
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: .8, textTransform: "uppercase", color: "var(--text4)", margin: "4px 2px 12px" }}>{t("ins_ai_section", "AI-инсайты")}</div>

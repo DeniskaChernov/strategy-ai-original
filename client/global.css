@@ -2396,6 +2396,12 @@ body,.sa-strategy-ui{transition:background-color .4s ease,color .35s ease}
 /* ── Empty state breathing glow ── */
 @keyframes saEmptyPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.75;transform:scale(1.08)}}
 @media (prefers-reduced-motion:reduce){@keyframes saEmptyPulse{0%,100%{opacity:.5;transform:none}50%{opacity:.5;transform:none}}}
+@keyframes saPulseDot{0%,100%{opacity:.45;transform:scale(.82)}50%{opacity:1;transform:scale(1.1)}}
+@media (prefers-reduced-motion:reduce){.sa-ai-ctx-dot{animation:none !important}}
+/* Hover-lift для статистических карточек (dashboard/insights) */
+.sa-lift{transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease,border-color .22s ease;will-change:transform;}
+.sa-lift:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.18);border-color:var(--glass-border-accent,var(--border));}
+@media (prefers-reduced-motion:reduce){.sa-lift{transition:none}.sa-lift:hover{transform:none;box-shadow:none}}
 
 /* ── Projects grid entrance ── */
 .sa-proj-card-icon{transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease,background .3s ease;}

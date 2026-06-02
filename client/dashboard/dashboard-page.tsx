@@ -3,6 +3,7 @@ import { API_BASE, getProjects } from "../api";
 import { getMapsByProject } from "../lib/maps-api";
 import { useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
+import { useCountUp } from "../hooks/use-count-up";
 import { TIERS } from "../lib/tiers";
 import { getSTATUS } from "../lib/strategy-labels";
 import { useNotifications } from "../hooks/use-notifications";
@@ -117,8 +118,14 @@ export function DashboardPage({
     return t("days_ago_n", "{n} дн. назад").replace("{n}", String(d));
   }
 
+  const CountUp = ({ n, suffix = "", loading: ld }: { n: number; suffix?: string; loading?: boolean }) => {
+    const v = useCountUp(ld ? 0 : n);
+    if (ld) return <>—</>;
+    return <>{Math.round(v)}{suffix}</>;
+  };
+
   const StatCard = ({ icon, value, label, sub, accent }: { icon: React.ReactNode; value: React.ReactNode; label: string; sub?: string; accent: string }) => (
-    <div className="sa-dash-stat glass-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: isMobile ? 16 : 20, display: "flex", flexDirection: "column", gap: 10, minWidth: 0 }}>
+    <div className="sa-dash-stat glass-card sa-lift" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: isMobile ? 16 : 20, display: "flex", flexDirection: "column", gap: 10, minWidth: 0 }}>
       <div style={{ width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, background: accent + "1f", color: accent }}>{icon}</div>
       <div style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, color: accent, letterSpacing: -1, lineHeight: 1 }}>{value}</div>
       <div>
@@ -179,10 +186,10 @@ export function DashboardPage({
 
           {/* stat cards */}
           <div className="sa-page-reveal sa-pr-d1" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: isMobile ? 12 : 16, marginBottom: 24 }}>
-            <StatCard icon={<>📁</>} value={loading ? "—" : stats.projects} label={t("dash_projects", "Проекты")} sub={t("dash_projects_sub", "активные")} accent="#a78bfa" />
-            <StatCard icon={<>◈</>} value={loading ? "—" : stats.nodes} label={t("dash_nodes", "Узлы стратегии")} sub={t("dash_on_track", "{n} в работе").replace("{n}", String(stats.onTrack))} accent="#34d399" />
-            <StatCard icon={<>📈</>} value={loading ? "—" : stats.progress + "%"} label={t("dash_avg_progress", "Средний прогресс")} sub={t("dash_overall", "по всем картам")} accent="#fbbf24" />
-            <StatCard icon={<>⚠️</>} value={loading ? "—" : stats.risks} label={t("dash_active_risks", "Активные риски")} sub={stats.risks ? t("dash_review_needed", "нужна проверка") : t("dash_all_clear", "всё спокойно")} accent={stats.risks ? "#f87171" : "#34d399"} />
+            <StatCard icon={<>📁</>} value={<CountUp n={stats.projects} loading={loading} />} label={t("dash_projects", "Проекты")} sub={t("dash_projects_sub", "активные")} accent="#a78bfa" />
+            <StatCard icon={<>◈</>} value={<CountUp n={stats.nodes} loading={loading} />} label={t("dash_nodes", "Узлы стратегии")} sub={t("dash_on_track", "{n} в работе").replace("{n}", String(stats.onTrack))} accent="#34d399" />
+            <StatCard icon={<>📈</>} value={<CountUp n={stats.progress} suffix="%" loading={loading} />} label={t("dash_avg_progress", "Средний прогресс")} sub={t("dash_overall", "по всем картам")} accent="#fbbf24" />
+            <StatCard icon={<>⚠️</>} value={<CountUp n={stats.risks} loading={loading} />} label={t("dash_active_risks", "Активные риски")} sub={stats.risks ? t("dash_review_needed", "нужна проверка") : t("dash_all_clear", "всё спокойно")} accent={stats.risks ? "#f87171" : "#34d399"} />
           </div>
 
           {/* two columns: recent activity + goals */}

@@ -40,28 +40,54 @@ export function AiAdvisorPage({
   const [projects, setProjects] = useState<any[]>([]);
   const [allNodes, setAllNodes] = useState<any[]>([]);
   const [allEdges, setAllEdges] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let alive = true;
     (async () => {
+      setLoading(true); setLoadErr(null);
       try {
         const ps = await getProjects(user.email);
         const list = Array.isArray(ps) ? ps : [];
+        if (!alive) return;
         setProjects(list);
         const byProj = await getMapsByProject(list.map((p: any) => p.id));
         const ns: any[] = []; const es: any[] = [];
         for (const ms of Object.values(byProj)) {
           for (const mm of (ms || [])) { (mm.nodes || []).forEach((n: any) => ns.push(n)); (mm.edges || []).forEach((e: any) => es.push(e)); }
         }
+        if (!alive) return;
         setAllNodes(ns); setAllEdges(es);
-      } catch { setProjects([]); setAllNodes([]); setAllEdges([]); }
+      } catch (e: any) {
+        if (!alive) return;
+        setProjects([]); setAllNodes([]); setAllEdges([]);
+        setLoadErr(e?.message || t("ai_ctx_load_err", "Не удалось загрузить контекст портфеля"));
+      } finally { if (alive) setLoading(false); }
     })();
-  }, [user?.email]);
+    return () => { alive = false; };
+  }, [user?.email, reloadKey]);
 
   useEffect(() => { document.title = t("ai_doc_title", "Strategy AI — AI советник"); }, [t]);
 
   const ctx = useMemo(() => `Портфель: ${projects.slice(0, 20).map((p) => `«${p.name}»`).join(", ")}. Проектов: ${projects.length}, узлов: ${allNodes.length}.`, [projects, allNodes.length]);
 
   const shellUi = !!user && !isMobile;
+
+  const ctxStrip = (
+    <div style={{ maxWidth: "min(1040px,100%)", width: "100%", margin: "0 auto", padding: shellUi ? "0 24px 10px" : "0 12px 10px" }}>
+      <div className="sa-page-reveal" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "9px 14px", borderRadius: 12, background: "var(--surface)", border: "1px solid var(--border)", fontSize: 12.5, color: "var(--text3)" }}>
+        {loading ? (
+          <><span className="sa-ai-ctx-dot" style={{ width: 8, height: 8, borderRadius: 999, background: "var(--acc,#a78bfa)", animation: "saPulseDot 1s ease-in-out infinite" }} aria-hidden />{t("ai_ctx_loading", "Загружаю контекст портфеля…")}</>
+        ) : loadErr ? (
+          <><span aria-hidden>⚠️</span><span style={{ color: "var(--text2)" }}>{loadErr}</span><button type="button" onClick={() => setReloadKey((k) => k + 1)} style={{ marginLeft: "auto", background: "none", border: "1px solid var(--border)", borderRadius: 8, padding: "3px 10px", color: "var(--acc,#a78bfa)", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>{t("retry", "Повторить")}</button></>
+        ) : (
+          <><span aria-hidden style={{ color: "#34d399" }}>✦</span><span><b style={{ color: "var(--text2)" }}>{t("ai_ctx_ready", "AI видит ваш портфель")}:</b> {t("ai_ctx_summary", "{p} проектов · {n} узлов · {e} связей").replace("{p}", String(projects.length)).replace("{n}", String(allNodes.length)).replace("{e}", String(allEdges.length))}</span></>
+        )}
+      </div>
+    </div>
+  );
 
   const chat = (
     <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", maxWidth: "min(1040px,100%)", width: "100%", margin: "0 auto", padding: shellUi ? "0 24px 16px" : 0 }}>
@@ -103,7 +129,7 @@ export function AiAdvisorPage({
           </div>
         </div>
       )}
-      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: shellUi ? 18 : 12 }}>{chat}</div>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: shellUi ? 18 : 12 }}>{ctxStrip}{chat}</div>
     </>
   );
 
