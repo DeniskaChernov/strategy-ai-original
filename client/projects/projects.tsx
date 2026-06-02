@@ -474,19 +474,30 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
                 const myRole=p.owner===user.email?"owner":p.members?.find(m=>m.email===user.email)?.role;
                 const roleLabel=ROLES[myRole]?.label||"";
                 const icon=((p.name||"P").trim()[0]||"P").toUpperCase();
+                const mapsCount=pm.filter(m=>!m.isScenario).length;
+                const scenCount=pm.filter(m=>m.isScenario).length;
+                const allNodes=pm.flatMap(m=>m.nodes||[]);
+                const stepsCount=allNodes.length;
+                const membersList=p.members?.length?p.members:[{email:p.owner,role:"owner"}];
+                const membersCount=membersList.length;
+                const pct=stepsCount?Math.round(allNodes.reduce((s,n)=>s+(Number(n.progress)||0),0)/stepsCount):0;
+                const editedTs=(p as any).updatedAt||(p as any).updated_at||p.createdAt||p.created_at;
+                const editedLabel=editedTs?(()=>{const diff=Date.now()-editedTs;const d=Math.floor(diff/864e5);if(d<=0)return t("edited_today","Изменён сегодня");if(d===1)return t("edited_yesterday","Изменён вчера");return t("edited_on","Изменён {d}").replace("{d}",new Date(editedTs).toLocaleDateString(lang==="en"?"en-US":lang==="uz"?"uz-UZ":"ru",{day:"numeric",month:"short"}));})():"—";
+                const desc=(p as any).description||"";
+                const StatBox=({n,label}:{n:number;label:string})=>(
+                  <div style={{flex:1,minWidth:0,textAlign:"center",padding:"8px 4px",borderRadius:10,background:"var(--surface)",border:"1px solid var(--border)"}}>
+                    <div style={{fontSize:16,fontWeight:900,color:"var(--text)",lineHeight:1}}>{n}</div>
+                    <div style={{fontSize:9.5,fontWeight:800,letterSpacing:.5,textTransform:"uppercase",color:"var(--text5)",marginTop:3}}>{label}</div>
+                  </div>
+                );
                 return(
                   <div key={p.id} onClick={()=>onSelectProject(p)} className="icard card-stagger card-interactive"
-                    style={{padding:"22px 22px 18px",borderRadius:18,background:"var(--card)",border:"1px solid var(--border)",cursor:"pointer",position:"relative",display:"flex",flexDirection:"column",animationDelay:`${i*0.06}s`}}>
-                    <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:14}}>
-                      <div className="sa-proj-card-icon" style={{width:40,height:40,borderRadius:12,background:"var(--surface2)",border:"1px solid var(--glass-border-accent,var(--border))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0,color:"var(--text2)",fontWeight:900,letterSpacing:.3}}>{icon}</div>
+                    style={{padding:"20px 20px 16px",borderRadius:18,background:"var(--card)",border:"1px solid var(--border)",cursor:"pointer",position:"relative",display:"flex",flexDirection:"column",gap:14,animationDelay:`${i*0.06}s`}}>
+                    <div style={{display:"flex",alignItems:"flex-start",gap:13}}>
+                      <div className="sa-proj-card-icon" style={{width:44,height:44,borderRadius:13,background:"linear-gradient(135deg,var(--accent-soft),transparent)",border:"1px solid var(--glass-border-accent,var(--border))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0,color:"var(--accent-1,var(--text2))",fontWeight:900}}>{icon}</div>
                       <div style={{flex:1,minWidth:0}}>
-                        <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0,marginBottom:2}}>
-                          <div className="icard-title" style={{fontSize:14,fontWeight:800,color:"var(--text)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{p.name}</div>
-                          <span style={{flexShrink:0,padding:"2px 7px",borderRadius:999,border:"1px solid var(--border)",background:"var(--surface2)",fontSize:10,fontWeight:800,color:"var(--text4)",textTransform:"uppercase",letterSpacing:".04em"}}>
-                            {tier.label}
-                          </span>
-                        </div>
-                        <div className="icard-desc" style={{fontSize:13}}>{roleLabel} · {(p.createdAt||p.created_at)?new Date(p.createdAt||p.created_at).toLocaleDateString(lang==="en"?"en-US":lang==="uz"?"uz-UZ":"ru",{day:"numeric",month:"short"}):"—"}</div>
+                        <div className="icard-title" style={{fontSize:15,fontWeight:800,color:"var(--text)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{p.name}</div>
+                        <div style={{fontSize:10,fontWeight:800,letterSpacing:.5,textTransform:"uppercase",color:"var(--text5)",marginTop:3}}>{roleLabel||t("role_owner","Владелец")}</div>
                       </div>
                       <div className="sa-proj-kebab" style={{position:"relative"}}>
                         <button type="button" aria-haspopup="menu" aria-expanded={kebabId===p.id} aria-label={t("more_actions","Действия")} onClick={(e)=>{e.stopPropagation();setKebabId(kebabId===p.id?null:p.id);}} style={{width:28,height:28,borderRadius:8,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text3)",cursor:"pointer",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:16,lineHeight:1,padding:0}}>⋯</button>
@@ -504,34 +515,41 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
                         )}
                       </div>
                     </div>
-                    {/* Progress bar based on completed nodes */}
-                    {(()=>{
-                      const allNodes=pm.flatMap(m=>m.nodes||[]);
-                      const totalN=allNodes.length;
-                      const doneN=allNodes.filter(n=>n.status==="completed").length;
-                      const pct=totalN?Math.round(doneN/totalN*100):0;
-                      if(totalN===0)return null;
-                      return(
-                        <div style={{marginBottom:10}}>
-                          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                            <span style={{fontSize:13,color:"var(--text5)",letterSpacing:".01em"}}>{t("progress","Прогресс")}</span>
-                            <span style={{fontSize:13,fontWeight:800,color:"#12c482"}}>{pct}%</span>
-                          </div>
-                          <div className="sa-proj-progress" style={{height:6}}>
-                            <div className="sa-proj-progress__fill" style={{width:"100%",["--pp" as any]:(pct/100).toFixed(3)}}/>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:"auto"}}>
-                      <div style={{padding:"3px 9px",borderRadius:999,background:"var(--surface)",border:"1px solid var(--border)",fontSize:12.5,color:"var(--text4)",fontWeight:700}}>{pm.filter(m=>!m.isScenario).length} {t("maps","карт")}</div>
-                      {pm.filter(m=>m.isScenario).length>0&&<div style={{padding:"3px 9px",borderRadius:999,background:"var(--surface)",border:"1px solid var(--border)",fontSize:12.5,color:"var(--text4)",fontWeight:700}}>{pm.filter(m=>m.isScenario).length} {t("scenarios_short","сцен.")}</div>}
-                      {(()=>{const n=pm.flatMap(m=>m.nodes||[]).length;return n>0?<div style={{padding:"3px 9px",borderRadius:999,background:"var(--surface)",border:"1px solid var(--border)",fontSize:12.5,color:"var(--text4)",fontWeight:700}}>{n} {t("steps_label","шагов")}</div>:null;})()}
-                      {p.members?.length>1&&<div style={{padding:"3px 9px",borderRadius:999,background:"var(--surface)",border:"1px solid var(--border)",fontSize:12.5,color:"var(--text4)",fontWeight:700}}>{p.members.length} {t("members","участников")}</div>}
+                    {desc&&<div style={{fontSize:12.5,color:"var(--text3)",lineHeight:1.5,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{desc}</div>}
+                    <div style={{display:"flex",gap:7}}>
+                      <StatBox n={mapsCount} label={t("maps","карт")}/>
+                      <StatBox n={scenCount} label={t("scenarios_short","сцен.")}/>
+                      <StatBox n={stepsCount} label={t("steps_label","шагов")}/>
+                      <StatBox n={membersCount} label={t("members","уч.")}/>
+                    </div>
+                    <div>
+                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                        <span style={{fontSize:12,color:"var(--text5)"}}>{t("overall_progress","Общий прогресс")}</span>
+                        <span style={{fontSize:12,fontWeight:800,color:"var(--accent-1,#a78bfa)"}}>{pct}%</span>
+                      </div>
+                      <div className="sa-proj-progress" style={{height:6}}>
+                        <div className="sa-proj-progress__fill" style={{width:"100%",["--pp" as any]:(pct/100).toFixed(3)}}/>
+                      </div>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:"auto"}}>
+                      <span style={{fontSize:11.5,color:"var(--text5)"}}>{editedLabel}</span>
+                      <div style={{display:"flex",alignItems:"center"}}>
+                        {membersList.slice(0,4).map((mem:any,mi:number)=>{
+                          const mInit=((mem.email||"?").trim()[0]||"?").toUpperCase();
+                          return<div key={mi} title={mem.email} style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,var(--acc,#a78bfa),var(--acc2,#7c5cff))",border:"1.5px solid var(--card)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9.5,fontWeight:800,color:"#fff",marginLeft:mi?-7:0,flexShrink:0}}>{mInit}</div>;
+                        })}
+                        {membersList.length>4&&<div style={{width:22,height:22,borderRadius:"50%",background:"var(--surface2)",border:"1.5px solid var(--card)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,color:"var(--text4)",marginLeft:-7}}>+{membersList.length-4}</div>}
+                      </div>
                     </div>
                   </div>
                 );
               })}
+              {!loading&&filtered.length>0&&!atLimit&&(
+                <button type="button" onClick={()=>setCreating(true)} className="card-stagger" style={{minHeight:200,borderRadius:18,background:"transparent",border:"1.5px dashed var(--border)",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,color:"var(--text4)",transition:"border-color .2s, color .2s"}} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--accent-1,#a78bfa)";(e.currentTarget as HTMLElement).style.color="var(--accent-1,#a78bfa)";}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--border)";(e.currentTarget as HTMLElement).style.color="var(--text4)";}}>
+                  <div style={{width:44,height:44,borderRadius:13,border:"1.5px solid currentColor",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,fontWeight:300,lineHeight:1}}>+</div>
+                  <div style={{fontSize:13.5,fontWeight:800}}>{t("new_project","Новый проект")}</div>
+                </button>
+              )}
               {!filtered.length&&!loading&&(
                 <div className="card-stagger" style={{gridColumn:"1/-1",textAlign:"center",padding:"64px 24px",color:"var(--text4)",display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
                   <div aria-hidden style={{width:88,height:88,borderRadius:26,background:"linear-gradient(135deg,var(--accent-soft),transparent 80%)",border:"1px solid var(--glass-border-accent,var(--border))",display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
@@ -720,6 +738,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
   const creatingRef=useRef(false);
 
   const tier=TIERS[user.tier]||TIERS.free;
+  const ROLES=getROLES(t);
   const isOwner=proj.owner===user.email;
   const myRole=proj.members?.find(m=>m.email===user.email)?.role||"owner";
   const canEdit=myRole==="owner"||myRole==="editor";
@@ -887,21 +906,25 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
         </div>
       )}
 
-      {totalNodes>0&&(
-        <div className="sa-proj-stats sa-page-reveal sa-pr-d1">
+      <div className="sa-page-reveal sa-pr-d1" style={{maxWidth:1000,width:"100%",margin:"0 auto",padding:isMobile?"18px 20px 0":"24px 32px 0"}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:isMobile?12:16}}>
           {[
-            {label:"Шагов всего",val:totalNodes,color:"var(--acc)"},
-            {label:"Завершено",val:`${doneNodes} (${totalNodes?Math.round(doneNodes/totalNodes*100):0}%)`,color:"var(--green)"},
-            {label:t("avg_prog","Средний прогресс"),val:`${avgProgress}%`,color:"var(--acc2)"},
-            ...(overdueCount>0?[{label:t("overdue","Просрочено"),val:overdueCount,color:"var(--red)"}]:[]),
+            {icon:"📈",label:t("overall_progress","Общий прогресс"),val:`${avgProgress}%`,sub:overdueCount>0?t("overdue_n","{n} просрочено").replace("{n}",String(overdueCount)):t("on_track","в графике"),color:avgProgress>=60?"#34d399":avgProgress>=30?"#fbbf24":"#a78bfa"},
+            {icon:"◈",label:t("total_steps","Всего шагов"),val:totalNodes,sub:t("completed_n","{n} завершено").replace("{n}",String(doneNodes)),color:"#22d3ee"},
+            {icon:"🗺️",label:t("strategy_maps","Стратегические карты"),val:regularMaps.length,sub:t("pd_sub_sc","{n} сцен.").replace("{n}",String(scenarios.length)),color:"#a78bfa"},
+            {icon:"👥",label:t("members","участников"),val:(proj.members||[]).length||1,sub:isOwner?t("role_owner","Владелец"):(ROLES[myRole]?.label||""),color:"#fbbf24"},
           ].map(s=>(
-            <div key={s.label} className="sps-block">
-              <div className="sps-lbl">{s.label}</div>
-              <div className="sps-val" style={{color:s.color}}>{s.val}</div>
+            <div key={s.label} className="glass-card" style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:16,padding:isMobile?14:18,display:"flex",flexDirection:"column",gap:8,minWidth:0}}>
+              <div style={{fontSize:17}} aria-hidden>{s.icon}</div>
+              <div style={{fontSize:isMobile?22:28,fontWeight:900,color:s.color,letterSpacing:-1,lineHeight:1}}>{s.val}</div>
+              <div>
+                <div style={{fontSize:10.5,fontWeight:800,letterSpacing:.6,textTransform:"uppercase",color:"var(--text4)"}}>{s.label}</div>
+                {s.sub&&<div style={{fontSize:11.5,color:"var(--text3)",marginTop:2}}>{s.sub}</div>}
+              </div>
             </div>
           ))}
         </div>
-      )}
+      </div>
 
       <div className="sa-proj-tabs sa-page-reveal sa-pr-d2" role="tablist">
         {([
@@ -941,6 +964,31 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
                 {regularMaps.map((m,i)=><MapCard key={m.id} m={m} isSc={false} staggerIndex={i}/>)}
               </div>
             )}
+            {(()=>{
+              const acts=[...maps].filter(m=>(m as any).updatedAt||(m as any).updated_at).map(m=>({name:m.name||t("untitled","Без названия"),at:(m as any).updatedAt||(m as any).updated_at,n:(m.nodes||[]).length})).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
+              if(acts.length===0)return null;
+              return(
+                <div style={{marginTop:28}}>
+                  <div style={{fontSize:11,fontWeight:800,letterSpacing:.8,textTransform:"uppercase",color:"var(--text4)",marginBottom:12}}>{t("dash_recent_activity","Недавняя активность")}</div>
+                  <div className="glass-card" style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:16,padding:"6px 16px"}}>
+                    {acts.map((a,i)=>{
+                      const diff=Date.now()-(a.at||0);const h=Math.floor(diff/3.6e6);const d=Math.floor(h/24);
+                      const rel=h<1?t("just_now","только что"):h<24?t("hours_ago","{n} ч. назад").replace("{n}",String(h)):d===1?t("yesterday","вчера"):t("days_ago_n","{n} дн. назад").replace("{n}",String(d));
+                      return(
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 0",borderBottom:i<acts.length-1?"1px solid var(--border)":"none"}}>
+                          <div style={{width:30,height:30,borderRadius:9,background:"var(--surface2)",border:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}} aria-hidden>🗺️</div>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:13.5,fontWeight:700,color:"var(--text)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.name}</div>
+                            <div style={{fontSize:12,color:"var(--text4)"}}>{t("dash_nodes_count","{n} узлов").replace("{n}",String(a.n))}</div>
+                          </div>
+                          <div style={{fontSize:11.5,color:"var(--text5)",flexShrink:0}}>{rel}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 

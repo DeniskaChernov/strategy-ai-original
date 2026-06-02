@@ -92,6 +92,8 @@ import { RichEditorPanel } from "./client/map-editor/rich-editor-panel";
 import { AiPanel } from "./client/map-editor/ai-panel";
 import { MapEditor } from "./client/map-editor/map-editor";
 import { DashboardPage } from "./client/dashboard/dashboard-page";
+import { InsightsPage } from "./client/insights/insights-page";
+import { AiAdvisorPage } from "./client/ai-advisor/ai-advisor-page";
 import type { StrategyShellNav } from "./strategy-shell-sidebar";
 
 const ROLES_C  ={owner:"#6836f5",editor:"#12c482",viewer:"#a8a4c8"};
@@ -2837,8 +2839,10 @@ export default function App(){
     if(nav==="dashboard"){setMapData(null);setProject(null);setCpProject(null);setCpMaps([]);setScreen("dashboard");return;}
     if(nav==="projects"){setMapData(null);setProject(null);setScreen("projects");return;}
     if(nav==="contentPlan"){setScreen("contentPlanHub");return;}
+    if(nav==="ai"){setScreen("ai");return;}
+    if(nav==="insights"){setScreen("insights");return;}
     if(nav==="settings"||nav==="team"){setShowProfile(true);return;}
-    // экраны ai/insights/map/scenarios/timeline пока открываются из рабочей области проекта
+    // экраны map/scenarios/timeline открываются из рабочей области проекта
     setScreen("projects");
   }
 
@@ -3046,6 +3050,40 @@ export default function App(){
             {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
           </div>
         )}
+        {screen==="insights"&&user&&(
+          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
+            <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
+            <EmailVerifyBanner user={user}/>
+            <InsightsPage
+              user={user} theme={theme}
+              onToggleTheme={toggleTheme}
+              onProfile={()=>setShowProfile(true)}
+              onLogout={onLogout}
+              onChangeTier={()=>setShowTiers(true)}
+              onShellNav={handleGlobalNav}
+              onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
+            />
+            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
+          </div>
+        )}
+        {screen==="ai"&&user&&(
+          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
+            <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
+            <EmailVerifyBanner user={user}/>
+            <AiAdvisorPage
+              user={user} theme={theme}
+              onToggleTheme={toggleTheme}
+              onProfile={()=>setShowProfile(true)}
+              onLogout={onLogout}
+              onChangeTier={()=>setShowTiers(true)}
+              onShellNav={handleGlobalNav}
+              onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
+              aiChatMsgs={aiChatMsgs}
+              aiChatSetMsgs={setAiChatMsgs}
+            />
+            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
+          </div>
+        )}
         {screen==="projects"&&user&&(
           <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
             <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
@@ -3063,6 +3101,8 @@ export default function App(){
               onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
               onOpenContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);setScreen("contentPlanProject");}}
               onGoToDashboard={()=>setScreen("dashboard")}
+              onGoToAi={()=>setScreen("ai")}
+              onGoToInsights={()=>setScreen("insights")}
             />
             {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
           </div>
