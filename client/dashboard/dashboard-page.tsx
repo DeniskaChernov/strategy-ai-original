@@ -17,6 +17,13 @@ import { FloatingAiAssistant } from "../floating-ai-assistant";
 
 type ProjLite = { id: string; name: string; owner?: string; updatedAt?: number; updated_at?: number };
 
+function toMs(v: unknown): number {
+  if (v == null) return 0;
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+  const n = Date.parse(String(v));
+  return Number.isFinite(n) ? n : 0;
+}
+
 export function DashboardPage({
   user,
   theme,
@@ -92,8 +99,9 @@ export function DashboardPage({
   const recent = useMemo(() => {
     return allMaps
       .filter((m: any) => m?.updatedAt || m?.updated_at)
-      .map((m: any) => ({ name: m.name || t("untitled", "Без названия"), at: m.updatedAt || m.updated_at, nodes: (m.nodes || []).length }))
-      .sort((a, b) => (b.at || 0) - (a.at || 0))
+      .map((m: any) => ({ name: m.name || t("untitled", "Без названия"), at: toMs(m.updatedAt || m.updated_at), nodes: (m.nodes || []).length }))
+      .filter((m) => m.at > 0)
+      .sort((a, b) => b.at - a.at)
       .slice(0, 5);
   }, [allMaps, t]);
 
@@ -109,7 +117,8 @@ export function DashboardPage({
 
   function relTime(ts?: number) {
     if (!ts) return "";
-    const diff = Date.now() - ts;
+    const diff = Date.now() - toMs(ts);
+    if (!Number.isFinite(diff)) return "";
     const h = Math.floor(diff / 3.6e6);
     if (h < 1) return t("just_now", "только что");
     if (h < 24) return t("hours_ago", "{n} ч. назад").replace("{n}", String(h));

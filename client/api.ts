@@ -87,7 +87,10 @@ export async function apiFetch(path: string, opts: RequestInit = {}, retry = tru
   const r = await fetch(`${API_BASE}${path}`, { ...opts, headers });
   if (r.status === 204) return {};
 
-  if (r.status === 401 && retry) {
+  // 401 без токена — это не «протухшая сессия», а обычная ошибка авторизации
+  // (например, неверный email/пароль на /api/auth/login). Не пытаемся обновлять
+  // токен и не бросаем session_expired, чтобы наверх дошёл реальный текст ошибки.
+  if (r.status === 401 && retry && jwt) {
     const refreshed = await tryRefreshToken();
     if (refreshed) return apiFetch(path, opts, false);
     clearJWT();
