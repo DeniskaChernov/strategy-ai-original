@@ -92,7 +92,7 @@ import { ContentPlanTab } from "../content-plan/content-plan-tab";
 type ProjectLite={id:string;name:string;owner:string;members?:Array<{email:string;role:string}>;createdAt?:number;created_at?:number};
 type MapLite={id:string;name?:string;isScenario?:boolean;nodes?:any[];edges?:any[]};
 
-export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTier,onProfile,theme,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onOpenContentPlanHub,onOpenContentPlanProject}){
+export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTier,onProfile,theme,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onOpenContentPlanHub,onOpenContentPlanProject,onGoToDashboard}){
   const{t,lang,setLang}=useLang();
   const isMobile=useIsMobile();
   const ROLES=getROLES(t);
@@ -237,6 +237,7 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
 
   function handleProjectsShellNav(nav:StrategyShellNav){
     if(nav==="projects")return;
+    if(nav==="dashboard"){onGoToDashboard?.();return;}
     if(nav==="settings"){onProfile();return;}
     if(nav==="map"){
       if(lastMapData&&lastProj)onOpenMap(lastMapData,lastProj,false,false);

@@ -91,6 +91,8 @@ import { NodeCard } from "./client/map-editor/node-card";
 import { RichEditorPanel } from "./client/map-editor/rich-editor-panel";
 import { AiPanel } from "./client/map-editor/ai-panel";
 import { MapEditor } from "./client/map-editor/map-editor";
+import { DashboardPage } from "./client/dashboard/dashboard-page";
+import type { StrategyShellNav } from "./strategy-shell-sidebar";
 
 const ROLES_C  ={owner:"#6836f5",editor:"#12c482",viewer:"#a8a4c8"};
 const STATUS  ={planning:{c:"#6836f5"},active:{c:"#06b6d4"},completed:{c:"#12c482"},paused:{c:"#f09428"},blocked:{c:"#f04458"}};
@@ -2813,13 +2815,13 @@ export default function App(){
     try{
       if(user){
         window.history.replaceState({},"","/app");
-        setScreen("projects");
+        setScreen("dashboard");
       }else{
         window.history.pushState({},"","/");
         setScreen("landing");
       }
     }catch{
-      setScreen(user?"projects":"landing");
+      setScreen(user?"dashboard":"landing");
     }
   }
 
@@ -2828,7 +2830,16 @@ export default function App(){
     setUser(u);setShowAuth(false);
     try{window.history.replaceState({},"","/app");}catch{}
     if(isNew){setShowTiers(true);}
-    else{setScreen("projects");}
+    else{setScreen("dashboard");}
+  }
+
+  function handleGlobalNav(nav:StrategyShellNav){
+    if(nav==="dashboard"){setMapData(null);setProject(null);setCpProject(null);setCpMaps([]);setScreen("dashboard");return;}
+    if(nav==="projects"){setMapData(null);setProject(null);setScreen("projects");return;}
+    if(nav==="contentPlan"){setScreen("contentPlanHub");return;}
+    if(nav==="settings"||nav==="team"){setShowProfile(true);return;}
+    // экраны ai/insights/map/scenarios/timeline пока открываются из рабочей области проекта
+    setScreen("projects");
   }
 
   async function onChangeTier(t){
@@ -2914,8 +2925,8 @@ export default function App(){
         }
         if(mp.type==="home"){setScreen("landing");return;}
       }else{
-        if(mp.type==="home"){try{window.history.replaceState({},"","/app");}catch{}setScreen("projects");return;}
-        if(mp.type==="app"){setScreen("projects");}
+        if(mp.type==="home"){try{window.history.replaceState({},"","/app");}catch{}setScreen("dashboard");return;}
+        if(mp.type==="app"){setScreen("dashboard");}
       }
     };
     window.addEventListener("popstate",onPop);
@@ -2929,7 +2940,8 @@ export default function App(){
       if(screen==="map"&&project){setMapData(null);setScreen("project");}
       else if(screen==="project"&&project){setProject(null);setScreen("projects");}
       else if(screen==="contentPlanProject"&&cpProject){setCpProject(null);setCpMaps([]);setScreen("contentPlanHub");}
-      else if(screen==="contentPlanHub"){setScreen("projects");}
+      else if(screen==="contentPlanHub"){setScreen("dashboard");}
+      else if(screen==="projects"){setScreen("dashboard");}
     };
     window.addEventListener("popstate",h);
     return()=>window.removeEventListener("popstate",h);
@@ -3015,6 +3027,25 @@ export default function App(){
             aiChatSetMsgs={setAiChatMsgs}
           />
         )}
+        {screen==="dashboard"&&user&&(
+          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
+            <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
+            <EmailVerifyBanner user={user}/>
+            <DashboardPage
+              user={user} theme={theme}
+              onToggleTheme={toggleTheme}
+              onProfile={()=>setShowProfile(true)}
+              onLogout={onLogout}
+              onChangeTier={()=>setShowTiers(true)}
+              onShellNav={handleGlobalNav}
+              onOpenProject={onSelectProject}
+              onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
+              aiChatMsgs={aiChatMsgs}
+              aiChatSetMsgs={setAiChatMsgs}
+            />
+            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
+          </div>
+        )}
         {screen==="projects"&&user&&(
           <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
             <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
@@ -3031,6 +3062,7 @@ export default function App(){
               aiChatSetMsgs={setAiChatMsgs}
               onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
               onOpenContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);setScreen("contentPlanProject");}}
+              onGoToDashboard={()=>setScreen("dashboard")}
             />
             {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
           </div>
@@ -3118,7 +3150,8 @@ export default function App(){
                 }catch{}
               }}
               onShellGlobalNav={(nav)=>{
-                if(nav==="projects"||nav==="dashboard"){setMapData(null);setProject(null);setScreen("projects");}
+                if(nav==="dashboard"){setMapData(null);setProject(null);setScreen("dashboard");return;}
+                if(nav==="projects"){setMapData(null);setProject(null);setScreen("projects");return;}
                 if(nav==="contentPlan")setScreen("contentPlanHub");
               }}
               aiChatMsgs={aiChatMsgs}
