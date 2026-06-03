@@ -35,7 +35,7 @@ export function AppTopBar({
           {title}
         </div>
         {subtitle ? (
-          <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text5)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text3)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {subtitle}
           </div>
         ) : null}

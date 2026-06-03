@@ -64,6 +64,9 @@ export function StrategyShellSidebar({
   showContentPlan,
   onContentPlan,
   showTrialBanner,
+  trialDaysLeft,
+  onWeeklyBriefing,
+  briefingHint,
   onLogoClick,
   collapsed,
   t,
@@ -87,6 +90,11 @@ export function StrategyShellSidebar({
   showContentPlan?: boolean;
   onContentPlan?: () => void;
   showTrialBanner?: boolean;
+  /** Оставшихся дней trial (для карточки в сайдбаре) */
+  trialDaysLeft?: number | null;
+  /** Открыть еженедельный брифинг */
+  onWeeklyBriefing?: () => void;
+  briefingHint?: string;
   /** Клик по бренду в шапке сайдбара (например «домой» → проекты) */
   onLogoClick?: () => void;
   /** Скрытый бок (даёт больше места карте) */
@@ -203,10 +211,23 @@ export function StrategyShellSidebar({
         </div>
       )}
       <div className="sb-bottom">
+        {onWeeklyBriefing&&(
+          <div className="sb-briefing" onClick={onWeeklyBriefing} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onWeeklyBriefing();}}>
+            <div className="sb-briefing-ic" aria-hidden>📋</div>
+            <div className="sb-briefing-body">
+              <div className="sb-briefing-title">{t("weekly_briefing_short", "Брифинг")}</div>
+              <div className="sb-briefing-sub">{briefingHint || t("shell_briefing_sub", "Здоровье стратегии")}</div>
+            </div>
+          </div>
+        )}
         {showTrialBanner&&(
           <div className="sb-trial" onClick={onTierClick} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onTierClick();}}>
-            <div className="sb-trial-title">⚡ {t("shell_trial_title", "Улучшите тариф")}</div>
-            <div className="sb-trial-sub">{t("shell_trial_sub", "Откройте все функции Strategy AI")}</div>
+            <div className="sb-trial-title">
+              {trialDaysLeft != null && trialDaysLeft > 0
+                ? t("shell_trial_days", "{n} days left").replace("{n}", String(trialDaysLeft))
+                : <>⚡ {t("shell_trial_title", "Upgrade plan")}</>}
+            </div>
+            <div className="sb-trial-sub">{t("shell_trial_sub", "Upgrade to keep Pro features")}</div>
           </div>
         )}
         <div className="sb-user" onClick={onUserCard} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onUserCard();}}>

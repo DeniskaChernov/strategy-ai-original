@@ -167,6 +167,19 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
   }
   useEffect(()=>{loadProjects();},[]);
 
+  useEffect(()=>{
+    try{
+      if(sessionStorage.getItem("sa_open_new_project")==="1"){
+        sessionStorage.removeItem("sa_open_new_project");
+        setCreating(true);
+      }
+      if(sessionStorage.getItem("sa_focus_search")==="1"){
+        sessionStorage.removeItem("sa_focus_search");
+        setShowMobileSearch(true);
+      }
+    }catch{/* — */}
+  },[]);
+
   useEffect(()=>{document.title=loading?t("doc_title_loading","Strategy AI — Загрузка…"):t("doc_title_projects","Strategy AI — Проекты");},[loading,t]);
 
   useEffect(()=>{
