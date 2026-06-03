@@ -92,7 +92,14 @@ import { ContentPlanTab } from "../content-plan/content-plan-tab";
 type ProjectLite={id:string;name:string;owner:string;members?:Array<{email:string;role:string}>;createdAt?:number;created_at?:number};
 type MapLite={id:string;name?:string;isScenario?:boolean;nodes?:any[];edges?:any[]};
 
-export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTier,onProfile,theme,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onOpenContentPlanHub,onOpenContentPlanProject,onGoToDashboard}){
+function toMs(v: unknown): number {
+  if (v == null) return 0;
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+  const n = Date.parse(String(v));
+  return Number.isFinite(n) ? n : 0;
+}
+
+export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTier,onProfile,theme,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onOpenContentPlanHub,onOpenContentPlanProject,onGoToDashboard,onGoToAi,onGoToInsights}:any){
   const{t,lang,setLang}=useLang();
   const isMobile=useIsMobile();
   const ROLES=getROLES(t);
@@ -236,6 +243,7 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
   function handleProjectsShellNav(nav:StrategyShellNav){
     if(nav==="projects")return;
     if(nav==="dashboard"){onGoToDashboard?.();return;}
+    if(nav==="insights"){onGoToInsights?.();return;}
     if(nav==="settings"){onProfile();return;}
     if(nav==="map"){
       if(lastMapData&&lastProj)onOpenMap(lastMapData,lastProj,false,false);
@@ -244,10 +252,9 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
       return;
     }
     if(nav==="contentPlan"){onOpenContentPlanHub?.();return;}
-    if(nav==="ai"){setShowAIHub(true);return;}
+    if(nav==="ai"){onGoToAi?.()??setShowAIHub(true);return;}
     if(nav==="scenarios"){setToast({msg:t("shell_scenarios_hint","Откройте карту проекта — там доступна симуляция сценариев."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
     if(nav==="timeline"){setToast({msg:t("shell_timeline_hint","Откройте карту — диаграмма Gantt на панели инструментов."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
-    if(nav==="insights"){setToast({msg:t("shell_insights_hint","Откройте карту — статистика на панели инструментов."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
     if(nav==="team"){setToast({msg:t("shell_team_hint","Участники отображаются в карточке каждого проекта."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
   }
   const shellUi=!isMobile;
@@ -351,9 +358,9 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
               <MainWorkspaceNav mode="strategy" onStrategy={()=>{}} onContentPlan={onOpenContentPlanHub} t={t} isMobile={true}/>
             </div>
           )}
-          <div className="sa-projects-sticky-head" style={{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",gap:20,marginBottom:24,position:"sticky",top:0,zIndex:20,padding:"14px 4px",margin:"0 -4px 24px",background:"color-mix(in srgb,var(--bg) 72%,transparent)",backdropFilter:"blur(18px)",borderBottom:".5px solid var(--b1)"}}>
+          <div className="sa-projects-sticky-head sa-page-hero" style={{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",gap:20,marginBottom:24,position:"sticky",top:0,zIndex:20,padding:"14px 4px",margin:"0 -4px 24px",background:"color-mix(in srgb,var(--bg) 72%,transparent)",backdropFilter:"blur(18px)",borderBottom:".5px solid var(--b1)"}}>
             <div>
-              <h1 style={{fontSize:isMobile?18:22,fontWeight:900,color:"var(--text)",letterSpacing:-.5,marginBottom:2}}>{t("your_projects","Мои проекты")}</h1>
+              <h1 style={{marginBottom:2}}>{t("your_projects","Мои проекты")}</h1>
               <div style={{fontSize:13.5,color:"var(--text3)"}}>{t("projects_of_limit","{cur} из {max} проектов").replace("{cur}",String(myCount)).replace("{max}",!Number.isFinite(tier.projects)?"∞":String(tier.projects))}</div>
             </div>
             {!isMobile&&<div style={{flex:1}}/>}
@@ -479,18 +486,18 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
                 const membersList=p.members?.length?p.members:[{email:p.owner,role:"owner"}];
                 const membersCount=membersList.length;
                 const pct=stepsCount?Math.round(allNodes.reduce((s,n)=>s+(Number(n.progress)||0),0)/stepsCount):0;
-                const editedTs=(p as any).updatedAt||(p as any).updated_at||p.createdAt||p.created_at;
+                const editedTs=toMs((p as any).updatedAt||(p as any).updated_at||p.createdAt||p.created_at);
                 const editedLabel=editedTs?(()=>{const diff=Date.now()-editedTs;const d=Math.floor(diff/864e5);if(d<=0)return t("edited_today","Изменён сегодня");if(d===1)return t("edited_yesterday","Изменён вчера");return t("edited_on","Изменён {d}").replace("{d}",new Date(editedTs).toLocaleDateString(lang==="en"?"en-US":lang==="uz"?"uz-UZ":"ru",{day:"numeric",month:"short"}));})():"—";
                 const desc=(p as any).description||"";
                 const StatBox=({n,label}:{n:number;label:string})=>(
-                  <div style={{flex:1,minWidth:0,textAlign:"center",padding:"8px 4px",borderRadius:10,background:"var(--surface)",border:"1px solid var(--border)"}}>
+                  <div className="sa-stat-chip">
                     <div style={{fontSize:16,fontWeight:900,color:"var(--text)",lineHeight:1}}>{n}</div>
                     <div style={{fontSize:9.5,fontWeight:800,letterSpacing:.5,textTransform:"uppercase",color:"var(--text5)",marginTop:3}}>{label}</div>
                   </div>
                 );
                 return(
-                  <div key={p.id} onClick={()=>onSelectProject(p)} className="icard card-stagger card-interactive"
-                    style={{padding:"20px 20px 16px",borderRadius:18,background:"var(--card)",border:"1px solid var(--border)",cursor:"pointer",position:"relative",display:"flex",flexDirection:"column",gap:14,animationDelay:`${i*0.06}s`}}>
+                  <div key={p.id} onClick={()=>onSelectProject(p)} className="icard card-stagger card-interactive sa-card-pro sa-lift"
+                    style={{padding:"20px 20px 16px",borderRadius:20,cursor:"pointer",position:"relative",display:"flex",flexDirection:"column",gap:14,animationDelay:`${i*0.06}s`}}>
                     <div style={{display:"flex",alignItems:"flex-start",gap:13}}>
                       <div className="sa-proj-card-icon" style={{width:44,height:44,borderRadius:13,background:"linear-gradient(135deg,var(--accent-soft),transparent)",border:"1px solid var(--glass-border-accent,var(--border))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0,color:"var(--accent-1,var(--text2))",fontWeight:900}}>{icon}</div>
                       <div style={{flex:1,minWidth:0}}>
@@ -842,7 +849,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
     const prog=ns.length?Math.round(ns.reduce((s,n)=>s+(n.progress||0),0)/ns.length):0;
     const overdue=ns.filter(n=>n.deadline&&new Date(n.deadline)<new Date()&&n.status!=="completed").length;
     return(
-      <div className={"card-stagger sa-map-card"+(isSc?" sa-map-card--sc":"")} style={{padding:"20px 22px",cursor:"pointer",animationDelay:`${staggerIndex*0.05}s`,borderColor:isSc?"rgba(104,54,245,.35)":undefined}}
+      <div className={"card-stagger sa-map-card sa-map-card-pro sa-lift"+(isSc?" sa-map-card--sc":"")} style={{padding:"20px 22px",cursor:"pointer",animationDelay:`${staggerIndex*0.05}s`,borderColor:isSc?"rgba(104,54,245,.35)":undefined}}
         onClick={()=>onOpenMap(m,proj,false,myRole==="viewer")}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
           <div style={{width:34,height:34,borderRadius:9,background:"var(--accent-soft)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,border:"1px solid var(--glass-border-accent,var(--border))"}}>
@@ -850,7 +857,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           </div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontSize:13.5,fontWeight:800,color:"var(--text)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.name||t("untitled","Без названия")}</div>
-            <div style={{fontSize:13.5,color:"var(--text5)"}}>{ns.length} {t("steps_label","шагов")} • {t("updated_label","обновлено")} {(m as any).updatedAt?new Date((m as any).updatedAt).toLocaleDateString(lang==="en"?"en-US":lang==="uz"?"uz-UZ":"ru",{day:"2-digit",month:"short"}):"—"}</div>
+            <div style={{fontSize:13.5,color:"var(--text5)"}}>{ns.length} {t("steps_label","шагов")} • {t("updated_label","обновлено")} {(()=>{const ts=toMs((m as any).updatedAt||(m as any).updated_at);return ts?new Date(ts).toLocaleDateString(lang==="en"?"en-US":lang==="uz"?"uz-UZ":"ru",{day:"2-digit",month:"short"}):"—";})()}</div>
           </div>
           {canEdit&&<button type="button" className="sa-map-card__del" onClick={e=>{e.stopPropagation();delMap(m.id);}} aria-label={t("confirm_delete_map","Удалить карту?")} style={{width:22,height:22,borderRadius:5,border:"1px solid rgba(239,68,68,.2)",background:"rgba(239,68,68,.06)",color:"var(--red)",cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",opacity:0,transition:"opacity .22s ease"}}><IconTrash size={12}/></button>}
         </div>
@@ -905,14 +912,14 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
       )}
 
       <div className="sa-page-reveal sa-pr-d1" style={{maxWidth:1000,width:"100%",margin:"0 auto",padding:isMobile?"18px 20px 0":"24px 32px 0"}}>
-        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:isMobile?12:16}}>
+        <div className="sa-bento sa-bento--4" style={{gap:isMobile?12:16}}>
           {[
             {icon:"📈",label:t("overall_progress","Общий прогресс"),val:`${avgProgress}%`,sub:overdueCount>0?t("overdue_n","{n} просрочено").replace("{n}",String(overdueCount)):t("on_track","в графике"),color:avgProgress>=60?"#34d399":avgProgress>=30?"#fbbf24":"#a78bfa"},
             {icon:"◈",label:t("total_steps","Всего шагов"),val:totalNodes,sub:t("completed_n","{n} завершено").replace("{n}",String(doneNodes)),color:"#22d3ee"},
             {icon:"🗺️",label:t("strategy_maps","Стратегические карты"),val:regularMaps.length,sub:t("pd_sub_sc","{n} сцен.").replace("{n}",String(scenarios.length)),color:"#a78bfa"},
             {icon:"👥",label:t("members","участников"),val:(proj.members||[]).length||1,sub:isOwner?t("role_owner","Владелец"):(ROLES[myRole]?.label||""),color:"#fbbf24"},
           ].map(s=>(
-            <div key={s.label} className="glass-card" style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:16,padding:isMobile?14:18,display:"flex",flexDirection:"column",gap:8,minWidth:0}}>
+            <div key={s.label} className="sa-dash-stat sa-card-pro sa-lift" style={{borderRadius:20,padding:isMobile?14:20,display:"flex",flexDirection:"column",gap:8,minWidth:0}}>
               <div style={{fontSize:17}} aria-hidden>{s.icon}</div>
               <div style={{fontSize:isMobile?22:28,fontWeight:900,color:s.color,letterSpacing:-1,lineHeight:1}}>{s.val}</div>
               <div>

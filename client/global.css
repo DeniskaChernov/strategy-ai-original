@@ -2403,6 +2403,64 @@ body,.sa-strategy-ui{transition:background-color .4s ease,color .35s ease}
 .sa-lift:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.18);border-color:var(--glass-border-accent,var(--border));}
 @media (prefers-reduced-motion:reduce){.sa-lift{transition:none}.sa-lift:hover{transform:none;box-shadow:none}}
 
+/* ── 2026 workspace UI: bento, glass pro cards, mesh accents ── */
+.sa-bento{display:grid;gap:16px;}
+.sa-bento--4{grid-template-columns:repeat(4,minmax(0,1fr));}
+.sa-bento--2-1{grid-template-columns:1.05fr .95fr;}
+@media (max-width:900px){.sa-bento--4{grid-template-columns:repeat(2,minmax(0,1fr))}.sa-bento--2-1{grid-template-columns:1fr}}
+@media (max-width:520px){.sa-bento--4{grid-template-columns:1fr}}
+.sa-card-pro{
+  position:relative;
+  background:color-mix(in srgb,var(--card) 88%,var(--accent-1) 12%);
+  border:1px solid color-mix(in srgb,var(--border) 70%,var(--accent-1) 30%);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 12px 40px rgba(0,0,0,.12);
+  overflow:hidden;
+}
+.sa-card-pro::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:radial-gradient(120% 80% at 0% 0%,color-mix(in srgb,var(--accent-1) 18%,transparent),transparent 55%);
+  opacity:.9;
+}
+.sa-card-pro>*{position:relative;z-index:1}
+.sa-dash-stat.sa-card-pro::before{background:radial-gradient(90% 70% at 100% 0%,color-mix(in srgb,var(--accent-1) 22%,transparent),transparent 60%)}
+.sa-panel{
+  background:color-mix(in srgb,var(--surface) 92%,var(--accent-1) 8%);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 8px 32px rgba(0,0,0,.08);
+}
+.sa-page-hero h1{
+  font-size:clamp(1.35rem,2.5vw,1.75rem);
+  font-weight:900;
+  letter-spacing:-.04em;
+  background:linear-gradient(135deg,var(--text) 0%,color-mix(in srgb,var(--text) 55%,var(--accent-2)) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.sa-stat-chip{
+  flex:1;min-width:0;text-align:center;padding:10px 6px;border-radius:12px;
+  background:color-mix(in srgb,var(--surface) 90%,var(--accent-1) 10%);
+  border:1px solid color-mix(in srgb,var(--border) 80%,var(--accent-1) 20%);
+  transition:transform .2s ease,border-color .2s ease;
+}
+.icard:hover .sa-stat-chip{transform:translateY(-1px);border-color:var(--glass-border-accent,var(--border))}
+.sa-map-card-pro{
+  border-radius:18px;
+  border:1px solid color-mix(in srgb,var(--border) 75%,var(--accent-1) 25%);
+  background:linear-gradient(160deg,color-mix(in srgb,var(--surface) 94%,var(--accent-1) 6%),var(--card));
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease,border-color .22s ease;
+}
+.sa-map-card-pro:hover{
+  transform:translateY(-2px);
+  box-shadow:0 16px 40px rgba(0,0,0,.16);
+  border-color:var(--glass-border-accent,var(--border));
+}
+
 /* ── Projects grid entrance ── */
 .sa-proj-card-icon{transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease,background .3s ease;}
 .icard:hover .sa-proj-card-icon{transform:scale(1.08) rotate(-2deg);box-shadow:0 6px 20px rgba(104,54,245,.3);background:linear-gradient(135deg,var(--accent-1),var(--accent-2)) !important;color:#fff !important;border-color:transparent !important;}

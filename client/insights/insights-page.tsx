@@ -108,7 +108,7 @@ export function InsightsPage({
   };
 
   const StatCard = ({ icon, value, label, sub, accent }: { icon: React.ReactNode; value: React.ReactNode; label: string; sub?: string; accent: string }) => (
-    <div className="glass-card sa-lift" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: isMobile ? 16 : 20, display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
+    <div className="sa-dash-stat sa-card-pro sa-lift" style={{ borderRadius: 20, padding: isMobile ? 16 : 22, display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
       <div style={{ fontSize: 18 }} aria-hidden>{icon}</div>
       <div style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, color: accent, letterSpacing: -1, lineHeight: 1 }}>{value}</div>
       <div>
@@ -141,7 +141,7 @@ export function InsightsPage({
 
       <div className={shellUi ? "scr" : undefined} style={{ flex: 1, overflowY: "auto", padding: shellUi ? "26px 28px 60px" : isMobile ? 16 : 24, position: "relative", zIndex: 5, minHeight: 0 }}>
         <div style={{ maxWidth: "min(1240px,100%)", width: "100%", margin: "0 auto" }}>
-          <div className="sa-page-reveal" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: isMobile ? 12 : 16, marginBottom: 24 }}>
+          <div className="sa-page-reveal sa-bento sa-bento--4" style={{ marginBottom: 24 }}>
             <StatCard icon="💚" value={<CountUp n={m.health} suffix="%" loading={loading} />} label={t("ins_health", "Здоровье стратегии")} sub={m.health >= 70 ? t("ins_health_ok", "в норме") : t("ins_health_attention", "нужно внимание")} accent={m.health >= 70 ? "#34d399" : m.health >= 40 ? "#fbbf24" : "#f87171"} />
             <StatCard icon="🎯" value={loading ? "—" : <><CountUp n={m.onTrack} loading={loading} />/{m.total}</>} label={t("ins_on_track", "В графике")} sub={t("ins_avg_progress", "ср. {p}%").replace("{p}", String(m.avg))} accent="#a78bfa" />
             <StatCard icon="⚡" value={<CountUp n={m.active} loading={loading} />} label={t("ins_active", "В работе")} sub={t("ins_completed_n", "{n} завершено").replace("{n}", String(m.completed))} accent="#22d3ee" />
@@ -149,8 +149,8 @@ export function InsightsPage({
           </div>
 
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: .8, textTransform: "uppercase", color: "var(--text4)", margin: "4px 2px 12px" }}>{t("ins_ai_section", "AI-инсайты")}</div>
-          <div className="sa-page-reveal sa-pr-d1" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 24 }}>
-            <div className="glass-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: 20 }}>
+          <div className="sa-page-reveal sa-pr-d1 sa-bento sa-bento--2-1" style={{ marginBottom: 24 }}>
+            <div className="sa-panel">
               <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><span aria-hidden>📊</span>{t("ins_progress_by_status", "Прогресс по статусам")}</div>
               {loading ? <div style={{ fontSize: 13, color: "var(--text5)" }}>{t("loading_short", "Загрузка…")}</div> : byStatus.length === 0 ? <div style={{ fontSize: 13, color: "var(--text5)" }}>{t("ins_no_data", "Нет данных — добавьте узлы на карте.")}</div> : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -168,7 +168,7 @@ export function InsightsPage({
             </div>
             <div style={{ display: "grid", gridTemplateRows: "auto", gap: 16 }}>
               {aiInsights.slice(0, 3).map((ins, i) => (
-                <div key={i} className="glass-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderLeft: `3px solid ${ins.tone}`, borderRadius: 16, padding: 16 }}>
+                <div key={i} className="sa-card-pro sa-lift" style={{ borderLeft: `3px solid ${ins.tone}`, borderRadius: 18, padding: 16 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 900, color: "var(--text)", display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}><span aria-hidden>{ins.icon}</span>{ins.title}</div>
                   <div style={{ fontSize: 12.5, color: "var(--text3)", lineHeight: 1.55 }}>{ins.text}</div>
                   {i === 2 && <button type="button" onClick={() => onShellNav("ai")} style={{ marginTop: 10, background: "none", border: "1px solid var(--border)", borderRadius: 9, padding: "6px 12px", color: "var(--acc,#a78bfa)", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>{t("ins_ask_ai", "Спросить AI →")}</button>}
@@ -177,7 +177,7 @@ export function InsightsPage({
             </div>
           </div>
 
-          <div className="sa-page-reveal sa-pr-d2 glass-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: isMobile ? 14 : 20, overflowX: "auto" }}>
+          <div className="sa-page-reveal sa-pr-d2 sa-panel" style={{ overflowX: "auto" }}>
             <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 14 }}>{t("ins_all_nodes", "Все узлы — здоровье")}</div>
             {loading ? <div style={{ fontSize: 13, color: "var(--text5)" }}>{t("loading_short", "Загрузка…")}</div> : allNodes.length === 0 ? <div style={{ fontSize: 13, color: "var(--text5)" }}>{t("ins_no_data", "Нет данных — добавьте узлы на карте.")}</div> : (
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>

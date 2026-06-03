@@ -134,7 +134,7 @@ export function DashboardPage({
   };
 
   const StatCard = ({ icon, value, label, sub, accent }: { icon: React.ReactNode; value: React.ReactNode; label: string; sub?: string; accent: string }) => (
-    <div className="sa-dash-stat glass-card sa-lift" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: isMobile ? 16 : 20, display: "flex", flexDirection: "column", gap: 10, minWidth: 0 }}>
+    <div className="sa-dash-stat sa-card-pro sa-lift" style={{ borderRadius: 20, padding: isMobile ? 16 : 22, display: "flex", flexDirection: "column", gap: 10, minWidth: 0 }}>
       <div style={{ width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, background: accent + "1f", color: accent }}>{icon}</div>
       <div style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, color: accent, letterSpacing: -1, lineHeight: 1 }}>{value}</div>
       <div>
@@ -182,9 +182,9 @@ export function DashboardPage({
       <div className={shellUi ? "scr" : undefined} style={{ flex: 1, overflowY: "auto", padding: shellUi ? "26px 28px 60px" : isMobile ? 16 : 24, position: "relative", zIndex: 5, minHeight: 0 }}>
         <div style={{ maxWidth: "min(1240px,100%)", width: "100%", margin: "0 auto" }}>
           {/* greeting */}
-          <div className="sa-page-reveal" style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", gap: 14, marginBottom: 24 }}>
+          <div className="sa-page-reveal sa-page-hero" style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", gap: 14, marginBottom: 24 }}>
             <div>
-              <h1 style={{ fontSize: isMobile ? 24 : 30, fontWeight: 900, color: "var(--text)", letterSpacing: -.6, margin: 0 }}>{greet}, {user?.name?.split(" ")[0] || user?.email?.split("@")[0] || ""} <span aria-hidden>👋</span></h1>
+              <h1 style={{ margin: 0 }}>{greet}, {user?.name?.split(" ")[0] || user?.email?.split("@")[0] || ""} <span aria-hidden>👋</span></h1>
               <div style={{ fontSize: 13.5, color: "var(--text3)", marginTop: 4, textTransform: "capitalize" }}>{dateStr}</div>
             </div>
             <div style={{ flex: 1 }} />
@@ -194,7 +194,7 @@ export function DashboardPage({
           </div>
 
           {/* stat cards */}
-          <div className="sa-page-reveal sa-pr-d1" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: isMobile ? 12 : 16, marginBottom: 24 }}>
+          <div className="sa-page-reveal sa-pr-d1 sa-bento sa-bento--4" style={{ marginBottom: 24 }}>
             <StatCard icon={<>📁</>} value={<CountUp n={stats.projects} loading={loading} />} label={t("dash_projects", "Проекты")} sub={t("dash_projects_sub", "активные")} accent="#a78bfa" />
             <StatCard icon={<>◈</>} value={<CountUp n={stats.nodes} loading={loading} />} label={t("dash_nodes", "Узлы стратегии")} sub={t("dash_on_track", "{n} в работе").replace("{n}", String(stats.onTrack))} accent="#34d399" />
             <StatCard icon={<>📈</>} value={<CountUp n={stats.progress} suffix="%" loading={loading} />} label={t("dash_avg_progress", "Средний прогресс")} sub={t("dash_overall", "по всем картам")} accent="#fbbf24" />
@@ -202,8 +202,8 @@ export function DashboardPage({
           </div>
 
           {/* two columns: recent activity + goals */}
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.05fr .95fr", gap: 16 }}>
-            <div className="sa-page-reveal sa-pr-d2 glass-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: 20 }}>
+          <div className="sa-bento sa-bento--2-1">
+            <div className="sa-page-reveal sa-pr-d2 sa-panel">
               <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: .8, textTransform: "uppercase", color: "var(--text4)", marginBottom: 14 }}>{t("dash_recent_activity", "Недавняя активность")}</div>
               {loading ? (
                 <div style={{ fontSize: 13, color: "var(--text5)", padding: "8px 0" }}>{t("loading_short", "Загрузка…")}</div>
@@ -225,7 +225,7 @@ export function DashboardPage({
               )}
             </div>
 
-            <div className="sa-page-reveal sa-pr-d3 glass-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: 20 }}>
+            <div className="sa-page-reveal sa-pr-d3 sa-panel">
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: .8, textTransform: "uppercase", color: "var(--text4)" }}>{t("dash_goals", "Ключевые шаги")}</div>
                 <button type="button" onClick={() => onShellNav("insights")} style={{ background: "none", border: "none", color: "var(--acc,#a78bfa)", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>{t("dash_all_insights", "Инсайты →")}</button>
@@ -266,7 +266,7 @@ export function DashboardPage({
                   const ns = ms.flatMap((m: any) => m?.nodes || []);
                   const pct = ns.length ? Math.round(ns.reduce((s: number, n: any) => s + (Number(n.progress) || 0), 0) / ns.length) : 0;
                   return (
-                    <button key={p.id} type="button" className="btn-interactive" onClick={() => onOpenProject?.(p)} style={{ textAlign: "left", padding: 16, borderRadius: 14, border: "1px solid var(--border)", background: "var(--surface)", cursor: "pointer", display: "flex", flexDirection: "column", gap: 10 }}>
+                    <button key={p.id} type="button" className="btn-interactive sa-card-pro sa-lift" onClick={() => onOpenProject?.(p)} style={{ textAlign: "left", padding: 16, borderRadius: 18, border: "none", background: "transparent", cursor: "pointer", display: "flex", flexDirection: "column", gap: 10 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "var(--text2)" }}>{(p.name || "?")[0].toUpperCase()}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
