@@ -69,6 +69,7 @@ export function StrategyShellSidebar({
   briefingHint,
   onLogoClick,
   collapsed,
+  layoutMode = "full",
   t,
 }: {
   theme: string;
@@ -99,8 +100,11 @@ export function StrategyShellSidebar({
   onLogoClick?: () => void;
   /** Скрытый бок (даёт больше места карте) */
   collapsed?: boolean;
+  /** ref — как в макете Dashboard: только дашборд/проекты/AI/инсайты */
+  layoutMode?: "full" | "ref";
   t: TFn;
 }){
+  const refLayout = layoutMode === "ref";
   void _tierColor;
   const initial = (userName || userEmail || "?").trim().split(/\s+/).map(s => s[0]).join("").slice(0, 2).toUpperCase();
   const [groups, setGroups] = useState<Record<GroupKey, boolean>>(loadGroups);
@@ -125,45 +129,47 @@ export function StrategyShellSidebar({
       >
         <div className="sb-gem">SA</div>
         <span className="sb-name">Strategy AI</span>
-        <div className="tpill" onClick={onToggleTheme} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onToggleTheme();}} aria-label={t("toggle_theme", "Тема")}>
-          <div className={`tpi${theme==="dark"?" on":""}`}>☽</div>
-          <div className={`tpi${theme==="light"?" on":""}`}>☀</div>
-        </div>
+        {!refLayout && (
+          <div className="tpill" onClick={onToggleTheme} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onToggleTheme();}} aria-label={t("toggle_theme", "Тема")}>
+            <div className={`tpi${theme==="dark"?" on":""}`}>☽</div>
+            <div className={`tpi${theme==="light"?" on":""}`}>☀</div>
+          </div>
+        )}
       </div>
       <div className={"sb-sect"+(groups.workspace?"":" sb-sect--collapsed")}>
         <button type="button" className="sb-lbl sb-lbl--btn" onClick={()=>toggleGroup("workspace")} aria-expanded={groups.workspace}>
           <Chevron open={groups.workspace} />
-          <span>{t("shell_workspace", "Workspace")}</span>
+          <span>{t("shell_workspace", "Рабочая область")}</span>
         </button>
         {groups.workspace&&<>
-        <Ni active={activeNav==="dashboard"} onClick={()=>onNavigate("dashboard")} label={t("shell_dashboard","Обзор")}>
+        <Ni active={activeNav==="dashboard"} onClick={()=>onNavigate("dashboard")} label={t("shell_dashboard","Дашборд")}>
           <svg viewBox="0 0 15 15" fill="none" aria-hidden><rect x="1.5" y="1.5" width="5" height="6.5" rx="1.4" fill="currentColor" opacity=".75"/><rect x="1.5" y="9.5" width="5" height="4" rx="1.4" fill="currentColor" opacity=".4"/><rect x="8.5" y="1.5" width="5" height="4" rx="1.4" fill="currentColor" opacity=".4"/><rect x="8.5" y="7" width="5" height="6.5" rx="1.4" fill="currentColor" opacity=".6"/></svg>
-          {t("shell_dashboard","Обзор")}
+          {t("shell_dashboard","Дашборд")}
         </Ni>
         <Ni active={activeNav==="projects"} onClick={()=>onNavigate("projects")} label={t("shell_projects","Проекты")}>
           <svg viewBox="0 0 15 15" fill="none" aria-hidden><rect x="1" y="1" width="5.5" height="5.5" rx="1.5" fill="currentColor" opacity=".75"/><rect x="8.5" y="1" width="5.5" height="5.5" rx="1.5" fill="currentColor" opacity=".4"/><rect x="1" y="8.5" width="5.5" height="5.5" rx="1.5" fill="currentColor" opacity=".4"/><rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1.5" fill="currentColor" opacity=".4"/></svg>
           {t("shell_projects", "Проекты")}
           {(projectCount ?? 0) > 0&&<span className="ni-badge">{Math.min(99, projectCount!)}</span>}
         </Ni>
-        <Ni active={activeNav==="map"} onClick={()=>onNavigate("map")} label={t("shell_strategy_map","Карта стратегии")}>
+        {!refLayout && <Ni active={activeNav==="map"} onClick={()=>onNavigate("map")} label={t("shell_strategy_map","Карта стратегии")}>
           <svg viewBox="0 0 15 15" fill="none" aria-hidden><rect x="1" y="1" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.2" fill="none" opacity=".7"/><rect x="9" y="1" width="5" height="5" rx="1.5" fill="currentColor" opacity=".5"/><rect x="1" y="9" width="5" height="5" rx="1.5" fill="currentColor" opacity=".4"/><rect x="9" y="9" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.2" fill="none" opacity=".6"/><line x1="6" y1="3.5" x2="9" y2="3.5" stroke="currentColor" strokeWidth="1" opacity=".4"/><line x1="3.5" y1="6" x2="3.5" y2="9" stroke="currentColor" strokeWidth="1" opacity=".4"/></svg>
           {t("shell_strategy_map", "Карта стратегии")}
-        </Ni>
-        {showContentPlan&&onContentPlan&&(
+        </Ni>}
+        {!refLayout && showContentPlan&&onContentPlan&&(
           <Ni active={activeNav==="contentPlan"} onClick={()=>onContentPlan()} label={t("nav_workspace_content","Контент-план")}>
             <svg viewBox="0 0 15 15" fill="none" aria-hidden><rect x="2" y="2" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="1.2" fill="none" opacity=".6"/><path d="M4 6h7M4 9h5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity=".5"/></svg>
             {t("nav_workspace_content", "Контент-план")}
           </Ni>
         )}
-        <Ni active={activeNav==="scenarios"} onClick={()=>onNavigate("scenarios")} label={t("shell_scenarios","Сценарии")}>
+        {!refLayout && <Ni active={activeNav==="scenarios"} onClick={()=>onNavigate("scenarios")} label={t("shell_scenarios","Сценарии")}>
           <svg viewBox="0 0 15 15" fill="none" aria-hidden><path d="M2 4h11M2 7.5h8M2 11h5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity=".75"/></svg>
           {t("shell_scenarios", "Сценарии")}
           {(scenarioCount ?? 0) > 0&&<span className="ni-badge">{Math.min(99, scenarioCount!)}</span>}
-        </Ni>
-        <Ni active={activeNav==="timeline"} onClick={()=>onNavigate("timeline")} label={t("shell_timeline","Таймлайн")}>
+        </Ni>}
+        {!refLayout && <Ni active={activeNav==="timeline"} onClick={()=>onNavigate("timeline")} label={t("shell_timeline","Таймлайн")}>
           <svg viewBox="0 0 15 15" fill="none" aria-hidden><rect x="1" y="3" width="13" height="9" rx="2" stroke="currentColor" strokeWidth="1.2" fill="none" opacity=".5"/><rect x="3" y="8" width="4" height="2" rx="1" fill="currentColor" opacity=".65"/><rect x="8" y="8" width="3" height="2" rx="1" fill="currentColor" opacity=".4"/></svg>
           {t("shell_timeline", "Таймлайн")}
-        </Ni>
+        </Ni>}
         </>}
       </div>
       <div className={"sb-sect"+(groups.ai?"":" sb-sect--collapsed")}>
@@ -183,6 +189,7 @@ export function StrategyShellSidebar({
         </Ni>
         </>}
       </div>
+      {!refLayout && (
       <div className={"sb-sect"+(groups.settings?"":" sb-sect--collapsed")}>
         <button type="button" className="sb-lbl sb-lbl--btn" onClick={()=>toggleGroup("settings")} aria-expanded={groups.settings}>
           <Chevron open={groups.settings} />
@@ -199,12 +206,8 @@ export function StrategyShellSidebar({
         </Ni>
         </>}
       </div>
-      <div className="lang-row" style={{marginTop:6}}>
-        {(["en","ru","uz"] as const).map(code=>(
-          <button key={code} type="button" className={`lang-btn${lang===code?" on":""}`} onClick={()=>onLang(code)}>{code.toUpperCase()}</button>
-        ))}
-      </div>
-      {onCrmClick&&(
+      )}
+      {onCrmClick&&!refLayout&&(
         <div className="crm-sync" onClick={onCrmClick} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onCrmClick();}}>
           <div className="cs-head"><div className="cs-dot"/><span className="cs-title">{t("shell_crm_title", "CRM · демо")}</span></div>
           <div className="cs-sub">{t("shell_crm_sub", "Как в макете · интеграция позже")}</div>
@@ -215,7 +218,7 @@ export function StrategyShellSidebar({
           <div className="sb-briefing" onClick={onWeeklyBriefing} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onWeeklyBriefing();}}>
             <div className="sb-briefing-ic" aria-hidden>📋</div>
             <div className="sb-briefing-body">
-              <div className="sb-briefing-title">{t("weekly_briefing_short", "Брифинг")}</div>
+              <div className="sb-briefing-title">{t("weekly_briefing", "Еженедельный брифинг")}</div>
               <div className="sb-briefing-sub">{briefingHint || t("shell_briefing_sub", "Здоровье стратегии")}</div>
             </div>
           </div>
@@ -224,22 +227,27 @@ export function StrategyShellSidebar({
           <div className="sb-trial" onClick={onTierClick} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onTierClick();}}>
             <div className="sb-trial-title">
               {trialDaysLeft != null && trialDaysLeft > 0
-                ? t("shell_trial_days", "{n} days left").replace("{n}", String(trialDaysLeft))
-                : <>⚡ {t("shell_trial_title", "Upgrade plan")}</>}
+                ? <>⚡ {t("shell_trial_label", "Пробный период")} · {t("shell_trial_days", "осталось {n} дн.").replace("{n}", String(trialDaysLeft))}</>
+                : <>⚡ {t("shell_trial_title", "Улучшите тариф")}</>}
             </div>
-            <div className="sb-trial-sub">{t("shell_trial_sub", "Upgrade to keep Pro features")}</div>
+            <div className="sb-trial-sub">{t("shell_trial_sub", "Оформите Pro, чтобы сохранить функции")}</div>
           </div>
         )}
+        <div className="lang-row sb-bottom-lang">
+          {(["en","ru","uz"] as const).map(code=>(
+            <button key={code} type="button" className={`lang-btn${lang===code?" on":""}`} onClick={()=>onLang(code)}>{code.toUpperCase()}</button>
+          ))}
+        </div>
         <div className="sb-user" onClick={onUserCard} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onUserCard();}}>
           <div className="u-av">{initial}</div>
           <div className="u-info">
             <div className="u-name">{userName || userEmail.split("@")[0]}</div>
-            <div className="u-role">{tierLabel}</div>
+            <span className="u-tier-pill">{tierLabel}</span>
           </div>
           <div className="u-online"/>
         </div>
       </div>
-      {onLogout&&(
+      {onLogout&&!refLayout&&(
         <button type="button" className="sa-shell-logout" onClick={onLogout}>
           {t("logout","Выйти")}
         </button>

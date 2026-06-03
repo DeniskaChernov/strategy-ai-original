@@ -169,8 +169,6 @@ export function DashboardPage({
     return t("days_ago_n", "{n} дн. назад").replace("{n}", String(d));
   }
 
-  const ACTIVITY_ICONS = ["🗺️", "📈", "✦", "🔗"];
-
   const CountUp = ({ n, suffix = "", loading: ld }: { n: number; suffix?: string; loading?: boolean }) => {
     const v = useCountUp(ld ? 0 : n);
     if (ld) return <>—</>;
@@ -182,33 +180,42 @@ export function DashboardPage({
     iconBg,
     value,
     label,
-    sub,
+    foot,
     trend,
-    trendType = "muted",
+    trendType = "up",
   }: {
     icon: React.ReactNode;
     iconBg: string;
     value: React.ReactNode;
     label: string;
-    sub?: string;
+    foot?: string;
     trend?: string;
-    trendType?: "up" | "down" | "muted";
+    trendType?: "up" | "down";
   }) => (
-    <div className="sa-dash-stat sa-card-pro sa-lift" style={{ borderRadius: 20, padding: isMobile ? 16 : 22, display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-      <div style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, background: iconBg }}>{icon}</div>
-      <div className="sa-dash-stat__val">{value}</div>
-      <div className="sa-dash-stat__label">{label}</div>
-      {sub ? <div className="sa-dash-stat__sub">{sub}</div> : null}
-      {trend ? <div className={`sa-dash-trend sa-dash-trend--${trendType}`}>{trend}</div> : null}
+    <div className="sa-dash-stat-ref sa-lift">
+      <div className="sa-dash-stat-ref__icon" style={{ background: iconBg }}>{icon}</div>
+      <div className="sa-dash-stat-ref__metric">
+        <span className="sa-dash-stat-ref__num">{value}</span>
+        <span className="sa-dash-stat-ref__lbl">{label}</span>
+      </div>
+      {trend ? <div className={`sa-dash-stat-ref__trend sa-dash-stat-ref__trend--${trendType}`}>{trend}</div> : foot ? <div className="sa-dash-stat-ref__foot">{foot}</div> : null}
     </div>
   );
+
+  const ACTIVITY_STYLES = [
+    { bg: "rgba(52,211,153,.14)", ic: "📈" },
+    { bg: "rgba(96,165,250,.14)", ic: "◈" },
+    { bg: "rgba(167,139,250,.14)", ic: "✦" },
+    { bg: "rgba(251,191,36,.14)", ic: "🔗" },
+    { bg: "rgba(248,113,113,.12)", ic: "⚠" },
+  ];
 
   const body = (
     <>
       {shellUi ? (
         <WorkspaceTopBar
-          title={t("shell_dashboard", "Обзор")}
-          subtitle={t("dash_subtitle", "Ваша стратегия с высоты птичьего полёта")}
+          title={t("shell_dashboard", "Дашборд")}
+          subtitle={t("dash_subtitle", "Ваша стратегия с одного экрана")}
           theme={theme}
           onToggleTheme={onToggleTheme}
           searchPlaceholder={t("dash_search_ph", "Поиск…")}
@@ -236,93 +243,96 @@ export function DashboardPage({
         </div>
       )}
 
-      <div className={shellUi ? "scr" : undefined} style={{ flex: 1, overflowY: "auto", padding: shellUi ? "22px 28px 48px" : isMobile ? 16 : 24, position: "relative", zIndex: 5, minHeight: 0 }}>
-        <div style={{ maxWidth: "min(1240px,100%)", width: "100%", margin: "0 auto" }}>
-          <div className="sa-page-reveal sa-page-hero" style={{ marginBottom: 22 }}>
-            <h1 style={{ margin: 0 }}>{greet}, {user?.name?.split(" ")[0] || user?.email?.split("@")[0] || ""} <span aria-hidden>👋</span></h1>
-            <div className="sa-dash-hero-date">{dateStr}</div>
+      <div className={(shellUi ? "scr sa-dash-ref" : undefined)} style={{ flex: 1, overflowY: "auto", padding: shellUi ? undefined : isMobile ? 16 : 24, position: "relative", zIndex: 5, minHeight: 0 }}>
+        <div style={{ maxWidth: "min(1160px,100%)", width: "100%", margin: "0 auto" }}>
+          <div className="sa-page-reveal sa-dash-hero-row">
+            <div className="sa-page-hero">
+              <h1 style={{ margin: 0 }}>{greet}, {user?.name?.split(" ")[0] || user?.email?.split("@")[0] || ""} <span aria-hidden>👋</span></h1>
+              <div className="sa-dash-hero-date">{dateStr}</div>
+            </div>
+            {shellUi && (
+              <button type="button" className="sa-dash-hero-briefing" onClick={() => setShowBriefing(true)}>
+                <span aria-hidden>📋</span> {t("weekly_briefing", "Еженедельный брифинг")}
+              </button>
+            )}
           </div>
 
-          <div className="sa-page-reveal sa-pr-d1 sa-bento sa-bento--4" style={{ marginBottom: 22 }}>
+          <div className="sa-page-reveal sa-pr-d1 sa-bento sa-bento--4">
             <StatCard
               icon={<>📁</>}
               iconBg="rgba(251,191,36,.18)"
               value={<CountUp n={stats.projects} loading={loading} />}
-              label={t("dash_projects", "Проекты")}
-              sub={t("dash_projects_active_n", "{n} активных").replace("{n}", String(stats.activeProjects))}
-              trend={stats.activeProjects > 0 ? `↑ ${stats.activeProjects}` : undefined}
-              trendType="up"
+              label={t("dash_projects_upper", "ПРОЕКТЫ")}
+              foot={t("dash_projects_active_n", "{n} активных").replace("{n}", String(stats.activeProjects))}
             />
             <StatCard
-              icon={<>◈</>}
-              iconBg="rgba(52,211,153,.16)"
+              icon={<>📘</>}
+              iconBg="rgba(96,165,250,.16)"
               value={<CountUp n={stats.nodes} loading={loading} />}
-              label={t("dash_nodes", "Узлы стратегии")}
-              sub={t("dash_on_track", "{n} в работе").replace("{n}", String(stats.onTrack))}
+              label={t("dash_nodes_upper", "УЗЛЫ СТРАТЕГИИ")}
               trend={stats.onTrack > 0 ? `↑ ${stats.onTrack} ${t("dash_on_track_short", "в графике")}` : undefined}
               trendType="up"
             />
             <StatCard
               icon={<>📈</>}
-              iconBg="rgba(96,165,250,.16)"
+              iconBg="rgba(52,211,153,.14)"
               value={<CountUp n={stats.progress} suffix="%" loading={loading} />}
-              label={t("dash_avg_progress", "Средний прогресс")}
-              sub={t("dash_overall", "по всем картам")}
-              trend={stats.progress >= 50 ? `↑ ${t("dash_on_track_label", "В графике")}` : stats.progress > 0 ? `· ${stats.progress}%` : undefined}
-              trendType={stats.progress >= 50 ? "up" : "muted"}
+              label={t("dash_avg_progress_upper", "СРЕДНИЙ ПРОГРЕСС")}
+              trend={stats.progress >= 50 ? `↑ ${t("dash_on_track_label", "В графике")}` : undefined}
+              trendType="up"
             />
             <StatCard
               icon={<>⚠️</>}
-              iconBg={stats.risks ? "rgba(248,113,113,.16)" : "rgba(52,211,153,.12)"}
+              iconBg="rgba(251,191,36,.16)"
               value={<CountUp n={stats.risks} loading={loading} />}
-              label={t("dash_active_risks", "Активные риски")}
-              sub={stats.risks ? t("dash_review_needed", "нужна проверка") : t("dash_all_clear", "всё спокойно")}
-              trend={stats.risks ? `↓ ${t("dash_review_needed", "Нужна проверка")}` : `↑ ${t("dash_all_clear_short", "Спокойно")}`}
+              label={t("dash_active_risks_upper", "АКТИВНЫЕ РИСКИ")}
+              trend={stats.risks ? `↓ ${t("dash_review_needed", "Нужна проверка")}` : `↑ ${t("dash_all_clear_short", "Всё спокойно")}`}
               trendType={stats.risks ? "down" : "up"}
             />
           </div>
 
           <div className="sa-bento sa-bento--2-1">
             <div className="sa-page-reveal sa-pr-d2 sa-panel">
-              <div className="sa-dash-panel-title">{t("dash_recent_activity", "Недавняя активность")}</div>
+              <div className="sa-dash-panel-title">{t("dash_recent_activity", "Последняя активность")}</div>
               {loading ? (
-                <div className="sa-dash-activity-meta" style={{ padding: "8px 0" }}>{t("loading_short", "Загрузка…")}</div>
+                <div className="sa-dash-act-title" style={{ color: "var(--text3)" }}>{t("loading_short", "Загрузка…")}</div>
               ) : recent.length === 0 ? (
-                <div className="sa-dash-activity-meta" style={{ padding: "8px 0" }}>{t("dash_no_activity", "Пока нет активности — создайте карту, чтобы начать.")}</div>
+                <div className="sa-dash-act-title" style={{ color: "var(--text3)" }}>{t("dash_no_activity", "Пока нет активности — создайте карту.")}</div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  {recent.map((r, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < recent.length - 1 ? "1px solid var(--border)" : "none" }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 10, background: "var(--accent-soft)", border: "1px solid var(--glass-border-accent,var(--border))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }} aria-hidden>{ACTIVITY_ICONS[i % ACTIVITY_ICONS.length]}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
-                        <div className="sa-dash-activity-meta">{t("dash_nodes_count", "{n} узлов").replace("{n}", String(r.nodes))}</div>
+                <div>
+                  {recent.map((r, i) => {
+                    const st = ACTIVITY_STYLES[i % ACTIVITY_STYLES.length];
+                    return (
+                      <div key={i} className="sa-dash-act-row">
+                        <div className="sa-dash-act-ic" style={{ background: st.bg }} aria-hidden>{st.ic}</div>
+                        <div className="sa-dash-act-title">
+                          {t("dash_act_map_updated", "«{name}» обновлена · {n} узлов")
+                            .replace("{name}", r.name)
+                            .replace("{n}", String(r.nodes))}
+                        </div>
+                        <div className="sa-dash-act-time">{relTime(r.at)}</div>
                       </div>
-                      <div className="sa-dash-activity-time">{relTime(r.at)}</div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
 
             <div className="sa-page-reveal sa-pr-d3 sa-panel">
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                <div className="sa-dash-panel-title" style={{ marginBottom: 0 }}>{t("dash_goals", "Цели")}</div>
-                <button type="button" className="sa-dash-panel-link" onClick={() => onShellNav("insights")}>{t("dash_all_insights", "Инсайты →")}</button>
-              </div>
+              <div className="sa-dash-panel-title">{t("dash_goals", "Цели")}</div>
               {loading ? (
-                <div className="sa-dash-activity-meta" style={{ padding: "8px 0" }}>{t("loading_short", "Загрузка…")}</div>
+                <div style={{ color: "var(--text3)", fontSize: 13 }}>{t("loading_short", "Загрузка…")}</div>
               ) : goals.length === 0 ? (
-                <div className="sa-dash-activity-meta" style={{ padding: "8px 0" }}>{t("dash_no_goals", "Нет шагов — добавьте их на карте стратегии.")}</div>
+                <div style={{ color: "var(--text3)", fontSize: 13 }}>{t("dash_no_goals", "Нет шагов — добавьте их на карте.")}</div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 10 }}>
+                <div>
                   {goals.map((n: any, i: number) => {
                     const pct = Math.max(0, Math.min(100, Number(n.progress) || 0));
                     return (
-                      <div key={n.id || i}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                          <span style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{n.title || t("untitled", "Без названия")}</span>
-                          <span style={{ fontSize: 12.5, fontWeight: 800, color: "var(--accent-1)", flexShrink: 0 }}>{pct}%</span>
+                      <div key={n.id || i} className="sa-dash-goal-row">
+                        <div className="sa-dash-goal-head">
+                          <span className="sa-dash-goal-title">{n.title || t("untitled", "Без названия")}</span>
+                          <span className="sa-dash-goal-pct">{pct}%</span>
                         </div>
                         <div className="sa-dash-goal-bar">
                           <div style={{ width: pct + "%" }} />
@@ -334,33 +344,6 @@ export function DashboardPage({
               )}
             </div>
           </div>
-
-          {projects.length > 0 && (
-            <div className="sa-page-reveal sa-pr-d4" style={{ marginTop: 20 }}>
-              <div className="sa-dash-panel-title">{t("dash_jump_back", "Продолжить работу")}</div>
-              <div className="sa-dash-continue-grid">
-                {projects.slice(0, 4).map((p) => {
-                  const ms = mapsByProj[p.id] || [];
-                  const ns = ms.flatMap((m: any) => m?.nodes || []);
-                  const pct = ns.length ? Math.round(ns.reduce((s: number, n: any) => s + (Number(n.progress) || 0), 0) / ns.length) : 0;
-                  return (
-                    <button key={p.id} type="button" className="btn-interactive sa-card-pro sa-lift" onClick={() => onOpenProject?.(p)} style={{ textAlign: "left", padding: 14, borderRadius: 16, border: "none", background: "transparent", cursor: "pointer", display: "flex", flexDirection: "column", gap: 8 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 10, background: "var(--gradient-accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#fff", flexShrink: 0 }}>{(p.name || "?")[0].toUpperCase()}</div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
-                          <div className="sa-dash-activity-meta">{t("dash_maps_count", "{n} карт").replace("{n}", String(ms.length))}</div>
-                        </div>
-                      </div>
-                      <div className="sa-dash-goal-bar" style={{ height: 6 }}>
-                        <div style={{ width: pct + "%" }} />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -438,6 +421,7 @@ export function DashboardPage({
           trialDaysLeft={trialDays}
           onWeeklyBriefing={() => setShowBriefing(true)}
           briefingHint={briefingHint}
+          layoutMode="ref"
           onLogoClick={() => { try { document.querySelector(".sa-main .scr")?.scrollTo({ top: 0, behavior: "smooth" }); } catch { /* — */ } }}
           t={t}
         />
