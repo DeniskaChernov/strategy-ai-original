@@ -147,12 +147,12 @@ export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,on
       )}
       <div style={{flex:1,overflowY:"auto",padding:isMobile?16:28,position:"relative",zIndex:5}}>
         <div style={{maxWidth:"min(1240px,100%)",width:"100%",margin:"0 auto"}}>
-          <GlowCard plain panelVariant glowColor="accent" customSize width="100%" className="sa-ref-panel sa-ref-panel--lift sa-page-reveal sa-pr-d1" style={{marginBottom:24}}>
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
-              <span className="sa-cp-hub-hero-ic" style={{width:44,height:44,borderRadius:14,background:"var(--gradient-accent)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,boxShadow:"0 4px 20px var(--accent-glow)"}}>✍️</span>
+          <div className="sa-page-reveal sa-pr-d1 sa-panel" style={{marginBottom:24}}>
+            <div className="sa-page-hero" style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+              <span className="sa-cp-hub-hero-ic" style={{width:44,height:44,borderRadius:14,background:"var(--gradient-accent)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,boxShadow:"0 4px 20px var(--accent-glow)",flexShrink:0}}>✍️</span>
               <div style={{flex:1,minWidth:0}}>
-                <h1 style={{fontSize:isMobile?20:26,fontWeight:900,color:"var(--text)",letterSpacing:-.6,margin:0}}>{t("cp_hub_title","Контент-план")}</h1>
-                <div style={{fontSize:13.5,color:"var(--text4)",marginTop:4,maxWidth:"min(720px,100%)"}}>{t("cp_hub_subtitle","Отдельный рабочий режим: публикации и календарь по проектам из вашей стратегии. Шаги карт подтягиваются для привязки идей.")}</div>
+                <h1 style={{margin:0}}>{t("cp_hub_title","Контент-план")}</h1>
+                <div style={{fontSize:13.5,color:"var(--text3)",marginTop:4,maxWidth:"min(720px,100%)"}}>{t("cp_hub_subtitle","Отдельный рабочий режим: публикации и календарь по проектам из вашей стратегии. Шаги карт подтягиваются для привязки идей.")}</div>
                 <div style={{fontSize:12,color:"var(--text4)",marginTop:10,maxWidth:640,lineHeight:1.45}}>{t("cp_hub_nav_hint","Подсказка: переключатель «Стратегия» в шапке ведёт к списку проектов; оттуда же открываются карты и шаги.")}</div>
               </div>
             </div>
@@ -166,13 +166,13 @@ export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,on
                 </div>
               </div>
             )}
-          </GlowCard>
+          </div>
           {loading?(
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:14}}>
               {[1,2,3].map(i=><div key={i} style={{height:130,borderRadius:16,background:"var(--surface)",animation:"pulse 1.5s ease infinite",border:"1px solid var(--border)"}}/>)}
             </div>
           ):projects.length===0?(
-            <div style={{textAlign:"center",padding:48,border:"1px dashed var(--border2)",borderRadius:16,background:"var(--surface)"}}>
+            <div className="sa-empty-state sa-page-reveal sa-pr-d2">
               <div style={{fontSize:36,marginBottom:8}}>📂</div>
               <div style={{fontSize:15,fontWeight:700,color:"var(--text3)"}}>{t("cp_no_projects","Пока нет проектов")}</div>
               <div style={{fontSize:13,color:"var(--text5)",marginTop:8,maxWidth:400,marginLeft:"auto",marginRight:"auto",lineHeight:1.5}}>{t("cp_create_in_strategy","Создайте проект в разделе «Стратегия» — он появится и здесь.")}</div>
@@ -187,8 +187,8 @@ export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,on
                 const nMaps=maps.length;
                 const nNodes=maps.reduce((acc:number,m:any)=>acc+(m.nodes?.length||0),0);
                 return(
-                  <button key={p.id} type="button" className="btn-interactive card-stagger sa-cp-hub-card" disabled={!tier.contentPlan} aria-label={tier.contentPlan?t("cp_card_aria_open","Открыть контент-план проекта {name}").replace("{name}",p.name||""):t("cp_card_aria_locked","Разблокировать Pro для контент-плана")}
-                    onClick={()=>{if(!tier.contentPlan){onUpgrade&&onUpgrade();return;}onOpenProject(p,maps);}} style={{textAlign:"left",padding:"20px 22px",borderRadius:18,border:"1px solid var(--glass-border-accent,var(--border))",background:"var(--surface)",cursor:tier.contentPlan?"pointer":"not-allowed",opacity:tier.contentPlan?1:.78,display:"flex",flexDirection:"column",gap:12,animationDelay:`${Math.min(i,8)*0.05}s`}}>
+                  <button key={p.id} type="button" className="btn-interactive card-stagger sa-hub-card sa-lift" disabled={!tier.contentPlan} aria-label={tier.contentPlan?t("cp_card_aria_open","Открыть контент-план проекта {name}").replace("{name}",p.name||""):t("cp_card_aria_locked","Разблокировать Pro для контент-плана")}
+                    onClick={()=>{if(!tier.contentPlan){onUpgrade&&onUpgrade();return;}onOpenProject(p,maps);}} style={{cursor:tier.contentPlan?"pointer":"not-allowed",opacity:tier.contentPlan?1:.78,animationDelay:`${Math.min(i,8)*0.05}s`}}>
                     <div style={{fontSize:16,fontWeight:900,color:"var(--text)",letterSpacing:-.3}}>{p.name||t("untitled","Без названия")}</div>
                     <div style={{fontSize:12.5,color:"var(--text5)",display:"flex",gap:12,flexWrap:"wrap"}}>
                       <span>{t("cp_stat_maps","{n} карт").replace("{n}",String(nMaps))}</span>

@@ -958,7 +958,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
                 {[1,2,3].map(i=><div key={i} style={{height:140,borderRadius:14,background:"var(--surface)",animation:"pulse 1.5s ease infinite",border:"1px solid var(--border)"}}/>)}
               </div>
             ):regularMaps.length===0?(
-              <div style={{textAlign:"center",padding:"50px 20px",border:"1px dashed var(--border2)",borderRadius:16}}>
+              <div className="sa-empty-state">
                 <div style={{fontSize:36,marginBottom:10}}>🗺️</div>
                 <div style={{fontSize:14,fontWeight:700,color:"var(--text3)",marginBottom:6}}>{t("no_maps","Нет карт")}</div>
                 <div style={{fontSize:13,color:"var(--text5)",marginBottom:16,maxWidth:320,margin:"0 auto 16px"}}>{t("create_first_map","Создайте первую стратегическую карту")}. {t("create_first_map_hint","Добавьте шаги, свяжите их — AI подскажет следующий ход.")}</div>
@@ -975,7 +975,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
               return(
                 <div style={{marginTop:28}}>
                   <div style={{fontSize:11,fontWeight:800,letterSpacing:.8,textTransform:"uppercase",color:"var(--text4)",marginBottom:12}}>{t("dash_recent_activity","Недавняя активность")}</div>
-                  <div className="glass-card" style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:16,padding:"6px 16px"}}>
+                  <div className="sa-panel" style={{padding:"6px 16px"}}>
                     {acts.map((a,i)=>{
                       const diff=Date.now()-(a.at||0);const h=Math.floor(diff/3.6e6);const d=Math.floor(h/24);
                       const rel=h<1?t("just_now","только что"):h<24?t("hours_ago","{n} ч. назад").replace("{n}",String(h)):d===1?t("yesterday","вчера"):t("days_ago_n","{n} дн. назад").replace("{n}",String(d));
@@ -1014,14 +1014,14 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
               )}
             </div>
             {tier.scenarios===0?(
-              <div style={{textAlign:"center",padding:"50px 20px",border:"1px dashed rgba(104,54,245,.25)",borderRadius:16,background:"rgba(104,54,245,.03)"}}>
+              <div className="sa-empty-state" style={{borderColor:"color-mix(in srgb,var(--accent-1) 35%,var(--border))",background:"color-mix(in srgb,var(--accent-soft) 40%,var(--surface))"}}>
                 <div style={{fontSize:36,marginBottom:10}}>⎇</div>
                 <div style={{fontSize:14,fontWeight:700,color:"var(--text3)",marginBottom:6}}>{t("scenarios_pro","Сценарии доступны с Pro")}</div>
                 <div style={{fontSize:13,color:"var(--text5)",marginBottom:16,maxWidth:300,margin:"0 auto 16px"}}>Создавайте альтернативные планы: «Что если потеряем ключевого клиента?» или «Что если вырастем ×3 за год?»</div>
                 {onUpgrade&&<button className="btn-interactive" onClick={onUpgrade} style={{padding:"9px 20px",borderRadius:10,border:"none",background:"var(--gradient-accent)",color:"var(--accent-on-bg)",cursor:"pointer",fontSize:13,fontWeight:800,boxShadow:"0 4px 18px var(--accent-glow)"}}>{t("upgrade_to_pro","Перейти на Pro")}</button>}
               </div>
             ):scenarios.length===0?(
-              <div style={{textAlign:"center",padding:"50px 20px",border:"1px dashed var(--border2)",borderRadius:16}}>
+              <div className="sa-empty-state">
                 <div style={{fontSize:36,marginBottom:10}}>⎇</div>
                 <div style={{fontSize:14,fontWeight:700,color:"var(--text3)",marginBottom:6}}>{t("no_scenarios","Нет сценариев")}</div>
                 <div style={{fontSize:13,color:"var(--text5)",marginBottom:16}}>{t("create_first_scenario","Создайте первый сценарий вручную или с помощью AI шаблонов")}</div>
@@ -1039,7 +1039,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
         {tab==="content"&&(
           <div>
             {!tier.contentPlan?(
-              <div className="glass-card" style={{textAlign:"center",padding:"50px 24px",border:"1px dashed var(--glass-border-accent,var(--border2))",borderRadius:16,background:"var(--accent-soft)"}}>
+              <div className="sa-empty-state" style={{background:"color-mix(in srgb,var(--accent-soft) 50%,var(--surface))"}}>
                 <div style={{fontSize:36,marginBottom:10}}>✍️</div>
                 <div style={{fontSize:14,fontWeight:700,color:"var(--text3)",marginBottom:6}}>{t("content_plan_locked_title","Контент-план доступен на Pro")}</div>
                 <div style={{fontSize:13,color:"var(--text5)",marginBottom:16,maxWidth:360,margin:"0 auto 16px"}}>{t("content_plan_pro_only","Приложение использует знания о вашем бизнесе и стратегии для планирования постов.")}</div>
@@ -1048,7 +1048,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
             ):(
               <>
                 {onOpenContentPlanProject&&(
-                  <div className="glass-card" style={{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",gap:14,padding:"14px 18px",borderRadius:14,border:"1px solid var(--glass-border-accent,var(--border))",background:"linear-gradient(135deg,var(--accent-soft),transparent)",marginBottom:20}}>
+                  <div className="sa-card-pro sa-lift" style={{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",gap:14,padding:"14px 18px",borderRadius:18,marginBottom:20}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontSize:13.5,fontWeight:800,color:"var(--text)",marginBottom:4}}>{t("cp_workspace_banner_title","Отдельный раздел «Контент-план»")}</div>
                       <div style={{fontSize:12.5,color:"var(--text5)",lineHeight:1.45}}>{t("cp_workspace_banner_hint","Тот же план в полноэкранном режиме — как карта: удобно вести ленту и календарь без переключения вкладок.")}</div>
@@ -1065,7 +1065,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
         {/* AI Tab */}
         {tab==="ai"&&(
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            <div className="glass-card" style={{padding:"14px 16px",borderRadius:14}}>
+            <div className="sa-panel" style={{padding:"14px 18px"}}>
               <div style={{fontSize:14,fontWeight:900,color:"var(--text)",display:"flex",alignItems:"center",gap:10}}>
                 <span style={{width:28,height:28,borderRadius:8,background:"var(--gradient-accent)",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"var(--accent-on-bg)",boxShadow:"0 2px 12px var(--accent-glow)",fontWeight:900}}>✦</span>
                 {t("project_ai_title","AI по проекту")}
@@ -1074,25 +1074,27 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
                 {t("project_ai_hint","Один и тот же чат, доступен и в карте. Здесь AI видит контекст всех карт проекта.")}
               </div>
             </div>
-            <AiPanel
-              embedded={true}
-              isMobile={isMobile}
-              nodes={allNodes}
-              edges={allEdges}
-              ctx={projCtx||""}
-              tier={user?.tier||"free"}
-              projectName={proj?.name||""}
-              mapName={t("project_scope","Проект")}
-              userName={user?.name||user?.email||""}
-              msgs={aiChatMsgs||[]}
-              onMsgsChange={aiChatSetMsgs||(()=>{})}
-              onAddNode={()=>{}}
-              onClose={()=>{}}
-              externalMsgs={[]}
-              onClearExternal={()=>{}}
-              onError={(msg)=>setToast({msg,type:"error"})}
-              statusMap={getSTATUS(t)}
-            />
+            <div className="sa-ai-chat-shell">
+              <AiPanel
+                embedded={true}
+                isMobile={isMobile}
+                nodes={allNodes}
+                edges={allEdges}
+                ctx={projCtx||""}
+                tier={user?.tier||"free"}
+                projectName={proj?.name||""}
+                mapName={t("project_scope","Проект")}
+                userName={user?.name||user?.email||""}
+                msgs={aiChatMsgs||[]}
+                onMsgsChange={aiChatSetMsgs||(()=>{})}
+                onAddNode={()=>{}}
+                onClose={()=>{}}
+                externalMsgs={[]}
+                onClearExternal={()=>{}}
+                onError={(msg)=>setToast({msg,type:"error"})}
+                statusMap={getSTATUS(t)}
+              />
+            </div>
           </div>
         )}
 
@@ -1100,7 +1102,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
         {tab==="team"&&(
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             {(proj.members||[]).map(m=>(
-              <div key={m.email} className="glass-card" style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderRadius:12}}>
+              <div key={m.email} className="sa-card-pro sa-lift" style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderRadius:14}}>
                 <div style={{width:34,height:34,borderRadius:"50%",background:"var(--gradient-accent)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"var(--accent-on-bg)",fontWeight:900,flexShrink:0,boxShadow:"0 2px 10px var(--accent-glow)"}}>{(m.email||"?")[0].toUpperCase()}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:13.5,fontWeight:700,color:"var(--text)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.email}</div>
@@ -1118,7 +1120,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
               </div>
             ))}
             {isOwner&&(
-              <div className="glass-card" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:"12px 16px",borderRadius:12,flexWrap:"wrap"}}>
+              <div className="sa-panel" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:"12px 16px",flexWrap:"wrap"}}>
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{fontSize:13.5,fontWeight:700,color:"var(--text)"}}>🔗 {t("invite_link","Ссылка-приглашение")}</div>
                   <div style={{fontSize:12,color:"var(--text5)"}}>{t("invite_link_desc","Скопируйте и отправьте — пригласите команду одной ссылкой.")}</div>
@@ -1131,7 +1133,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
               </div>
             )}
             {isOwner&&(proj.members||[]).length<tier.users&&(
-              <div className="glass-card" style={{display:"flex",gap:9,padding:"12px 16px",borderRadius:12,border:"1px dashed var(--glass-border-accent,var(--border2))"}}>
+              <div className="sa-panel" style={{display:"flex",gap:9,padding:"12px 16px",border:"1px dashed color-mix(in srgb,var(--accent-1) 30%,var(--border))"}}>
                 <input value={newMember} onChange={e=>setNewMember(e.target.value)} placeholder="Email участника" onKeyDown={e=>{if(e.key==="Enter")addMember();}} style={{flex:1,padding:"8px 10px",borderRadius:8,border:"1px solid var(--border)",background:"var(--input-bg)",color:"var(--text)",fontSize:13,outline:"none"}}/>
                 <select value={nmRole} onChange={e=>setNmRole(e.target.value)} style={{padding:"8px",borderRadius:8,border:"1px solid var(--border)",background:"var(--surface2)",color:"var(--text)",fontSize:13}}>
                   <option value="editor">{t("role_editor","Редактор")}</option>
@@ -1146,14 +1148,14 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
 
         {/* Settings Tab */}
         {tab==="settings"&&(
-          <div style={{display:"flex",flexDirection:"column",gap:14,maxWidth:460}}>
+          <div className="sa-panel" style={{display:"flex",flexDirection:"column",gap:14,maxWidth:520}}>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.5,marginBottom:5}}>{t("project_name_label","Название проекта")}</div>
-              <input value={proj.name||""} onChange={e=>setProj(p=>({...p,name:e.target.value}))} onBlur={async()=>{try{await saveProject(proj);setToast({msg:t("saved_ok","Сохранено"),type:"success"});}catch(e:any){setToast({msg:e?.message||t("save_error","Ошибка сохранения"),type:"error"});}}} style={{width:"100%",padding:"9px 12px",borderRadius:10,border:"1px solid var(--border)",background:"var(--input-bg)",color:"var(--text)",fontSize:13,outline:"none",fontFamily:"inherit"}}/>
+              <div style={{fontSize:11,fontWeight:800,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.8,marginBottom:6}}>{t("project_name_label","Название проекта")}</div>
+              <input value={proj.name||""} onChange={e=>setProj(p=>({...p,name:e.target.value}))} onBlur={async()=>{try{await saveProject(proj);setToast({msg:t("saved_ok","Сохранено"),type:"success"});}catch(e:any){setToast({msg:e?.message||t("save_error","Ошибка сохранения"),type:"error"});}}} style={{width:"100%",padding:"10px 14px",borderRadius:12,border:"1px solid color-mix(in srgb,var(--border) 75%,var(--accent-1) 25%)",background:"var(--input-bg)",color:"var(--text)",fontSize:13,outline:"none",fontFamily:"inherit"}}/>
             </div>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.5,marginBottom:5}}>Тариф</div>
-              <div style={{padding:"11px 14px",borderRadius:10,border:"1px solid var(--border)",background:"var(--surface)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div style={{fontSize:11,fontWeight:800,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.8,marginBottom:6}}>Тариф</div>
+              <div className="sa-card-pro" style={{padding:"12px 16px",borderRadius:14,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                 <div>
                   <div style={{fontSize:13,fontWeight:700,color:"var(--text)"}}>{TIERS[user.tier]?.label||"Free"}</div>
                   <div style={{fontSize:13,color:"var(--text5)"}}>до {fmt(tier.maps)} карт • {fmt(tier.scenarios)} сценариев • {fmt(tier.users)} участников</div>
@@ -1162,8 +1164,8 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
               </div>
             </div>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.5,marginBottom:5}}>{t("share_section","Поделиться (read-only)")}</div>
-              <div style={{padding:"11px 14px",borderRadius:10,border:"1px solid var(--border)",background:"var(--surface)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
+              <div style={{fontSize:11,fontWeight:800,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.8,marginBottom:6}}>{t("share_section","Поделиться (read-only)")}</div>
+              <div className="sa-card-pro" style={{padding:"12px 16px",borderRadius:14,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{fontSize:13,fontWeight:700,color:"var(--text)"}}>{t("share_link_title","Ссылка только для чтения")}</div>
                   <div style={{fontSize:12.5,color:"var(--text5)"}}>{t("share_link_desc","Любой с этой ссылкой увидит карты и контент-план без возможности редактировать.")}</div>
@@ -1176,8 +1178,8 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
               </div>
             </div>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.5,marginBottom:5}}>{t("versions_section","Версии карт")}</div>
-              <div style={{padding:"11px 14px",borderRadius:10,border:"1px solid var(--border)",background:"var(--surface)",fontSize:12.5,color:"var(--text4)"}}>
+              <div style={{fontSize:11,fontWeight:800,color:"var(--text4)",textTransform:"uppercase",letterSpacing:.8,marginBottom:6}}>{t("versions_section","Версии карт")}</div>
+              <div className="sa-card-pro" style={{padding:"12px 16px",borderRadius:14,fontSize:12.5,color:"var(--text4)"}}>
                 {regularMaps.length===0
                   ? t("versions_no_maps","Сначала создайте карту — версии хранятся для каждой карты.")
                   : t("versions_open_in_map","История версий доступна в редакторе карты — кнопка 📜 на верхней панели.")

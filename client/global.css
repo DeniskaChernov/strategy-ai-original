@@ -2460,6 +2460,52 @@ body,.sa-strategy-ui{transition:background-color .4s ease,color .35s ease}
   box-shadow:0 16px 40px rgba(0,0,0,.16);
   border-color:var(--glass-border-accent,var(--border));
 }
+.sa-empty-state{
+  text-align:center;
+  padding:48px 24px;
+  border-radius:20px;
+  border:1px dashed color-mix(in srgb,var(--border) 70%,var(--accent-1) 30%);
+  background:color-mix(in srgb,var(--surface) 94%,var(--accent-1) 6%);
+}
+.sa-hub-card{
+  text-align:left;
+  padding:20px 22px;
+  border-radius:18px;
+  border:1px solid color-mix(in srgb,var(--border) 75%,var(--accent-1) 25%);
+  background:linear-gradient(165deg,color-mix(in srgb,var(--surface) 92%,var(--accent-1) 8%),var(--card));
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease,border-color .22s ease;
+}
+.sa-hub-card:not(:disabled):hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 36px rgba(0,0,0,.14);
+  border-color:var(--glass-border-accent,var(--border));
+}
+.sa-ctx-strip{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  padding:10px 16px;
+  border-radius:14px;
+  background:color-mix(in srgb,var(--surface) 90%,var(--accent-1) 10%);
+  border:1px solid color-mix(in srgb,var(--border) 75%,var(--accent-1) 25%);
+  font-size:12.5px;
+  color:var(--text3);
+}
+.sa-ai-chat-shell{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  border-radius:20px;
+  overflow:hidden;
+  background:color-mix(in srgb,var(--surface) 92%,var(--accent-1) 8%);
+  border:1px solid color-mix(in srgb,var(--border) 70%,var(--accent-1) 30%);
+  box-shadow:0 12px 40px rgba(0,0,0,.1);
+}
 
 /* ── Projects grid entrance ── */
 .sa-proj-card-icon{transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease,background .3s ease;}

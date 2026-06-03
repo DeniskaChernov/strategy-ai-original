@@ -77,7 +77,7 @@ export function AiAdvisorPage({
 
   const ctxStrip = (
     <div style={{ maxWidth: "min(1040px,100%)", width: "100%", margin: "0 auto", padding: shellUi ? "0 24px 10px" : "0 12px 10px" }}>
-      <div className="sa-page-reveal" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "9px 14px", borderRadius: 12, background: "var(--surface)", border: "1px solid var(--border)", fontSize: 12.5, color: "var(--text3)" }}>
+      <div className="sa-page-reveal sa-ctx-strip">
         {loading ? (
           <><span className="sa-ai-ctx-dot" style={{ width: 8, height: 8, borderRadius: 999, background: "var(--acc,#a78bfa)", animation: "saPulseDot 1s ease-in-out infinite" }} aria-hidden />{t("ai_ctx_loading", "Загружаю контекст портфеля…")}</>
         ) : loadErr ? (
@@ -91,7 +91,7 @@ export function AiAdvisorPage({
 
   const chat = (
     <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", maxWidth: "min(1040px,100%)", width: "100%", margin: "0 auto", padding: shellUi ? "0 24px 16px" : 0 }}>
-      <div className="glass-card" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, overflow: "hidden" }}>
+      <div className="sa-ai-chat-shell sa-page-reveal sa-pr-d2">
         <AiPanel
           embedded={true}
           isMobile={isMobile}
