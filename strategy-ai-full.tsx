@@ -1628,7 +1628,7 @@ export default function App(){
               if(mp.type==="home"){
                 try{window.history.replaceState({},"","/app");}catch{}
               }
-              setScreen("projects");setAuthChecked(true);return;
+              setScreen("dashboard");setAuthChecked(true);return;
             }
           }catch(e:any){
             if(e.message==="session_expired"){clearJWT();clearRefreshToken();}
@@ -1655,7 +1655,7 @@ export default function App(){
               if(mp.type==="home"){
                 try{window.history.replaceState({},"","/app");}catch{}
               }
-              setScreen("projects");setAuthChecked(true);return;
+              setScreen("dashboard");setAuthChecked(true);return;
             }
           }
         }catch{}

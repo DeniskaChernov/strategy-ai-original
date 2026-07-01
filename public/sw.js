@@ -1,15 +1,16 @@
 // Strategy AI — Service Worker (PWA)
-// v8: app.js is ESM with code-splitting — landing lives in its own chunk
-const CACHE = 'strategy-ai-v8';
+// v9: network-first for all JS bundles (app.js + code-split chunks)
+const CACHE = 'strategy-ai-v9';
 
 function isApiOrSocket(u) {
   return u.href.includes('/api/') || u.pathname.includes('socket');
 }
 
-function isCriticalDocument(url) {
+function isNetworkFirstAsset(url) {
   const p = url.pathname;
   return (
     p === '/app.js' ||
+    p.startsWith('/chunk-') ||
     p === '/' ||
     p === '/index.html' ||
     p === '/global.css' ||
@@ -29,10 +30,6 @@ self.addEventListener('install', (e) => {
           '/icon.svg',
           '/icon-maskable.svg',
           '/manifest.json',
-          '/global.css',
-          '/landing.css',
-          '/strategy-shell.css',
-          '/tailwind.css',
         ])
       )
       .then(() => self.skipWaiting())
@@ -55,7 +52,7 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (isApiOrSocket(url)) return;
 
-  if (isCriticalDocument(url)) {
+  if (isNetworkFirstAsset(url)) {
     e.respondWith(
       fetch(e.request, { cache: 'no-store' })
         .then((r) => {
