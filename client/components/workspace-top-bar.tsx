@@ -1,5 +1,4 @@
 import React from "react";
-import { NotifBell } from "./notif-bell";
 
 export function WorkspaceTopBar({
   title,
@@ -11,6 +10,7 @@ export function WorkspaceTopBar({
   notifUnread = 0,
   onNotifs,
   showNotifs = true,
+  onSettings,
   onNewProject,
   newProjectLabel,
 }: {
@@ -23,51 +23,118 @@ export function WorkspaceTopBar({
   notifUnread?: number;
   onNotifs?: () => void;
   showNotifs?: boolean;
+  onSettings?: () => void;
   onNewProject?: () => void;
   newProjectLabel: string;
 }) {
+  const isDark = theme === "dark";
+
   return (
-    <header className="sa-workspace-topbar">
-      <div className="sa-workspace-topbar__title">
-        <div className="sa-workspace-topbar__h">{title}</div>
-        {subtitle ? <div className="sa-workspace-topbar__sub">{subtitle}</div> : null}
+    <div className="sa-topbar">
+      <div className="tb-l">
+        <div className="tb-title-wrap">
+          <div className="tb-title">{title}</div>
+          {subtitle ? <div className="tb-sub">{subtitle}</div> : null}
+        </div>
       </div>
-      <div className="sa-workspace-topbar__actions">
-        <button type="button" className="sa-workspace-search" onClick={onSearchClick} aria-label={searchPlaceholder}>
-          <svg className="sa-workspace-search__svg" viewBox="0 0 20 20" fill="none" aria-hidden>
-            <circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          <span className="sa-workspace-search__ph">{searchPlaceholder}</span>
-          <kbd className="sa-workspace-search__kbd">⌘K</kbd>
-        </button>
-        {showNotifs && onNotifs ? <NotifBell unread={notifUnread} onClick={onNotifs} className="btn-ic sa-workspace-ic" /> : null}
-        <button type="button" className="btn-ic sa-workspace-ic sa-workspace-ic--ghost" aria-label="Навигация">
-          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden>
-            <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="btn-ic sa-workspace-ic sa-workspace-ic--ghost"
-          onClick={onToggleTheme}
-          aria-label={theme === "dark" ? "Светлая тема" : "Тёмная тема"}
+      <div className="tb-r">
+        <div
+          className="srch"
+          onClick={onSearchClick}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && onSearchClick) {
+              e.preventDefault();
+              onSearchClick();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          style={{ cursor: "pointer" }}
         >
-          {theme === "dark" ? (
-            <svg viewBox="0 0 20 20" width="17" height="17" fill="none" aria-hidden>
-              <circle cx="10" cy="10" r="3.5" stroke="currentColor" strokeWidth="1.4" />
-              <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.9 4.9l1.4 1.4M13.7 13.7l1.4 1.4M4.9 15.1l1.4-1.4M13.7 6.3l1.4-1.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+            <circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.3" />
+            <line x1="7.8" y1="7.8" x2="11" y2="11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          </svg>
+          <input
+            readOnly
+            placeholder={searchPlaceholder}
+            onClick={onSearchClick}
+            style={{
+              cursor: "pointer",
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              fontSize: 12,
+              color: "var(--t2)",
+              width: 120,
+              fontFamily: "inherit",
+            }}
+          />
+        </div>
+        {showNotifs && onNotifs ? (
+          <div
+            className="btn-ic"
+            onClick={onNotifs}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") onNotifs();
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={notifUnread > 0 ? `Уведомления (${notifUnread})` : "Уведомления"}
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+              <path
+                d="M7.5 1.5A4.5 4.5 0 0 1 12 6v1.5L13.5 9h-12L3 7.5V6A4.5 4.5 0 0 1 7.5 1.5z"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                fill="none"
+              />
+              <path d="M5.5 9v.5a2 2 0 0 0 4 0V9" stroke="currentColor" strokeWidth="1.2" fill="none" />
             </svg>
-          ) : (
-            <span aria-hidden>☽</span>
-          )}
-        </button>
+            {notifUnread > 0 ? <div className="ndot" /> : null}
+          </div>
+        ) : null}
+        <div
+          className="tpill"
+          onClick={onToggleTheme}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") onToggleTheme();
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
+        >
+          <div className={"tpi" + (isDark ? " on" : "")}>☽</div>
+          <div className={"tpi" + (!isDark ? " on" : "")}>☀</div>
+        </div>
+        {onSettings ? (
+          <div
+            className="btn-ic"
+            onClick={onSettings}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") onSettings();
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Настройки"
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+              <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.3" fill="none" />
+              <path
+                d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.9 2.9l1.1 1.1M11 11l1.1 1.1M2.9 12.1l1.1-1.1M11 4l1.1-1.1"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        ) : null}
         {onNewProject ? (
-          <button type="button" className="sa-workspace-topbar__new" onClick={onNewProject}>
+          <button type="button" className="btn-p" onClick={onNewProject}>
             + {newProjectLabel}
           </button>
         ) : null}
       </div>
-    </header>
+    </div>
   );
 }

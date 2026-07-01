@@ -215,11 +215,11 @@ export function StrategyShellSidebar({
       )}
       <div className="sb-bottom">
         {onWeeklyBriefing&&(
-          <div className="sb-briefing" onClick={onWeeklyBriefing} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onWeeklyBriefing();}}>
-            <div className="sb-briefing-ic" aria-hidden>📋</div>
-            <div className="sb-briefing-body">
-              <div className="sb-briefing-title">{t("weekly_briefing", "Еженедельный брифинг")}</div>
-              <div className="sb-briefing-sub">{briefingHint || t("shell_briefing_sub", "Здоровье стратегии")}</div>
+          <div className="briefing-badge" onClick={onWeeklyBriefing} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onWeeklyBriefing();}}>
+            <div className="bb-icon" aria-hidden>📋</div>
+            <div>
+              <div className="bb-title">{t("weekly_briefing", "Еженедельный брифинг")}</div>
+              <div className="bb-sub">{briefingHint || t("shell_briefing_sub", "Здоровье стратегии")}</div>
             </div>
           </div>
         )}
@@ -242,7 +242,7 @@ export function StrategyShellSidebar({
           <div className="u-av">{initial}</div>
           <div className="u-info">
             <div className="u-name">{userName || userEmail.split("@")[0]}</div>
-            <span className="u-tier-pill">{tierLabel}</span>
+            {refLayout ? <div className="u-role">{tierLabel}</div> : <span className="u-tier-pill">{tierLabel}</span>}
           </div>
           <div className="u-online"/>
         </div>

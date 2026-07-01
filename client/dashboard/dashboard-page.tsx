@@ -175,40 +175,54 @@ export function DashboardPage({
     return <>{Math.round(v)}{suffix}</>;
   };
 
-  const StatCard = ({
-    icon,
-    iconBg,
-    value,
-    label,
-    foot,
-    trend,
-    trendType = "up",
-  }: {
-    icon: React.ReactNode;
-    iconBg: string;
-    value: React.ReactNode;
-    label: string;
-    foot?: string;
-    trend?: string;
-    trendType?: "up" | "down";
-  }) => (
-    <div className="sa-dash-stat-ref sa-lift">
-      <div className="sa-dash-stat-ref__icon" style={{ background: iconBg }}>{icon}</div>
-      <div className="sa-dash-stat-ref__metric">
-        <span className="sa-dash-stat-ref__num">{value}</span>
-        <span className="sa-dash-stat-ref__lbl">{label}</span>
-      </div>
-      {trend ? <div className={`sa-dash-stat-ref__trend sa-dash-stat-ref__trend--${trendType}`}>{trend}</div> : foot ? <div className="sa-dash-stat-ref__foot">{foot}</div> : null}
-    </div>
-  );
+  const KPI_CARDS = [
+    {
+      icon: "📁",
+      color: "var(--acc)",
+      value: <CountUp n={stats.projects} loading={loading} />,
+      label: t("dash_projects_upper", "ПРОЕКТЫ"),
+      trend: t("dash_projects_active_n", "↗ {n} активных").replace("{n}", String(stats.activeProjects)),
+      trendCls: "neu" as const,
+      onClick: () => onShellNav("projects"),
+    },
+    {
+      icon: "🗺️",
+      color: "var(--green)",
+      value: <CountUp n={stats.nodes} loading={loading} />,
+      label: t("dash_nodes_upper", "УЗЛЫ СТРАТЕГИИ"),
+      trend: stats.onTrack > 0 ? `↑ ${stats.onTrack} ${t("dash_on_track_short", "в графике")}` : "→",
+      trendCls: "up" as const,
+      onClick: () => onShellNav("insights"),
+    },
+    {
+      icon: "📈",
+      color: "var(--amber)",
+      value: <><CountUp n={stats.progress} suffix="%" loading={loading} /></>,
+      label: t("dash_avg_progress_upper", "СРЕДНИЙ ПРОГРЕСС"),
+      trend: stats.progress >= 50 ? `↑ ${t("dash_on_track_label", "В графике")}` : `↓ ${t("dash_review_needed", "Нужна проверка")}`,
+      trendCls: (stats.progress >= 50 ? "up" : "dn") as const,
+      onClick: () => onShellNav("insights"),
+    },
+    {
+      icon: "⚠️",
+      color: "var(--cyan)",
+      value: <CountUp n={stats.risks} loading={loading} />,
+      label: t("dash_active_risks_upper", "АКТИВНЫЕ РИСКИ"),
+      trend: stats.risks ? `↓ ${t("dash_review_needed", "Нужна проверка")}` : `→ ${t("dash_all_clear_short", "Всё спокойно")}`,
+      trendCls: (stats.risks ? "dn" : "neu") as const,
+      onClick: () => onShellNav("ai"),
+    },
+  ];
 
   const ACTIVITY_STYLES = [
-    { bg: "rgba(52,211,153,.14)", ic: "📈" },
-    { bg: "rgba(96,165,250,.14)", ic: "◈" },
-    { bg: "rgba(167,139,250,.14)", ic: "✦" },
-    { bg: "rgba(251,191,36,.14)", ic: "🔗" },
-    { bg: "rgba(248,113,113,.12)", ic: "⚠" },
+    { bg: "rgba(104,54,245,.12)", ic: "🎯" },
+    { bg: "rgba(18,196,130,.12)", ic: "⚡" },
+    { bg: "rgba(6,182,212,.12)", ic: "🤖" },
+    { bg: "rgba(240,148,40,.12)", ic: "🔗" },
+    { bg: "rgba(251,191,36,.12)", ic: "📈" },
   ];
+
+  const displayName = user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "";
 
   const body = (
     <>
@@ -218,11 +232,12 @@ export function DashboardPage({
           subtitle={t("dash_subtitle", "Ваша стратегия с одного экрана")}
           theme={theme}
           onToggleTheme={onToggleTheme}
-          searchPlaceholder={t("dash_search_ph", "Поиск…")}
+          searchPlaceholder={t("dash_search_ph", "Поиск… (⌘K)")}
           onSearchClick={openGlobalSearch}
           notifUnread={notifUnread}
           onNotifs={() => setShowNotifs(true)}
           showNotifs={!!API_BASE}
+          onSettings={onProfile}
           onNewProject={openNewProject}
           newProjectLabel={t("dash_new_project", "Новый проект")}
         />
@@ -243,105 +258,91 @@ export function DashboardPage({
         </div>
       )}
 
-      <div className={(shellUi ? "scr sa-dash-ref" : undefined)} style={{ flex: 1, overflowY: "auto", padding: shellUi ? undefined : isMobile ? 16 : 24, position: "relative", zIndex: 5, minHeight: 0 }}>
+      <div className={shellUi ? "scr" : undefined} style={{ flex: 1, overflowY: "auto", padding: shellUi ? undefined : isMobile ? 16 : 24, position: "relative", zIndex: 5, minHeight: 0 }}>
         <div style={{ maxWidth: "min(1160px,100%)", width: "100%", margin: "0 auto" }}>
-          <div className="sa-page-reveal sa-dash-hero-row">
-            <div className="sa-page-hero">
-              <h1 style={{ margin: 0 }}>{greet}, {user?.name?.split(" ")[0] || user?.email?.split("@")[0] || ""} <span aria-hidden>👋</span></h1>
-              <div className="sa-dash-hero-date">{dateStr}</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "var(--t1)", letterSpacing: "-.03em" }}>
+                {greet}, {displayName} <span aria-hidden>👋</span>
+              </div>
+              <div style={{ fontSize: 13, color: "var(--t3)", marginTop: 3 }}>{dateStr}</div>
             </div>
             {shellUi && (
-              <button type="button" className="sa-dash-hero-briefing" onClick={() => setShowBriefing(true)}>
-                <span aria-hidden>📋</span> {t("weekly_briefing", "Еженедельный брифинг")}
+              <button type="button" className="btn-p" onClick={() => setShowBriefing(true)}>
+                📋 {t("weekly_briefing", "Еженедельный брифинг")}
               </button>
             )}
           </div>
 
-          <div className="sa-page-reveal sa-pr-d1 sa-bento sa-bento--4">
-            <StatCard
-              icon={<>📁</>}
-              iconBg="rgba(251,191,36,.18)"
-              value={<CountUp n={stats.projects} loading={loading} />}
-              label={t("dash_projects_upper", "ПРОЕКТЫ")}
-              foot={t("dash_projects_active_n", "{n} активных").replace("{n}", String(stats.activeProjects))}
-            />
-            <StatCard
-              icon={<>📘</>}
-              iconBg="rgba(96,165,250,.16)"
-              value={<CountUp n={stats.nodes} loading={loading} />}
-              label={t("dash_nodes_upper", "УЗЛЫ СТРАТЕГИИ")}
-              trend={stats.onTrack > 0 ? `↑ ${stats.onTrack} ${t("dash_on_track_short", "в графике")}` : undefined}
-              trendType="up"
-            />
-            <StatCard
-              icon={<>📈</>}
-              iconBg="rgba(52,211,153,.14)"
-              value={<CountUp n={stats.progress} suffix="%" loading={loading} />}
-              label={t("dash_avg_progress_upper", "СРЕДНИЙ ПРОГРЕСС")}
-              trend={stats.progress >= 50 ? `↑ ${t("dash_on_track_label", "В графике")}` : undefined}
-              trendType="up"
-            />
-            <StatCard
-              icon={<>⚠️</>}
-              iconBg="rgba(251,191,36,.16)"
-              value={<CountUp n={stats.risks} loading={loading} />}
-              label={t("dash_active_risks_upper", "АКТИВНЫЕ РИСКИ")}
-              trend={stats.risks ? `↓ ${t("dash_review_needed", "Нужна проверка")}` : `↑ ${t("dash_all_clear_short", "Всё спокойно")}`}
-              trendType={stats.risks ? "down" : "up"}
-            />
+          <div className="dash-grid">
+            {KPI_CARDS.map((k, i) => (
+              <div key={i} className="dash-card glow-card" onClick={k.onClick} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") k.onClick(); }}>
+                <div style={{ fontSize: 20, marginBottom: 6 }} aria-hidden>{k.icon}</div>
+                <div className="dc-val" style={{ color: k.color }}>{k.value}</div>
+                <div className="dc-lbl">{k.label}</div>
+                <div className={`dc-trend ${k.trendCls}`}>{k.trend}</div>
+              </div>
+            ))}
           </div>
 
-          <div className="sa-bento sa-bento--2-1">
-            <div className="sa-page-reveal sa-pr-d2 sa-panel">
-              <div className="sa-dash-panel-title">{t("dash_recent_activity", "Последняя активность")}</div>
-              {loading ? (
-                <div className="sa-dash-act-title" style={{ color: "var(--text3)" }}>{t("loading_short", "Загрузка…")}</div>
-              ) : recent.length === 0 ? (
-                <div className="sa-dash-act-title" style={{ color: "var(--text3)" }}>{t("dash_no_activity", "Пока нет активности — создайте карту.")}</div>
-              ) : (
-                <div>
-                  {recent.map((r, i) => {
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div>
+              <div className="slbl">{t("dash_recent_activity", "Последняя активность")}</div>
+              <div className="card">
+                {loading ? (
+                  <div className="act-text" style={{ color: "var(--t3)" }}>{t("loading_short", "Загрузка…")}</div>
+                ) : recent.length === 0 ? (
+                  <div className="act-text" style={{ color: "var(--t3)" }}>{t("dash_no_activity", "Пока нет активности — создайте карту.")}</div>
+                ) : (
+                  recent.map((r, i) => {
                     const st = ACTIVITY_STYLES[i % ACTIVITY_STYLES.length];
                     return (
-                      <div key={i} className="sa-dash-act-row">
-                        <div className="sa-dash-act-ic" style={{ background: st.bg }} aria-hidden>{st.ic}</div>
-                        <div className="sa-dash-act-title">
-                          {t("dash_act_map_updated", "«{name}» обновлена · {n} узлов")
-                            .replace("{name}", r.name)
-                            .replace("{n}", String(r.nodes))}
+                      <div key={i} className="activity-item">
+                        <div className="act-icon" style={{ background: st.bg }} aria-hidden>{st.ic}</div>
+                        <div className="act-text">
+                          <strong>{r.name}</strong>{" "}
+                          {t("dash_act_map_updated_plain", "обновлена · {n} узлов").replace("{n}", String(r.nodes))}
                         </div>
-                        <div className="sa-dash-act-time">{relTime(r.at)}</div>
+                        <div className="act-time">{relTime(r.at)}</div>
                       </div>
                     );
-                  })}
-                </div>
-              )}
+                  })
+                )}
+              </div>
             </div>
 
-            <div className="sa-page-reveal sa-pr-d3 sa-panel">
-              <div className="sa-dash-panel-title">{t("dash_goals", "Цели")}</div>
-              {loading ? (
-                <div style={{ color: "var(--text3)", fontSize: 13 }}>{t("loading_short", "Загрузка…")}</div>
-              ) : goals.length === 0 ? (
-                <div style={{ color: "var(--text3)", fontSize: 13 }}>{t("dash_no_goals", "Нет шагов — добавьте их на карте.")}</div>
-              ) : (
-                <div>
-                  {goals.map((n: any, i: number) => {
+            <div>
+              <div className="slbl">{t("dash_goals", "Цели")}</div>
+              <div className="card">
+                {loading ? (
+                  <div style={{ color: "var(--t3)", fontSize: 12.5 }}>{t("loading_short", "Загрузка…")}</div>
+                ) : goals.length === 0 ? (
+                  <div style={{ color: "var(--t3)", fontSize: 12.5 }}>{t("dash_no_goals", "Нет шагов — добавьте их на карте.")}</div>
+                ) : (
+                  goals.map((n: any, i: number) => {
                     const pct = Math.max(0, Math.min(100, Number(n.progress) || 0));
+                    const barColor = pct >= 70 ? "var(--green)" : pct >= 40 ? "var(--acc)" : "var(--amber)";
                     return (
-                      <div key={n.id || i} className="sa-dash-goal-row">
-                        <div className="sa-dash-goal-head">
-                          <span className="sa-dash-goal-title">{n.title || t("untitled", "Без названия")}</span>
-                          <span className="sa-dash-goal-pct">{pct}%</span>
+                      <div
+                        key={n.id || i}
+                        style={{ padding: "10px 14px", borderBottom: ".5px solid var(--b0)", cursor: "pointer" }}
+                        onClick={() => onShellNav("map")}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onShellNav("map"); }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--t1)" }}>{n.title || t("untitled", "Без названия")}</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--acc)" }}>{pct}%</div>
                         </div>
-                        <div className="sa-dash-goal-bar">
-                          <div style={{ width: pct + "%" }} />
+                        <div style={{ height: 3, background: "var(--b0)", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ width: pct + "%", height: "100%", background: barColor, borderRadius: 3 }} />
                         </div>
                       </div>
                     );
-                  })}
-                </div>
-              )}
+                  })
+                )}
+              </div>
             </div>
           </div>
         </div>

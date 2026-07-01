@@ -41,26 +41,26 @@ body{background:var(--bg);transition:background var(--tr)}
 .view.on{display:flex}
 
 /* Landing is transparent — orbs, stars, particles show through */
-#v-landing{background:transparent;overflow-y:auto;align-items:center}
+#v-landing{background:transparent;overflow-y:auto;display:block}
 #v-tier{z-index:20;overflow-y:auto;align-items:center;justify-content:center;padding:40px 20px}
-.land-inner{position:relative;z-index:5;width:100%;max-width:960px;margin:0 auto;padding:0 24px 80px}
+.land-inner{position:relative;z-index:5;width:100%;max-width:960px;margin:0 auto;padding:40px 24px 120px}
 /* Fixed nav — extracted from scroll flow */
 #land-nav-fixed{
-  position:fixed;top:0;left:50%;transform:translateX(-50%);
-  width:100%;max-width:960px;z-index:600;
+  position:sticky;top:0;left:0;
+  width:100%;max-width:100%;z-index:600;
   display:flex;align-items:center;justify-content:space-between;
   padding:18px 24px;
   transition:background .3s,backdrop-filter .3s,box-shadow .3s,padding .3s;
 }
 /* Scrolled: just a subtle separator line, barely visible */
 #land-nav-fixed.scrolled{
-  padding:12px 24px;
+  padding:12px 40px;
   background:rgba(5,4,16,.4);
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:.5px solid rgba(255,255,255,.06);
 }
 .lt #land-nav-fixed.scrolled{
-  padding:12px 24px;
+  padding:12px 40px;
   background:rgba(240,237,255,.65);
   backdrop-filter:blur(16px);
   border-bottom:.5px solid rgba(104,80,220,.08);
@@ -88,6 +88,20 @@ body{background:var(--bg);transition:background var(--tr)}
 
 /* HERO — NO entry animations, prevents ghost rendering */
 .hero{text-align:center;margin-bottom:64px;position:relative;padding-top:20px}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(104,54,245,.12);border:.5px solid rgba(104,54,245,.28);
+  border-radius:20px;padding:5px 13px;font-size:11.5px;font-weight:600;
+  color:rgba(168,128,255,.9);margin-bottom:24px;letter-spacing:-.01em;
+  position:relative;overflow:hidden;
+}
+.hero-badge::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(168,128,255,.18),transparent);
+  transform:translateX(-100%);animation:badge-shine 3.5s ease 0s infinite
+}
+@keyframes badge-shine{0%,20%{transform:translateX(-100%)}45%,100%{transform:translateX(220%)}}
+.lt .hero-badge{background:rgba(104,54,245,.1);color:#5526d6}
 .hero-h1{
   font-size:clamp(36px,5vw,62px);font-weight:800;color:var(--t1);line-height:1.06;
   letter-spacing:-.04em;margin-bottom:20px;
@@ -152,6 +166,16 @@ body{background:var(--bg);transition:background var(--tr)}
 .feat-card::after{content:'';position:absolute;inset:0;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.07),transparent 55%);pointer-events:none}
 .lt .feat-card::after{background:linear-gradient(145deg,rgba(255,255,255,.8),rgba(255,255,255,.05) 42%,transparent 68%)}
 .lt .feat-card{background:rgba(255,255,255,.76);border-color:rgba(104,80,220,.18)}
+/* Feature card visual preview area */
+.feat-preview{
+  height:80px;background:var(--inp);border:.5px solid var(--b0);
+  border-radius:10px;margin-bottom:14px;padding:10px 12px;
+  position:relative;overflow:hidden;display:flex;align-items:center;
+  transition:background .25s,border-color .25s;
+}
+.feat-card:hover .feat-preview{background:rgba(104,54,245,.06);border-color:rgba(104,54,245,.15)}
+.lt .feat-preview{background:rgba(255,255,255,.6);border-color:rgba(104,80,220,.12)}
+.lt .feat-card:hover .feat-preview{background:rgba(104,54,245,.05)}
 .feat-card .feat-card-glow{
   position:absolute;width:120px;height:120px;border-radius:50%;
   background:radial-gradient(circle,rgba(104,54,245,.15),transparent 70%);
@@ -255,7 +279,7 @@ body{background:var(--bg);transition:background var(--tr)}
 .cb-no{background:var(--tag);color:var(--t3)}
 
 /* TESTIMONIALS */
-.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:64px}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:64px;align-items:start}
 .testi-card{
   background:var(--card);backdrop-filter:blur(20px);border:.5px solid var(--b1);
   border-radius:16px;padding:20px;position:relative;overflow:hidden;
@@ -354,29 +378,20 @@ body{background:var(--bg);transition:background var(--tr)}
 .overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);pointer-events:none;transition:background .25s}
 .overlay.open{background:rgba(0,0,0,.55);pointer-events:all;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .lt .overlay.open{background:rgba(28,18,58,.35)}
-.modal-box{width:440px;max-height:88vh;overflow-y:auto;background:var(--sb);backdrop-filter:blur(50px) saturate(1.1);-webkit-backdrop-filter:blur(50px) saturate(1.1);border:.5px solid var(--b2);border-radius:22px;padding:30px 30px 32px;transform:scale(.93) translateY(16px);opacity:0;transition:all .26s cubic-bezier(.34,1.56,.64,1);box-shadow:0 32px 80px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.04)}
-.lt .modal-box{box-shadow:0 32px 78px rgba(78,55,180,.22),0 4px 14px rgba(78,55,180,.08),inset 0 1px 0 rgba(255,255,255,.6);background:rgba(255,255,255,.86)}
+.modal-box{width:440px;max-height:88vh;overflow-y:auto;background:var(--sb);backdrop-filter:blur(50px);-webkit-backdrop-filter:blur(50px);border:.5px solid var(--b2);border-radius:20px;padding:28px;transform:scale(.93) translateY(16px);opacity:0;transition:all .26s cubic-bezier(.34,1.56,.64,1);box-shadow:0 28px 70px rgba(0,0,0,.4)}
+.lt .modal-box{box-shadow:0 28px 70px rgba(78,55,180,.22)}
 .modal-box::-webkit-scrollbar{width:3px}
 .modal-box::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
 .overlay.open .modal-box{transform:scale(1) translateY(0);opacity:1}
-.modal-gem{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#6836f5,#b060ff);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;box-shadow:0 10px 28px rgba(104,54,245,.5),inset 0 1px 0 rgba(255,255,255,.2);margin-bottom:18px;position:relative}
-.modal-gem::after{content:"";position:absolute;inset:-6px;border-radius:22px;background:radial-gradient(circle,rgba(104,54,245,.35),transparent 70%);z-index:-1;filter:blur(10px);opacity:.8;pointer-events:none}
-.modal-title{font-size:22px;font-weight:800;color:var(--t1);letter-spacing:-.025em;margin-bottom:6px;line-height:1.2}
-.modal-sub{font-size:13px;color:var(--t3);margin-bottom:24px;line-height:1.55}
+.modal-gem{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#6836f5,#b060ff);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;box-shadow:0 6px 18px rgba(104,54,245,.45);margin-bottom:20px}
+.modal-title{font-size:20px;font-weight:700;color:var(--t1);letter-spacing:-.02em;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--t3);margin-bottom:24px;line-height:1.5}
 .modal-lbl{font-size:10px;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-.modal-inp{width:100%;background:var(--inp);border:.5px solid var(--b1);border-radius:12px;padding:13px 16px;font-size:13.5px;color:var(--t1);font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s,background .2s;margin-bottom:12px}
-.modal-inp::placeholder{color:var(--t3);opacity:.78}
-.lt .modal-inp::placeholder{color:rgba(35,28,80,.45);opacity:1}
-.modal-inp:hover{border-color:var(--b2)}
-.modal-inp:focus{border-color:rgba(104,54,245,.55);box-shadow:0 0 0 3px rgba(104,54,245,.16);background:var(--card)}
-.lt .modal-inp{background:rgba(255,255,255,.72)}
-.lt .modal-inp:focus{background:rgba(255,255,255,.94)}
-.modal-btn{width:100%;height:48px;border-radius:24px;background:linear-gradient(135deg,#6836f5,#a050ff);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(104,54,245,.5),inset 0 1px 0 rgba(255,255,255,.18);transition:all .2s;margin-top:10px;letter-spacing:.01em;position:relative;overflow:hidden}
-.modal-btn::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.14),transparent 60%);opacity:0;transition:opacity .22s;pointer-events:none}
-.modal-btn:hover{box-shadow:0 12px 34px rgba(104,54,245,.62),inset 0 1px 0 rgba(255,255,255,.22);transform:translateY(-1px)}
-.modal-btn:hover::before{opacity:1}
-.modal-btn:active{transform:translateY(0)}
-.modal-btn:focus-visible{outline:2px solid rgba(255,255,255,.6);outline-offset:2px}
+.modal-inp{width:100%;background:var(--inp);border:.5px solid var(--b1);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--t1);font-family:inherit;outline:none;transition:border-color .18s,box-shadow .18s;margin-bottom:14px}
+.modal-inp:focus{border-color:rgba(104,54,245,.5);box-shadow:0 0 0 3px rgba(104,54,245,.12)}
+.lt .modal-inp{background:rgba(255,255,255,.6)}
+.modal-btn{width:100%;height:46px;border-radius:22px;background:linear-gradient(135deg,#6836f5,#a050ff);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 6px 20px rgba(104,54,245,.42);transition:all .2s;margin-top:4px}
+.modal-btn:hover{box-shadow:0 8px 28px rgba(104,54,245,.58);transform:translateY(-1px)}
 .modal-err{font-size:12px;color:var(--red);text-align:center;min-height:18px;margin-top:6px}
 .modal-switch{font-size:12.5px;color:var(--t3);text-align:center;margin-top:16px;cursor:pointer;transition:color .18s}
 .modal-switch span{color:var(--acc);font-weight:600}
@@ -384,10 +399,8 @@ body{background:var(--bg);transition:background var(--tr)}
 .modal-divider{display:flex;align-items:center;gap:12px;margin:16px 0}
 .modal-divider::before,.modal-divider::after{content:'';flex:1;height:.5px;background:var(--b1)}
 .modal-divider span{font-size:11px;color:var(--t3)}
-.modal-close{position:absolute;top:18px;right:18px;width:32px;height:32px;border-radius:50%;background:var(--inp);border:.5px solid var(--b1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);font-size:17px;line-height:1;transition:all .2s cubic-bezier(.34,1.56,.64,1);padding:0;font-family:inherit}
-.modal-close:hover{background:var(--card2);color:var(--t1);border-color:var(--b2);transform:rotate(90deg) scale(1.05)}
-.modal-close:active{transform:rotate(90deg) scale(.96)}
-.modal-close:focus-visible{outline:2px solid rgba(104,54,245,.6);outline-offset:2px}
+.modal-close{position:absolute;top:20px;right:20px;width:28px;height:28px;border-radius:22px;background:var(--inp);border:.5px solid var(--b1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);font-size:16px;transition:all .15s}
+.modal-close:hover{background:var(--card2);color:var(--t1)}
 
 /* ━━━ TIER SELECT ━━━ */
 /* ━━━ TIER SELECT ━━━ */
@@ -431,18 +444,14 @@ body{background:var(--bg);transition:background var(--tr)}
 .sb-name{font-size:13.5px;font-weight:700;color:var(--t1);flex:1;letter-spacing:-.015em}
 .sb-sect{padding:11px 10px 4px}
 .sb-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.11em;padding:0 7px;margin-bottom:5px;font-weight:500}
-.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;font-size:12.5px;color:var(--t2);cursor:pointer;margin-bottom:2px;transition:background .22s ease,color .22s ease,transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease;user-select:none;position:relative;overflow:visible}
-.ni svg{width:15px;height:15px;flex-shrink:0;opacity:.7;transition:opacity .22s ease,transform .3s cubic-bezier(.34,1.56,.64,1)}
-.ni:hover:not(.on){background:var(--card);color:var(--t1);transform:translateX(2px)}
-.ni:hover:not(.on) svg{opacity:1;transform:scale(1.08)}
-.lt .ni:hover:not(.on){background:rgba(255,255,255,.7);box-shadow:0 2px 8px rgba(78,55,180,.06)}
-.ni:active{transform:translateX(1px) scale(.98);transition:transform .1s ease}
-.ni.on{color:var(--acc);font-weight:600;background:linear-gradient(90deg,rgba(104,54,245,.18) 0%,rgba(104,54,245,.08) 70%,transparent 100%);box-shadow:inset 0 0 0 1px rgba(104,54,245,.1)}
-.lt .ni.on{color:#5526d6;background:linear-gradient(90deg,rgba(104,54,245,.12) 0%,rgba(104,54,245,.04) 75%,transparent 100%);box-shadow:inset 0 0 0 1px rgba(104,54,245,.08)}
-.ni.on svg{opacity:1;color:var(--acc)}
-.ni.on::before{content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--acc),var(--acc2));box-shadow:0 0 10px rgba(104,54,245,.6);animation:sa-ni-indicator-in .3s cubic-bezier(.34,1.56,.64,1)}
-.lt .ni.on::before{background:linear-gradient(180deg,#5526d6,#8b4dff);box-shadow:0 0 8px rgba(104,54,245,.32)}
-@keyframes sa-ni-indicator-in{0%{transform:translateY(-50%) scaleY(.4);opacity:0}100%{transform:translateY(-50%) scaleY(1);opacity:1}}
+.ni{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:9px;font-size:12.5px;color:var(--t2);cursor:pointer;margin-bottom:1px;transition:all .18s;user-select:none;position:relative}
+.ni svg{width:15px;height:15px;flex-shrink:0;opacity:.65}
+.ni:hover:not(.on){background:var(--card);color:var(--t1)}
+.lt .ni:hover:not(.on){background:rgba(255,255,255,.55)}
+.ni.on{color:var(--acc);font-weight:500;background:rgba(104,54,245,.1)}
+.lt .ni.on{color:#5526d6;background:rgba(104,54,245,.09)}
+.ni.on::before{content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:3px;height:16px;border-radius:0 3px 3px 0;background:var(--acc)}
+.lt .ni.on::before{background:#5526d6}
 .ni-badge{margin-left:auto;font-size:9px;font-weight:600;background:var(--acc);color:#fff;border-radius:20px;padding:1.5px 7px}
 .ni-tag{margin-left:auto;font-size:9px;color:var(--amber);background:rgba(240,148,40,.1);border-radius:4px;padding:1px 5px;font-weight:500}
 .ni-tag.live{color:var(--green);background:rgba(18,196,130,.1)}
@@ -452,12 +461,8 @@ body{background:var(--bg);transition:background var(--tr)}
 .sb-trial-title{font-size:10.5px;color:rgba(240,148,40,.9);font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:5px}
 .sb-trial-sub{font-size:10px;color:rgba(240,148,40,.5);line-height:1.35}
 .lt .sb-trial-sub{color:rgba(180,110,0,.5)}
-.sb-user{margin:4px 10px 10px;border-radius:12px;background:var(--card);border:.5px solid var(--b1);padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .22s ease,border-color .22s ease,transform .22s cubic-bezier(.22,1,.36,1),box-shadow .22s ease;box-shadow:var(--shc);position:relative;overflow:hidden}
-.sb-user::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(104,54,245,.08),transparent 60%);opacity:0;transition:opacity .28s ease;pointer-events:none;border-radius:inherit}
-.sb-user:hover{background:var(--card2);border-color:var(--bh);transform:translateY(-1px);box-shadow:0 6px 18px rgba(104,54,245,.16),var(--shc)}
-.sb-user:hover::before{opacity:1}
-.sb-user:hover .u-av{transform:scale(1.06);box-shadow:0 0 0 3px rgba(104,54,245,.15)}
-.u-av{transition:transform .24s cubic-bezier(.34,1.56,.64,1),box-shadow .24s ease}
+.sb-user{margin:4px 10px 10px;border-radius:11px;background:var(--card);border:.5px solid var(--b1);padding:9px 12px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .2s;box-shadow:var(--shc)}
+.sb-user:hover{background:var(--card2);border-color:var(--bh)}
 .lt .sb-user{background:rgba(255,255,255,.72);backdrop-filter:blur(20px)}
 .u-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,rgba(104,54,245,.3),rgba(160,80,255,.4));border:1.5px solid rgba(104,54,245,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(168,128,255,.95)}
 .lt .u-av{background:linear-gradient(135deg,rgba(104,54,245,.12),rgba(160,80,255,.18));color:#5526d6;border-color:rgba(104,54,245,.2)}
@@ -466,11 +471,9 @@ body{background:var(--bg);transition:background var(--tr)}
 .u-role{font-size:9.5px;color:var(--t3);margin-top:1px}
 .u-online{width:7px;height:7px;border-radius:50%;background:#12c482;box-shadow:0 0 6px rgba(18,196,130,.6);flex-shrink:0}
 .lang-row{display:flex;gap:4px;padding:4px 10px 0}
-.lang-btn{flex:1;padding:6px 0;border-radius:8px;font-size:10px;font-weight:600;cursor:pointer;border:.5px solid var(--b0);background:transparent;color:var(--t3);transition:background .2s ease,color .2s ease,border-color .2s ease,transform .18s ease;font-family:inherit;letter-spacing:.04em;text-transform:uppercase}
-.lang-btn:hover:not(.on){background:var(--card);color:var(--t1);border-color:var(--bh);transform:translateY(-1px)}
-.lang-btn:active{transform:translateY(0) scale(.97)}
-.lang-btn.on{background:rgba(104,54,245,.18);border-color:rgba(104,54,245,.4);color:var(--acc);box-shadow:0 2px 8px rgba(104,54,245,.18),inset 0 0 0 1px rgba(104,54,245,.1)}
-.lt .lang-btn.on{background:rgba(104,54,245,.12);color:#5526d6;box-shadow:0 2px 6px rgba(104,54,245,.14)}
+.lang-btn{flex:1;padding:5px 0;border-radius:7px;font-size:10px;font-weight:600;cursor:pointer;border:.5px solid var(--b0);background:transparent;color:var(--t3);transition:all .18s;font-family:inherit}
+.lang-btn.on{background:rgba(104,54,245,.15);border-color:rgba(104,54,245,.3);color:var(--acc)}
+.lt .lang-btn.on{background:rgba(104,54,245,.1);color:#5526d6}
 
 /* MAIN */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
@@ -481,27 +484,18 @@ body{background:var(--bg);transition:background var(--tr)}
 .tb-title{font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.02em;line-height:1.2}
 .tb-sub{font-size:10px;color:var(--t3);line-height:1}
 .tabs{display:flex;background:var(--inp);border:.5px solid var(--b0);border-radius:10px;padding:3px;gap:2px}
-.tab{font-size:11.5px;color:var(--t3);cursor:pointer;padding:5px 12px;border-radius:7px;transition:all .18s;font-weight:500;user-select:none;background:transparent;border:none;font-family:inherit;line-height:1.2;outline:none}
-.tab:hover:not(.on){color:var(--t2);background:rgba(255,255,255,.04)}
-.lt .tab:hover:not(.on){background:rgba(104,80,220,.06);color:var(--t1)}
-.tab:focus-visible{box-shadow:0 0 0 2px rgba(104,54,245,.45)}
+.tab{font-size:11.5px;color:var(--t3);cursor:pointer;padding:5px 12px;border-radius:7px;transition:all .18s;font-weight:500;user-select:none}
 .tab.on{background:var(--card);color:var(--t1);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.1)}
 .lt .tab.on{background:rgba(255,255,255,.92);color:var(--acc);box-shadow:0 2px 8px rgba(104,54,245,.14)}
 .tb-r{display:flex;gap:8px;align-items:center}
-.srch{display:flex;align-items:center;gap:8px;background:var(--inp);border:.5px solid var(--b1);border-radius:22px;padding:7px 15px;transition:background .22s ease,border-color .22s ease,box-shadow .22s ease,transform .22s ease}
-.srch:hover{border-color:var(--bh);background:var(--card)}
-.srch:focus-within{border-color:rgba(104,54,245,.55);background:var(--card);box-shadow:0 0 0 4px rgba(104,54,245,.12),0 4px 14px rgba(104,54,245,.1)}
-.lt .srch{background:rgba(255,255,255,.65);box-shadow:0 1px 6px rgba(78,55,180,.07)}
-.lt .srch:focus-within{box-shadow:0 0 0 4px rgba(104,54,245,.1),0 4px 18px rgba(104,54,245,.14)}
-.srch svg{opacity:.38;flex-shrink:0;transition:opacity .22s ease,transform .22s ease}
-.srch:focus-within svg{opacity:.72;transform:scale(1.08)}
-.srch input{background:none;border:none;outline:none;font-size:12px;color:var(--t1);width:140px;font-family:inherit;transition:width .25s ease}
-.srch:focus-within input{width:180px}
+.srch{display:flex;align-items:center;gap:7px;background:var(--inp);border:.5px solid var(--b1);border-radius:22px;padding:6px 14px;transition:all .2s}
+.srch:focus-within{border-color:rgba(104,54,245,.38);background:var(--card)}
+.lt .srch{background:rgba(255,255,255,.6);box-shadow:0 1px 6px rgba(78,55,180,.07)}
+.srch svg{opacity:.32;flex-shrink:0}
+.srch input{background:none;border:none;outline:none;font-size:12px;color:var(--t1);width:120px;font-family:inherit}
 .srch input::placeholder{color:var(--t3)}
-.btn-ic{width:34px;height:34px;border-radius:50%;background:var(--bg-btn);border:.5px solid var(--brd-btn);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);transition:background .22s ease,color .22s ease,transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease;flex-shrink:0;position:relative}
-.btn-ic:hover{background:var(--bg-btn-h);color:var(--t1);transform:translateY(-1px) scale(1.05);box-shadow:0 4px 12px rgba(0,0,0,.12)}
-.btn-ic:active{transform:translateY(0) scale(.96)}
-.lt .btn-ic:hover{box-shadow:0 4px 14px rgba(104,54,245,.18)}
+.btn-ic{width:34px;height:34px;border-radius:50%;background:var(--bg-btn);border:.5px solid var(--brd-btn);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);transition:all .18s;flex-shrink:0;position:relative}
+.btn-ic:hover{background:var(--bg-btn-h);color:var(--t1)}
 .ndot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:#f04458;border:1.5px solid var(--bg)}
 .save-indicator{font-size:10.5px;color:var(--t3);display:flex;align-items:center;gap:5px;opacity:0;transition:opacity .3s}
 .save-indicator.show{opacity:1}
@@ -550,8 +544,50 @@ body{background:var(--bg);transition:background var(--tr)}
 .proj-av:first-child{margin-left:0}
 
 /* ━━━ PROJECT CARD SCREEN ━━━ */
-.proj-tabs-bar{display:flex;gap:1px;border-bottom:.5px solid var(--b1);padding:0 18px;background:var(--top);backdrop-filter:blur(20px);flex-shrink:0;overflow-x:auto}
+.proj-tabs-bar{display:flex;gap:4px;border-bottom:.5px solid var(--b1);padding:8px 14px;background:var(--top);backdrop-filter:blur(20px);flex-shrink:0;overflow-x:auto;align-items:center}
 .proj-tabs-bar::-webkit-scrollbar{display:none}
+.proj-tab{display:inline-flex;align-items:center;gap:0;height:32px;padding:0 8px;border-radius:10px;border:none;background:transparent;color:var(--t3);font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s,gap .35s cubic-bezier(.34,1.56,.64,1),padding .35s cubic-bezier(.34,1.56,.64,1);overflow:hidden}
+.proj-tab:hover{background:var(--card2);color:var(--t1)}
+.proj-tab.on{background:rgba(104,54,245,.12);color:var(--acc);font-weight:600;gap:6px;padding:0 12px}
+.lt .proj-tab.on{background:rgba(104,54,245,.1);color:#5526d6}
+.proj-tab-icon{font-size:14px;flex-shrink:0;transition:transform .3s}
+.proj-tab.on .proj-tab-icon{transform:scale(1.15)}
+.proj-tab-label{max-width:0;opacity:0;overflow:hidden;transition:max-width .35s cubic-bezier(.34,1.56,.64,1),opacity .2s;white-space:nowrap}
+.proj-tab.on .proj-tab-label{max-width:120px;opacity:1}
+.proj-tab-badge{font-size:9px;background:var(--inp);color:var(--t3);border-radius:20px;padding:1px 6px;font-weight:700;margin-left:2px;flex-shrink:0;transition:background .2s,color .2s}
+.proj-tab.on .proj-tab-badge{background:rgba(104,54,245,.18);color:var(--acc)}
+/* ── GLOWING BORDER EFFECT ── */
+.glow-card{position:relative;isolation:isolate}
+.glow-card::before{content:'';position:absolute;inset:-1px;border-radius:inherit;background:conic-gradient(from calc((var(--glow-start,0) - 30)*1deg) at 50% 50%,transparent 0deg,rgba(104,54,245,.7) 10%,rgba(160,80,255,.6) 20%,rgba(6,182,212,.5) 35%,transparent 50%);opacity:0;transition:opacity .35s;pointer-events:none;z-index:-1;-webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);-webkit-mask-composite:xor;mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);mask-composite:exclude;padding:1px}
+.glow-card.glow-lit::before{opacity:1}
+/* ── FLOATING AI ── */
+#floating-ai{position:fixed;bottom:24px;right:24px;z-index:150;display:none}
+#floating-ai.visible{display:block}
+.fab-btn{width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#6836f5,#a050ff);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(104,54,245,.45);transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;position:relative;overflow:hidden;animation:fab-pulse 2.8s ease-in-out infinite}
+.fab-btn::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,.28),transparent 60%)}
+.fab-btn:hover{transform:scale(1.14) rotate(10deg);box-shadow:0 0 0 10px rgba(104,54,245,.1),0 12px 36px rgba(104,54,245,.6)}
+.fab-btn:active{transform:scale(.92)}
+@keyframes fab-pulse{0%,100%{box-shadow:0 8px 24px rgba(104,54,245,.45)}50%{box-shadow:0 8px 32px rgba(104,54,245,.65),0 0 0 6px rgba(104,54,245,.08)}}
+.fab-ping{position:absolute;top:1px;right:1px;width:11px;height:11px;background:var(--green);border-radius:50%;border:2px solid #050410;animation:fab-ping-anim 2s ease-in-out infinite}
+@keyframes fab-ping-anim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+.fab-label{position:absolute;bottom:58px;right:0;background:var(--sb);backdrop-filter:blur(24px);border:.5px solid var(--b2);border-radius:10px;padding:7px 11px;font-size:11.5px;color:var(--t1);white-space:nowrap;opacity:0;pointer-events:none;transform:translateY(8px) scale(.92);transition:all .22s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+#floating-ai:hover .fab-label{opacity:1;transform:translateY(0) scale(1)}
+.fab-q-btn{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:500;background:var(--inp);border:.5px solid var(--b1);color:var(--t2);cursor:pointer;font-family:inherit;transition:all .15s}
+.fab-q-btn:hover{background:var(--card2);border-color:var(--bh);color:var(--t1)}
+@keyframes fab-chat-in{from{opacity:0;transform:scale(.88) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
+/* ── ORBITAL VIEW ── */
+.orbital-view{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:var(--canvas-bg);overflow:hidden}
+.orbital-view.active{display:flex;animation:scr-in .25s ease both}
+.orb-center{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6836f5,#a050ff);display:flex;align-items:center;justify-content:center;box-shadow:0 0 48px rgba(104,54,245,.6),0 0 90px rgba(104,54,245,.3);position:relative;z-index:10;cursor:default;flex-shrink:0;animation:orb-breathe 3s ease-in-out infinite}
+@keyframes orb-breathe{0%,100%{box-shadow:0 0 48px rgba(104,54,245,.6),0 0 90px rgba(104,54,245,.3)}50%{box-shadow:0 0 70px rgba(104,54,245,.8),0 0 130px rgba(104,54,245,.4)}}
+.orb-ring{position:absolute;border-radius:50%;border:.5px solid rgba(104,54,245,.12);pointer-events:none}
+.orb-node{position:absolute;transform:translate(-50%,-50%);cursor:pointer;transition:opacity .3s;animation:node-pop .4s cubic-bezier(.34,1.56,.64,1) both}
+.orb-node-inner{background:var(--card);backdrop-filter:blur(16px);border:.5px solid var(--b1);border-radius:10px;padding:7px 10px;min-width:110px;max-width:150px;text-align:center;transition:all .2s;box-shadow:var(--shc)}
+.orb-node:hover .orb-node-inner{transform:scale(1.08) translateY(-3px);border-color:var(--bh);box-shadow:0 8px 24px rgba(104,54,245,.28)}
+.orb-node.orb-selected .orb-node-inner{border-color:var(--acc);box-shadow:0 0 0 2px rgba(104,54,245,.25),0 8px 24px rgba(104,54,245,.3)}
+.orb-node.orb-dimmed{opacity:.28}
+.orb-node.orb-related .orb-node-inner{border-color:var(--green);box-shadow:0 0 0 2px rgba(18,196,130,.2)}
+.orb-edge-svg{position:absolute;inset:0;pointer-events:none;overflow:visible}
 .proj-tab{padding:11px 14px;font-size:12.5px;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;font-weight:500;user-select:none;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0}
 .proj-tab:hover{color:var(--t1)}
 .proj-tab.on{color:var(--acc);border-bottom-color:var(--acc);font-weight:600}
@@ -871,22 +907,41 @@ body{background:var(--bg);transition:background var(--tr)}
 .hi-text{font-size:11px;color:var(--t2);line-height:1.5}
 .hi-date{font-size:10px;color:var(--t3);margin-top:2px}
 .np-actions{padding:12px 16px;border-top:.5px solid var(--b1);display:flex;gap:6px}
+.np-relation-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s}
+.np-relation-row:hover{background:var(--card2)}
 
-/* NODES */
-.node{position:absolute;background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:.5px solid var(--b1);border-radius:12px;padding:11px 14px;cursor:pointer;user-select:none;transition:box-shadow .18s,border-color .18s;min-width:148px;max-width:210px;z-index:2}
+/* NODES — enhanced with ports and animations */
+.node{position:absolute;background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:.5px solid var(--b1);border-radius:12px;padding:11px 14px;cursor:pointer;user-select:none;transition:box-shadow .18s,border-color .18s,transform .18s;min-width:148px;max-width:210px;z-index:2;animation:node-pop .3s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes node-pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
 .node::after{content:'';position:absolute;inset:0;border-radius:12px;background:linear-gradient(145deg,rgba(255,255,255,.07),transparent 55%);pointer-events:none}
 .lt .node::after{background:linear-gradient(145deg,rgba(255,255,255,.75),rgba(255,255,255,.04) 42%,transparent 68%)}
 .lt .node{background:rgba(255,255,255,.82);border-color:rgba(104,80,220,.18);box-shadow:0 2px 12px rgba(78,55,180,.1)}
-.node:hover{border-color:var(--bh);box-shadow:0 8px 28px rgba(104,54,245,.22)}
+.node:hover{border-color:var(--bh);box-shadow:0 8px 28px rgba(104,54,245,.22);transform:translateY(-2px)}
 .node.selected{border-color:var(--acc);box-shadow:0 0 0 2.5px rgba(104,54,245,.25),0 8px 28px rgba(104,54,245,.3)}
-.node.connecting{cursor:crosshair}
+.node.connecting-src{border-color:var(--acc);box-shadow:0 0 0 3px rgba(104,54,245,.35),0 0 20px rgba(104,54,245,.4);animation:pulse-ring 1.2s ease infinite}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 3px rgba(104,54,245,.35),0 0 20px rgba(104,54,245,.4)}50%{box-shadow:0 0 0 6px rgba(104,54,245,.15),0 0 32px rgba(104,54,245,.25)}}
+.node.connect-target:hover{border-color:var(--green);box-shadow:0 0 0 3px rgba(18,196,130,.3),0 8px 28px rgba(18,196,130,.2);transform:translateY(-2px) scale(1.02)}
+.node.dimmed{opacity:.35;transform:scale(.97)}
+.node.highlighted{border-color:var(--acc);box-shadow:0 0 0 2px rgba(104,54,245,.25),0 8px 28px rgba(104,54,245,.2)}
+
+/* PORT HANDLES — show on hover */
+.node-port{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--acc);border:2px solid var(--bg);cursor:crosshair;opacity:0;transition:opacity .15s,transform .15s;z-index:10}
+.node:hover .node-port{opacity:1}
+.node-port:hover{transform:scale(1.4);background:var(--acc2)}
+.port-bottom{bottom:-5px;left:50%;transform:translateX(-50%)}
+.port-top{top:-5px;left:50%;transform:translateX(-50%)}
+.port-left{left:-5px;top:50%;transform:translateY(-50%)}
+.port-right{right:-5px;top:50%;transform:translateY(-50%)}
+.node:hover .port-bottom,.node:hover .port-top,.node:hover .port-left,.node:hover .port-right{opacity:1}
+.port-bottom:hover,.port-top:hover,.port-left:hover,.port-right:hover{transform:translateX(-50%) scale(1.4);opacity:1}
+
 .node-type-bar{height:2.5px;border-radius:3px;margin-bottom:8px}
 .node-type-label{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;display:flex;align-items:center;gap:5px}
 .node-title{font-size:12.5px;font-weight:600;color:var(--t1);line-height:1.3;margin-bottom:6px}
 .node-status-badge{display:inline-flex;align-items:center;font-size:9px;border-radius:20px;padding:2px 7px;font-weight:600;margin-bottom:5px}
 .node-progress{display:flex;align-items:center;gap:6px;margin-bottom:4px}
 .node-prog-bar{flex:1;height:3px;background:var(--b0);border-radius:3px;overflow:hidden}
-.node-prog-fill{height:100%;border-radius:3px}
+.node-prog-fill{height:100%;border-radius:3px;transition:width .5s ease}
 .node-prog-pct{font-size:9px;color:var(--t3);font-weight:600;min-width:22px}
 .node-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
 .node-owner{font-size:9.5px;color:var(--t3)}
@@ -895,6 +950,7 @@ body{background:var(--bg);transition:background var(--tr)}
 .node-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:5px}
 .node-tag{font-size:8px;padding:1px 6px;border-radius:10px;font-weight:600;background:rgba(104,54,245,.1);color:rgba(168,128,255,.85)}
 .lt .node-tag{background:rgba(104,54,245,.08);color:#5526d6}
+
 /* node type colors */
 .nt-goal .node-type-bar{background:linear-gradient(90deg,#6836f5,#a050ff)}
 .nt-goal .node-type-label{color:#a278ff}
@@ -906,6 +962,95 @@ body{background:var(--bg);transition:background var(--tr)}
 .nt-risk .node-type-label{color:rgba(240,68,88,.9)}
 .nt-task .node-type-bar{background:linear-gradient(90deg,#06b6d4,rgba(6,182,212,.4))}
 .nt-task .node-type-label{color:rgba(6,182,212,.9)}
+
+/* EDGE SYSTEM */
+#edges-svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.edge-path{cursor:pointer;pointer-events:stroke;stroke-linecap:round;}
+.edge-path:hover{filter:brightness(1.5)}
+/* Preview line while dragging */
+#edge-preview{pointer-events:none;stroke:rgba(104,54,245,.5);stroke-width:2;stroke-dasharray:6 4;fill:none;display:none}
+/* Animated flow on edges */
+@keyframes edge-flow{to{stroke-dashoffset:-20}}
+.edge-animated{stroke-dasharray:6 4;animation:edge-flow 1.2s linear infinite}
+
+/* EDGE TYPE PICKER */
+.edge-picker{
+  position:fixed;z-index:300;
+  background:var(--sb);backdrop-filter:blur(32px);
+  border:.5px solid var(--b2);border-radius:14px;
+  padding:8px;box-shadow:0 16px 48px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;gap:4px;
+  animation:scr-in .18s ease both;min-width:180px;
+}
+.edge-type-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:background .12s;font-size:12.5px;color:var(--t2)}
+.edge-type-opt:hover{background:var(--card2);color:var(--t1)}
+.edge-type-dot{width:12px;height:3px;border-radius:2px;flex-shrink:0}
+
+/* EDGE LABEL */
+.edge-label{font-size:9px;fill:var(--t3);pointer-events:none;user-select:none}
+
+/* EDGE PANEL (click on edge) */
+.edge-panel{
+  position:absolute;top:16px;right:16px;width:240px;
+  background:var(--sb);backdrop-filter:blur(32px);
+  border:.5px solid var(--b2);border-radius:14px;
+  padding:14px 16px;z-index:10;
+  box-shadow:0 8px 32px rgba(0,0,0,.3);
+  animation:scr-in .2s ease both;
+}
+.edge-panel-title{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.edge-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.edge-type-btn{padding:7px 8px;border:.5px solid var(--b1);border-radius:8px;font-size:11px;font-weight:500;color:var(--t2);cursor:pointer;text-align:center;transition:all .15s;background:transparent;font-family:inherit}
+.edge-type-btn:hover{background:var(--card2);border-color:var(--bh);color:var(--t1)}
+.edge-type-btn.on{background:rgba(104,54,245,.12);border-color:var(--acc);color:var(--acc)}
+
+/* CONTEXT MENU */
+.ctx-menu{
+  position:fixed;z-index:400;
+  background:var(--sb);backdrop-filter:blur(32px);
+  border:.5px solid var(--b2);border-radius:12px;
+  padding:5px;box-shadow:0 16px 48px rgba(0,0,0,.4);
+  min-width:168px;animation:scr-in .15s ease both;
+}
+.ctx-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:7px;cursor:pointer;font-size:12.5px;color:var(--t2);transition:background .1s;user-select:none}
+.ctx-item:hover{background:var(--card2);color:var(--t1)}
+.ctx-item.danger{color:var(--red)}
+.ctx-item.danger:hover{background:rgba(240,68,88,.08)}
+.ctx-sep{height:.5px;background:var(--b1);margin:3px 0}
+.ctx-icon{font-size:14px;width:16px;text-align:center;flex-shrink:0}
+
+/* ADD NODE MODAL */
+.add-node-modal{
+  width:420px;background:var(--sb);backdrop-filter:blur(50px);
+  border:.5px solid var(--b2);border-radius:18px;padding:22px;
+  box-shadow:0 28px 70px rgba(0,0,0,.4);
+}
+.node-type-selector{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
+.nts-btn{padding:10px 4px;border:.5px solid var(--b1);border-radius:10px;text-align:center;cursor:pointer;transition:all .18s;background:transparent;font-family:inherit}
+.nts-btn:hover{background:var(--card2);border-color:var(--b2)}
+.nts-btn.on{border-color:var(--acc);background:rgba(104,54,245,.1)}
+.nts-icon{font-size:18px;display:block;margin-bottom:4px}
+.nts-label{font-size:9.5px;font-weight:600;color:var(--t3)}
+.nts-btn.on .nts-label{color:var(--acc)}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.dash-card{background:var(--card);border:.5px solid var(--b1);border-radius:14px;padding:14px 16px;backdrop-filter:blur(16px);position:relative;overflow:hidden;transition:all .22s;cursor:pointer}
+.dash-card:hover{border-color:var(--bh);transform:translateY(-2px);box-shadow:var(--shh)}
+.dash-card::after{content:'';position:absolute;inset:0;border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.06),transparent 55%);pointer-events:none}
+.lt .dash-card{background:rgba(255,255,255,.76);border-color:rgba(104,80,220,.14)}
+.dc-val{font-size:24px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
+.dc-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:500}
+.dc-trend{font-size:11px;margin-top:5px;font-weight:500}
+.dc-trend.up{color:var(--green)}
+.dc-trend.dn{color:var(--red)}
+.dc-trend.neu{color:var(--t3)}
+.activity-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:.5px solid var(--b0)}
+.activity-item:last-child{border-bottom:none}
+.act-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.act-text{font-size:12.5px;color:var(--t2);line-height:1.45;flex:1}
+.act-text strong{color:var(--t1);font-weight:600}
+.act-time{font-size:10px;color:var(--t3);flex-shrink:0;margin-top:2px}
 
 /* AI CHAT */
 #s-ai{flex-direction:row}
@@ -1000,6 +1145,92 @@ body{background:var(--bg);transition:background var(--tr)}
 .ic-text b{color:var(--acc);font-weight:600}
 .lt .ic-text b{color:#5526d6}
 
+/* ━━━ LANDING EXTENDED ━━━ */
+.land-section-lbl{text-align:center;font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.14em;font-weight:600;margin-bottom:14px}
+.land-section-title{text-align:center;font-size:clamp(26px,3.5vw,40px);font-weight:800;color:var(--t1);letter-spacing:-.03em;margin-bottom:12px;line-height:1.1}
+.land-section-sub{text-align:center;font-size:15px;color:var(--t2);line-height:1.65;max-width:540px;margin:0 auto 48px}
+.how-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;margin-bottom:64px}
+.how-steps::before{content:'';position:absolute;top:24px;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,rgba(104,54,245,.3) 20%,rgba(104,54,245,.3) 80%,transparent);z-index:0}
+.how-step{text-align:center;padding:0 16px;position:relative;z-index:1}
+.how-num{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6836f5,#a050ff);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;margin:0 auto 16px;box-shadow:0 6px 20px rgba(104,54,245,.45);transition:transform .25s,box-shadow .25s}
+.lt .how-num{box-shadow:0 4px 16px rgba(104,54,245,.3)}
+.how-title{font-size:13.5px;font-weight:700;color:var(--t1);margin-bottom:6px;letter-spacing:-.01em}
+.how-desc{font-size:12px;color:var(--t2);line-height:1.55}
+.mockup-wrap{position:relative;margin-bottom:64px}
+.mockup-glow{position:absolute;inset:-40px;background:radial-gradient(ellipse at 50% 100%,rgba(104,54,245,.25),transparent 65%);pointer-events:none;z-index:0}
+.mockup-frame{position:relative;z-index:1;background:var(--card);backdrop-filter:blur(20px);border:.5px solid var(--b2);border-radius:16px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+.lt .mockup-frame{box-shadow:0 24px 80px rgba(78,55,180,.2)}
+.mockup-bar{height:36px;background:var(--top);backdrop-filter:blur(20px);border-bottom:.5px solid var(--b1);display:flex;align-items:center;padding:0 14px;gap:7px}
+.mkbar-dot{width:10px;height:10px;border-radius:50%}
+.mockup-body{height:300px;display:flex;overflow:hidden}
+.mkb-sb{width:160px;border-right:.5px solid var(--b1);padding:10px;display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+.mkb-ni{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:7px;font-size:10.5px;color:var(--t2)}
+.mkb-ni.on{background:rgba(104,54,245,.1);color:var(--acc);font-weight:600}
+.mkb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mkb-main{flex:1;padding:14px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;overflow:hidden}
+.mkb-node{background:var(--card2);border:.5px solid var(--b1);border-radius:9px;padding:10px 12px;flex:1;min-width:100px;max-width:160px}
+.mkb-node-type{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px}
+.mkb-node-title{font-size:10.5px;font-weight:600;color:var(--t1);margin-bottom:6px;line-height:1.3}
+.mkb-node-bar{height:3px;background:var(--b0);border-radius:2px;overflow:hidden}
+.mkb-node-fill{height:100%;border-radius:2px}
+.compare-wrap{margin-bottom:64px;overflow-x:auto}
+.compare-table{width:100%;border-collapse:collapse;min-width:600px}
+.compare-table th{padding:12px 16px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);text-align:left;border-bottom:.5px solid var(--b1)}
+.compare-table th.acc{color:var(--acc);text-align:center;background:rgba(104,54,245,.04)}
+.compare-table td{padding:10px 16px;font-size:13px;color:var(--t2);border-bottom:.5px solid var(--b0)}
+.compare-table td.center{text-align:center;font-size:15px}
+.compare-table td.acc-col{font-weight:600;color:var(--t1);text-align:center;background:rgba(104,54,245,.03)}
+.compare-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px}
+.cb-yes{background:rgba(18,196,130,.12);color:var(--green)}
+.cb-no{background:var(--tag);color:var(--t3)}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:64px;align-items:start}
+.testi-card{background:var(--card);backdrop-filter:blur(20px);border:.5px solid var(--b1);border-radius:16px;padding:20px;position:relative;overflow:hidden;box-shadow:var(--shc);transition:all .2s}
+.testi-card::after{content:'';position:absolute;inset:0;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.07),transparent 55%);pointer-events:none}
+.lt .testi-card::after{background:linear-gradient(145deg,rgba(255,255,255,.8),rgba(255,255,255,.05) 42%,transparent 68%)}
+.lt .testi-card{background:rgba(255,255,255,.76);border-color:rgba(104,80,220,.18)}
+.testi-card:hover{border-color:var(--bh);transform:translateY(-2px);box-shadow:var(--shh)}
+.testi-stars{font-size:12px;color:var(--amber);margin-bottom:12px;letter-spacing:2px}
+.testi-text{font-size:13px;color:var(--t2);line-height:1.65;margin-bottom:16px;font-style:italic}
+.lt .testi-text{color:rgba(40,32,90,.7)}
+.testi-author{display:flex;align-items:center;gap:10px}
+.testi-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.testi-name{font-size:12.5px;font-weight:700;color:var(--t1)}
+.testi-role{font-size:10.5px;color:var(--t3);margin-top:1px}
+.faq-list{display:flex;flex-direction:column;gap:6px;max-width:720px;margin:0 auto 64px}
+.faq-item{background:var(--card);backdrop-filter:blur(16px);border:.5px solid var(--b1);border-radius:12px;overflow:hidden;transition:border-color .2s;box-shadow:var(--shc)}
+.lt .faq-item{background:rgba(255,255,255,.72);border-color:rgba(104,80,220,.16)}
+.faq-item:hover{border-color:var(--bh)}
+.faq-q{padding:15px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:14px;font-weight:600;color:var(--t1);gap:12px;user-select:none}
+.faq-icon{font-size:18px;color:var(--t3);flex-shrink:0;transition:transform .25s;line-height:1}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .32s ease,padding .32s ease;font-size:13px;color:var(--t2);line-height:1.65;padding:0 18px}
+.faq-item.open .faq-a{max-height:250px;padding:0 18px 16px}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+.land-cta{background:var(--card);backdrop-filter:blur(20px);border:.5px solid var(--b2);border-radius:20px;padding:56px 48px;text-align:center;position:relative;overflow:hidden;margin-bottom:48px}
+.land-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(104,54,245,.18),transparent 65%);pointer-events:none}
+.lt .land-cta{background:rgba(255,255,255,.76)}
+.cta-title{font-size:clamp(24px,3vw,36px);font-weight:800;color:var(--t1);letter-spacing:-.03em;margin-bottom:12px;position:relative;z-index:1}
+.cta-sub{font-size:15px;color:var(--t2);margin-bottom:28px;line-height:1.55;position:relative;z-index:1}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+.land-footer{border-top:.5px solid var(--b1);padding-top:32px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.footer-links{display:flex;gap:20px;flex-wrap:wrap}
+.footer-link{font-size:12.5px;color:var(--t3);cursor:pointer;transition:color .18s}
+.footer-link:hover{color:var(--t2)}
+.footer-copy{font-size:12px;color:var(--t3)}
+.land-user-card{display:flex;align-items:center;gap:9px;background:var(--card);backdrop-filter:blur(20px);border:.5px solid var(--b2);border-radius:22px;padding:5px 14px 5px 5px;cursor:pointer;transition:all .2s}
+.land-user-card:hover{border-color:var(--bh);background:var(--card2)}
+.lt .land-user-card{background:rgba(255,255,255,.76)}
+.luc-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,rgba(104,54,245,.3),rgba(160,80,255,.4));display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:rgba(168,128,255,.95);border:1.5px solid rgba(104,54,245,.3);flex-shrink:0}
+.lt .luc-av{background:linear-gradient(135deg,rgba(104,54,245,.12),rgba(160,80,255,.18));color:#5526d6}
+.luc-name{font-size:12px;font-weight:600;color:var(--t1)}
+.luc-plan{font-size:10px;color:var(--t3)}
+.presence-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:var(--sb);backdrop-filter:blur(24px);border:.5px solid var(--b2);border-radius:22px;padding:5px 14px 5px 7px;z-index:20;font-size:11px;color:var(--t2);box-shadow:0 4px 20px rgba(0,0,0,.25);pointer-events:none}
+.presence-avatars{display:flex;margin-right:2px}
+.pa{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;border:2px solid var(--bg);margin-left:-5px;position:relative}
+.pa:first-child{margin-left:0}
+.pa-online{position:absolute;bottom:-1px;right:-1px;width:6px;height:6px;border-radius:50%;background:var(--green);border:1.5px solid var(--bg)}
+.presence-txt{font-size:10.5px;color:var(--t2);font-weight:500;white-space:nowrap}
+.readonly-banner{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--sb);backdrop-filter:blur(24px);border-top:.5px solid var(--b2);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 24px rgba(0,0,0,.2);display:none}
+.rb-text{font-size:13px;color:var(--t2);display:flex;align-items:center;gap:9px}
 /* TOAST */
 #toast{position:fixed;bottom:24px;right:24px;z-index:500;display:flex;flex-direction:column;gap:6px;pointer-events:none}
 .toast-item{background:var(--sb);backdrop-filter:blur(24px);border:.5px solid var(--b2);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--t1);box-shadow:0 8px 28px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;animation:toast-in .3s ease both}
@@ -1043,6 +1274,7 @@ body{background:var(--bg);transition:background var(--tr)}
     </div>
     <div style="display:flex;gap:18px;align-items:center">
       <span class="footer-link" onclick="scrollLand('land-features')" data-i="nav_features">Features</span>
+      <span class="footer-link" onclick="scrollLand('land-how')" data-i="nav_how">How it works</span>
       <span class="footer-link" onclick="scrollLand('land-pricing')" data-i="nav_pricing">Pricing</span>
       <span class="footer-link" onclick="scrollLand('land-faq')" data-i="nav_faq">FAQ</span>
     </div>
@@ -1060,8 +1292,6 @@ body{background:var(--bg);transition:background var(--tr)}
 
   <div class="land-inner">
 
-    <!-- SPACER pushes content below fixed nav -->
-    <div class="land-nav-spacer"></div>
 
     <!-- HERO -->
     <div class="hero" id="hero-section">
@@ -1125,15 +1355,191 @@ body{background:var(--bg);transition:background var(--tr)}
       <div class="land-section-title sr sr-up">Built for strategic thinkers</div>
       <div class="land-section-sub sr sr-up">From solo founders to enterprise teams — Strategy AI adapts to how you think and plan.</div>
       <div class="features-grid stagger" style="margin-bottom:64px">
-        <div class="feat-card sr sr-up"><div class="feat-card-glow"></div><div class="feat-icon">🗺️</div><div class="feat-title">Visual Strategy Maps</div><div class="feat-desc">Node-based interactive maps with Goals, Initiatives, KPIs, Tasks and Risks. Connect nodes with typed relationships: contributes, enables, blocks, measures.</div></div>
-        <div class="feat-card sr sr-up"><div class="feat-card-glow"></div><div class="feat-icon">⚖️</div><div class="feat-title">Scenario Planning</div><div class="feat-desc">Create Aggressive, Balanced and Defensive scenarios. Switch between them with one click and see how your entire strategy map adapts.</div></div>
-        <div class="feat-card sr sr-up"><div class="feat-card-glow"></div><div class="feat-icon">🤖</div><div class="feat-title">AI Advisor</div><div class="feat-desc">Your AI strategist knows your full context: all maps, scenarios, CRM pipeline. Ask anything and get specific, data-driven answers — not generic templates.</div></div>
-        <div class="feat-card sr sr-up"><div class="feat-card-glow"></div><div class="feat-icon">📈</div><div class="feat-title">Gantt Timeline</div><div class="feat-desc">Visualize all your initiatives on a timeline. Identify bottlenecks, see overlaps, and track progress across the full roadmap at a glance.</div></div>
-        <div class="feat-card sr sr-up"><div class="feat-card-glow"></div><div class="feat-icon">💡</div><div class="feat-title">Smart Insights</div><div class="feat-desc">Automated health scoring, gap detection and AI-generated weekly briefings. Know what's at risk before it's a problem.</div></div>
-        <div class="feat-card sr sr-up"><div class="feat-card-glow"></div><div class="feat-icon">👥</div><div class="feat-title">Team Collaboration</div><div class="feat-desc">Role-based access with Owners, Editors and Viewers. Real-time presence indicators show who's working on the map with you.</div></div>
-        <div class="feat-card sr sr-up"><div class="feat-card-glow"></div><div class="feat-icon">🔗</div><div class="feat-title">CRM Integration</div><div class="feat-desc">Two-way sync with Strategy CRM. Pipeline progress automatically updates your strategic goals in real time.</div></div>
-        <div class="feat-card sr sr-up"><div class="feat-card-glow"></div><div class="feat-icon">📤</div><div class="feat-title">Export Everywhere</div><div class="feat-desc">Export your map as PNG, SVG, PDF, JSON or Markdown. PPTX slide generation for presentations on Pro+ plans.</div></div>
-        <div class="feat-card sr sr-up"><div class="feat-card-glow"></div><div class="feat-icon">📸</div><div class="feat-title">Map Versions</div><div class="feat-desc">Save snapshots before major pivots. Full version history with one-click restore — your strategy's undo button.</div></div>
+
+        <div class="feat-card glow-card sr sr-up">
+          <div class="feat-card-glow"></div>
+          <div class="feat-preview">
+            <div style="display:flex;gap:6px;align-items:center">
+              <div style="flex:1;height:8px;background:linear-gradient(90deg,rgba(104,54,245,.5),rgba(160,80,255,.3));border-radius:4px"></div>
+              <div style="width:40%;height:8px;background:rgba(18,196,130,.3);border-radius:4px"></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <div style="width:44px;height:44px;border-radius:8px;background:rgba(104,54,245,.2);border:.5px solid rgba(104,54,245,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(168,128,255,.9)">G</div>
+              <div style="width:44px;height:44px;border-radius:8px;background:rgba(18,196,130,.15);border:.5px solid rgba(18,196,130,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(18,196,130,.9)">I</div>
+              <div style="width:44px;height:44px;border-radius:8px;background:rgba(240,148,40,.15);border:.5px solid rgba(240,148,40,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(240,148,40,.9)">K</div>
+              <div style="width:44px;height:44px;border-radius:8px;background:rgba(240,68,88,.12);border:.5px solid rgba(240,68,88,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(240,68,88,.9)">R</div>
+              <svg style="position:absolute;right:16px;top:50%;transform:translateY(-50%)" width="60" height="40" viewBox="0 0 60 40" fill="none"><path d="M5 30 C15 10 45 30 55 10" stroke="rgba(104,54,245,.35)" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/><circle cx="5" cy="30" r="3" fill="rgba(104,54,245,.5)"/><circle cx="55" cy="10" r="3" fill="rgba(18,196,130,.5)"/></svg>
+            </div>
+          </div>
+          <div class="feat-icon">🗺️</div>
+          <div class="feat-title">Visual Strategy Maps</div>
+          <div class="feat-desc">Node-based interactive maps with Goals, Initiatives, KPIs, Tasks and Risks. Connect nodes with typed relationships: contributes, enables, blocks, measures.</div>
+        </div>
+
+        <div class="feat-card glow-card sr sr-up">
+          <div class="feat-card-glow"></div>
+          <div class="feat-preview">
+            <div style="display:flex;gap:8px;height:100%;align-items:stretch">
+              <div style="flex:1;background:rgba(240,68,88,.1);border:.5px solid rgba(240,68,88,.25);border-radius:8px;padding:6px 8px">
+                <div style="font-size:8px;font-weight:700;color:rgba(240,68,88,.8);margin-bottom:4px">AGGRESSIVE</div>
+                <div style="font-size:11px;font-weight:800;color:var(--t1)">3x</div>
+                <div style="font-size:8.5px;color:var(--t3)">revenue</div>
+              </div>
+              <div style="flex:1;background:rgba(104,54,245,.12);border:.5px solid rgba(104,54,245,.3);border-radius:8px;padding:6px 8px;box-shadow:0 0 12px rgba(104,54,245,.15)">
+                <div style="font-size:8px;font-weight:700;color:rgba(168,128,255,.9);margin-bottom:4px">BALANCED ✦</div>
+                <div style="font-size:11px;font-weight:800;color:var(--t1)">1.8x</div>
+                <div style="font-size:8.5px;color:var(--t3)">revenue</div>
+              </div>
+              <div style="flex:1;background:rgba(6,182,212,.08);border:.5px solid rgba(6,182,212,.2);border-radius:8px;padding:6px 8px">
+                <div style="font-size:8px;font-weight:700;color:rgba(6,182,212,.8);margin-bottom:4px">DEFENSIVE</div>
+                <div style="font-size:11px;font-weight:800;color:var(--t1)">1.1x</div>
+                <div style="font-size:8.5px;color:var(--t3)">revenue</div>
+              </div>
+            </div>
+          </div>
+          <div class="feat-icon">⚖️</div>
+          <div class="feat-title">Scenario Planning</div>
+          <div class="feat-desc">Create Aggressive, Balanced and Defensive scenarios. Switch between them with one click and see how your entire strategy map adapts.</div>
+        </div>
+
+        <div class="feat-card glow-card sr sr-up">
+          <div class="feat-card-glow"></div>
+          <div class="feat-preview">
+            <div style="background:rgba(18,196,130,.08);border:.5px solid rgba(18,196,130,.2);border-radius:8px;padding:8px 10px">
+              <div style="font-size:9px;color:rgba(18,196,130,.8);margin-bottom:5px;font-weight:600">🤖 AI Advisor</div>
+              <div style="font-size:10.5px;color:var(--t2);line-height:1.45">Your SEO pipeline is at risk — 30% done with 3 months left. <span style="color:var(--t1);font-weight:600">Add 2hrs/day</span> to close the gap.</div>
+            </div>
+          </div>
+          <div class="feat-icon">🤖</div>
+          <div class="feat-title">AI Advisor</div>
+          <div class="feat-desc">Your AI strategist knows your full context: all maps, scenarios, CRM pipeline. Ask anything and get specific, data-driven answers — not generic templates.</div>
+        </div>
+
+        <div class="feat-card glow-card sr sr-up">
+          <div class="feat-card-glow"></div>
+          <div class="feat-preview" style="padding:0;overflow:hidden">
+            <div style="display:flex;flex-direction:column;gap:5px;padding:10px 12px;width:100%">
+              <div style="display:flex;align-items:center;gap:6px"><div style="font-size:9px;color:var(--t3);width:86px;flex-shrink:0">Product Hunt</div><div style="flex:1;height:4px;background:var(--b0);border-radius:4px;overflow:hidden"><div style="width:85%;height:100%;background:#6836f5;border-radius:4px"></div></div><div style="font-size:8.5px;color:var(--t3);width:26px;text-align:right">85%</div></div>
+              <div style="display:flex;align-items:center;gap:6px"><div style="font-size:9px;color:var(--t3);width:86px;flex-shrink:0">SEO Pipeline</div><div style="flex:1;height:4px;background:var(--b0);border-radius:4px;overflow:hidden"><div style="width:30%;height:100%;background:#12c482;border-radius:4px"></div></div><div style="font-size:8.5px;color:var(--t3);width:26px;text-align:right">30%</div></div>
+              <div style="display:flex;align-items:center;gap:6px"><div style="font-size:9px;color:var(--t3);width:86px;flex-shrink:0">CRM Integration</div><div style="flex:1;height:4px;background:var(--b0);border-radius:4px;overflow:hidden"><div style="width:75%;height:100%;background:#a050ff;border-radius:4px"></div></div><div style="font-size:8.5px;color:var(--t3);width:26px;text-align:right">75%</div></div>
+              <div style="display:flex;align-items:center;gap:6px"><div style="font-size:9px;color:var(--t3);width:86px;flex-shrink:0">Enterprise BD</div><div style="flex:1;height:4px;background:var(--b0);border-radius:4px;overflow:hidden"><div style="width:20%;height:100%;background:#06b6d4;border-radius:4px"></div></div><div style="font-size:8.5px;color:var(--t3);width:26px;text-align:right">20%</div></div>
+            </div>
+          </div>
+          <div class="feat-icon">📈</div>
+          <div class="feat-title">Gantt Timeline</div>
+          <div class="feat-desc">Visualize all your initiatives on a timeline. Identify bottlenecks, see overlaps, and track progress across the full roadmap at a glance.</div>
+        </div>
+
+        <div class="feat-card glow-card sr sr-up">
+          <div class="feat-card-glow"></div>
+          <div class="feat-preview">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+              <div style="background:rgba(18,196,130,.1);border-radius:7px;padding:6px 8px;border:.5px solid rgba(18,196,130,.2)"><div style="font-size:18px;font-weight:800;color:var(--green)">74%</div><div style="font-size:8.5px;color:var(--t3)">Health score</div></div>
+              <div style="background:rgba(240,148,40,.1);border-radius:7px;padding:6px 8px;border:.5px solid rgba(240,148,40,.2)"><div style="font-size:18px;font-weight:800;color:var(--amber)">3/4</div><div style="font-size:8.5px;color:var(--t3)">Goals on track</div></div>
+            </div>
+          </div>
+          <div class="feat-icon">💡</div>
+          <div class="feat-title">Smart Insights</div>
+          <div class="feat-desc">Automated health scoring, gap detection and AI-generated weekly briefings. Know what's at risk before it's a problem.</div>
+        </div>
+
+        <div class="feat-card glow-card sr sr-up">
+          <div class="feat-card-glow"></div>
+          <div class="feat-preview">
+            <div style="display:flex;flex-direction:column;gap:6px;width:100%">
+              <div style="display:flex;align-items:center;gap:4px">
+                <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:rgba(104,54,245,.2);color:#a278ff;border:2px solid var(--bg);flex-shrink:0">DB</div>
+                <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:rgba(18,196,130,.18);color:rgba(18,196,130,.9);border:2px solid var(--bg);flex-shrink:0;margin-left:-6px">AB</div>
+                <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:rgba(240,148,40,.16);color:rgba(240,148,40,.95);border:2px solid var(--bg);flex-shrink:0;margin-left:-6px">CM</div>
+                <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:rgba(6,182,212,.15);color:rgba(6,182,212,.9);border:2px solid var(--bg);flex-shrink:0;margin-left:-6px">TW</div>
+                <div style="margin-left:6px;display:flex;align-items:center;gap:4px"><div style="width:6px;height:6px;background:var(--green);border-radius:50%"></div><span style="font-size:9.5px;color:var(--t3)">3 online</span></div>
+              </div>
+              <div style="font-size:10px;color:var(--t3);background:var(--inp);border-radius:6px;padding:5px 8px;border:.5px solid var(--b0)">✏️ Denis is editing "Revenue Goal"</div>
+            </div>
+          </div>
+          <div class="feat-icon">👥</div>
+          <div class="feat-title">Team Collaboration</div>
+          <div class="feat-desc">Role-based access with Owners, Editors and Viewers. Real-time presence indicators show who's working on the map with you.</div>
+        </div>
+
+        <div class="feat-card glow-card sr sr-up">
+          <div class="feat-card-glow"></div>
+          <div class="feat-preview">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;background:rgba(104,54,245,.1);border-radius:8px;padding:7px 10px;border:.5px solid rgba(104,54,245,.2)">
+                <div style="font-size:9px;color:var(--t3);margin-bottom:3px">CRM Pipeline</div>
+                <div style="font-size:14px;font-weight:800;color:var(--acc)">$284K</div>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 10h14M10 3v14" stroke="rgba(104,54,245,.5)" stroke-width="2" stroke-linecap="round"/></svg>
+              <div style="flex:1;background:rgba(18,196,130,.08);border-radius:8px;padding:7px 10px;border:.5px solid rgba(18,196,130,.2)">
+                <div style="font-size:9px;color:var(--t3);margin-bottom:3px">Strategy Goal</div>
+                <div style="font-size:14px;font-weight:800;color:var(--green)">$500K</div>
+              </div>
+            </div>
+          </div>
+          <div class="feat-icon">🔗</div>
+          <div class="feat-title">CRM Integration</div>
+          <div class="feat-desc">Two-way sync with Strategy CRM. Pipeline progress automatically updates your strategic goals in real time.</div>
+        </div>
+
+        <div class="feat-card glow-card sr sr-up">
+          <div class="feat-card-glow"></div>
+          <div class="feat-preview">
+            <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:flex-start">
+              <div style="padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:var(--inp);color:var(--t2);border:.5px solid var(--b1)">PNG</div>
+              <div style="padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:var(--inp);color:var(--t2);border:.5px solid var(--b1)">SVG</div>
+              <div style="padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:var(--inp);color:var(--t2);border:.5px solid var(--b1)">PDF</div>
+              <div style="padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:var(--inp);color:var(--t2);border:.5px solid var(--b1)">JSON</div>
+              <div style="padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:var(--inp);color:var(--t2);border:.5px solid var(--b1)">MD</div>
+              <div style="padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(240,148,40,.12);color:rgba(240,148,40,.9);border:.5px solid rgba(240,148,40,.3)">PPTX <span style="font-size:7.5px;opacity:.8">Pro</span></div>
+            </div>
+          </div>
+          <div class="feat-icon">📤</div>
+          <div class="feat-title">Export Everywhere</div>
+          <div class="feat-desc">Export your map as PNG, SVG, PDF, JSON or Markdown. PPTX slide generation for presentations on Pro+ plans.</div>
+        </div>
+
+                <div class="feat-card glow-card sr sr-up">
+          <div class="feat-card-glow"></div>
+          <div class="feat-preview">
+            <div style="display:flex;flex-direction:column;gap:5px;width:100%">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:7px;height:7px;border-radius:50%;background:var(--acc);flex-shrink:0"></div>
+                <div style="font-size:10px;font-weight:600;color:var(--t1);flex:1">v3.2 · Final</div>
+                <div style="font-size:9px;color:var(--t3)">Today</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:7px;height:7px;border-radius:50%;background:var(--b2);flex-shrink:0"></div>
+                <div style="font-size:10px;font-weight:400;color:var(--t3);flex:1">v3.1 · Before pivot</div>
+                <div style="font-size:9px;color:var(--t3)">Mar 18</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:7px;height:7px;border-radius:50%;background:var(--b2);flex-shrink:0"></div>
+                <div style="font-size:10px;font-weight:400;color:var(--t3);flex:1">v2.9 · Q1 baseline</div>
+                <div style="font-size:9px;color:var(--t3)">Mar 10</div>
+              </div>
+            </div>
+          </div>
+          <div class="feat-icon">📸</div>
+          <div class="feat-title">Map Versions</div>
+          <div class="feat-desc">Save snapshots before major pivots. Full version history with one-click restore — your strategy's undo button.</div>
+        </div>
+          <div class="feat-desc">Save snapshots before major pivots. Full version history with one-click restore — your strategy's undo button.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div id="land-how">
+      <div class="land-section-lbl sr sr-up">How it works</div>
+      <div class="land-section-title sr sr-up">From vision to execution in 4 steps</div>
+      <div class="land-section-sub sr sr-up">Strategy AI guides you from the big picture to daily action — without the complexity of traditional tools.</div>
+      <div class="how-steps stagger">
+        <div class="how-step sr sr-up"><div class="how-num">1</div><div class="how-title">Map your strategy</div><div class="how-desc">Add goals, initiatives, KPIs and risks as visual nodes. Connect them to show dependencies and relationships.</div></div>
+        <div class="how-step sr sr-up"><div class="how-num">2</div><div class="how-title">Run scenarios</div><div class="how-desc">Create Aggressive, Balanced or Defensive scenarios. Switch and compare how each affects your goals.</div></div>
+        <div class="how-step sr sr-up"><div class="how-num">3</div><div class="how-title">Ask your AI advisor</div><div class="how-desc">Your AI advisor knows the full context. Ask about gaps, risks, priorities — get answers in seconds.</div></div>
+        <div class="how-step sr sr-up"><div class="how-num">4</div><div class="how-title">Execute and track</div><div class="how-desc">Monitor progress on the timeline, get weekly briefings, and sync with your CRM pipeline in real time.</div></div>
       </div>
     </div>
 
@@ -1247,6 +1653,10 @@ body{background:var(--bg);transition:background var(--tr)}
       <div style="flex:1;overflow-y:auto">
         <div class="sb-sect">
           <div class="sb-lbl">Workspace</div>
+          <div class="ni" id="ni-dashboard" onclick="goApp('dashboard',this)">
+            <svg viewBox="0 0 15 15" fill="none"><rect x="1" y="1" width="5.5" height="5.5" rx="1" fill="currentColor" opacity=".7"/><rect x="8.5" y="1" width="5.5" height="5.5" rx="1" fill="currentColor" opacity=".45"/><rect x="1" y="8.5" width="5.5" height="5.5" rx="1" fill="currentColor" opacity=".45"/><rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1" fill="currentColor" opacity=".3"/></svg>
+            Dashboard
+          </div>
           <div class="ni on" id="ni-projects" onclick="goApp('projects',this)">
             <svg viewBox="0 0 15 15" fill="none"><rect x="1" y="1" width="5.5" height="5.5" rx="1.2" fill="currentColor" opacity=".7"/><rect x="8.5" y="1" width="5.5" height="5.5" rx="1.2" fill="currentColor" opacity=".5"/><rect x="1" y="8.5" width="5.5" height="5.5" rx="1.2" fill="currentColor" opacity=".5"/><rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1.2" fill="currentColor" opacity=".35"/></svg>
             Projects<span class="ni-badge" id="proj-count">3</span>
@@ -1363,6 +1773,11 @@ body{background:var(--bg);transition:background var(--tr)}
       <!-- SCREENS -->
       <div id="screens" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
 
+        <!-- DASHBOARD -->
+        <div class="screen" id="s-dashboard">
+          <div class="scr" id="dash-content"></div>
+        </div>
+
         <!-- PROJECTS -->
         <div class="screen on" id="s-projects">
           <div class="scr">
@@ -1383,10 +1798,13 @@ body{background:var(--bg);transition:background var(--tr)}
             <div id="canvas">
               <svg class="edges-layer" id="edges-svg">
                 <defs>
-                  <marker id="arr-dk" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(104,54,245,.5)"/></marker>
-                  <marker id="arr-g" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(18,196,130,.5)"/></marker>
-                  <marker id="arr-r" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(240,68,88,.5)"/></marker>
+                  <marker id="arr-dk" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,1 L6,3.5 L0,6 Z" fill="rgba(104,54,245,.7)"/></marker>
+                  <marker id="arr-g" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,1 L6,3.5 L0,6 Z" fill="rgba(18,196,130,.7)"/></marker>
+                  <marker id="arr-r" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,1 L6,3.5 L0,6 Z" fill="rgba(240,68,88,.7)"/></marker>
+                  <marker id="arr-a" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,1 L6,3.5 L0,6 Z" fill="rgba(240,148,40,.7)"/></marker>
+                  <marker id="arr-c" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,1 L6,3.5 L0,6 Z" fill="rgba(6,182,212,.7)"/></marker>
                 </defs>
+                <path id="edge-preview" stroke="rgba(104,54,245,.6)" stroke-width="2" stroke-dasharray="6 4" fill="none" display="none"/>
               </svg>
             </div>
             <!-- MAP FILTER BAR -->
@@ -1416,8 +1834,13 @@ body{background:var(--bg);transition:background var(--tr)}
               <button class="mt-btn" title="Auto layout (A)" onclick="autoLayout()"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="3.5" height="3.5" rx="1" fill="currentColor" opacity=".5"/><rect x="5.5" y="1" width="3.5" height="3.5" rx="1" fill="currentColor" opacity=".5"/><rect x="10" y="1" width="3.5" height="3.5" rx="1" fill="currentColor" opacity=".5"/><rect x="3" y="9" width="3.5" height="3.5" rx="1" fill="currentColor" opacity=".65"/><rect x="7.5" y="9" width="3.5" height="3.5" rx="1" fill="currentColor" opacity=".65"/></svg></button>
               <button class="mt-btn" title="Export" onclick="exportMap()"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 11v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
               <button class="mt-btn" title="Share" onclick="shareMap()"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="11" cy="2.5" r="1.8" stroke="currentColor" stroke-width="1.2" fill="none"/><circle cx="11" cy="11.5" r="1.8" stroke="currentColor" stroke-width="1.2" fill="none"/><circle cx="3" cy="7" r="1.8" stroke="currentColor" stroke-width="1.2" fill="none"/><line x1="4.7" y1="6.1" x2="9.3" y2="3.4" stroke="currentColor" stroke-width="1.2"/><line x1="4.7" y1="7.9" x2="9.3" y2="10.6" stroke="currentColor" stroke-width="1.2"/></svg></button>
+              <div class="mt-sep"></div>
+              <!-- VIEW TOGGLE: Canvas ↔ Orbital -->
+              <button class="mt-btn" id="btn-orbital" title="Orbital view" onclick="toggleOrbitalView(this)" style="font-size:14px">⬡</button>
               <button class="mt-btn" title="Shortcuts (?)" onclick="toggleShortcuts()"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.2" fill="none" opacity=".6"/><rect x="2.5" y="4.5" width="2" height="1.5" rx=".5" fill="currentColor" opacity=".5"/><rect x="6" y="4.5" width="2" height="1.5" rx=".5" fill="currentColor" opacity=".5"/><rect x="9.5" y="4.5" width="2" height="1.5" rx=".5" fill="currentColor" opacity=".5"/><rect x="3.5" y="7" width="7" height="1.5" rx=".5" fill="currentColor" opacity=".65"/></svg></button>
             </div>
+            <!-- ORBITAL VIEW LAYER -->
+            <div class="orbital-view" id="orbital-view"></div>
             <div class="minimap" id="minimap"><canvas id="minimap-canvas" width="140" height="90"></canvas></div>
             <!-- PRESENCE -->
             <div class="presence-bar" id="presence-bar" style="display:none">
@@ -1442,10 +1865,10 @@ body{background:var(--bg);transition:background var(--tr)}
                 </div>
                 <div class="np-section"><div class="np-lbl">Priority</div>
                   <div class="priority-row">
-                    <div class="prio-opt" onclick="setPrio(this,'low')">Low</div>
-                    <div class="prio-opt" onclick="setPrio(this,'medium')">Med</div>
-                    <div class="prio-opt on" onclick="setPrio(this,'high')">High</div>
-                    <div class="prio-opt" onclick="setPrio(this,'critical')">Critical</div>
+                    <div class="prio-btn" data-p="low" onclick="setPrio(this,'low')">Low</div>
+                    <div class="prio-btn" data-p="medium" onclick="setPrio(this,'medium')">Med</div>
+                    <div class="prio-btn on" data-p="high" onclick="setPrio(this,'high')">High</div>
+                    <div class="prio-btn" data-p="critical" onclick="setPrio(this,'critical')">Critical</div>
                   </div>
                 </div>
                 <div class="np-section"><div class="np-lbl">Progress <span id="np-prog-val" style="color:var(--acc);font-weight:700">40%</span></div><input type="range" id="np-prog" min="0" max="100" value="40" style="width:100%;accent-color:var(--acc)" oninput="document.getElementById('np-prog-val').textContent=this.value+'%'"/></div>
@@ -1456,6 +1879,14 @@ body{background:var(--bg);transition:background var(--tr)}
                     <div class="tag-item">Q2</div><div class="tag-item">Revenue</div>
                     <div class="tag-item tag-add" onclick="addTag()">+ Add</div>
                   </div>
+                </div>
+                <!-- RELATIONS -->
+                <div class="np-section">
+                  <div class="np-lbl" style="display:flex;align-items:center;justify-content:space-between">
+                    Connections
+                    <button class="btn-g" style="height:20px;font-size:9.5px;padding:0 8px" onclick="if(selectedNode)startConnect_ctx(selectedNode.id)">+ Connect</button>
+                  </div>
+                  <div id="np-relations" style="display:flex;flex-direction:column;gap:2px;margin-top:4px"></div>
                 </div>
                 <div class="np-section"><div class="np-lbl">Metrics</div>
                   <div class="metric-row">
@@ -1475,9 +1906,9 @@ body{background:var(--bg);transition:background var(--tr)}
                 </div>
               </div>
               <div class="np-actions">
-                <button class="btn-p" style="flex:1;height:32px;font-size:11.5px" onclick="saveNode()">Save changes</button>
-                <button class="btn-g" style="height:32px;font-size:11.5px" onclick="duplicateNode()">Duplicate</button>
-                <button class="btn-g" style="height:32px;font-size:11.5px;color:var(--red)" onclick="deleteNode()">Delete</button>
+                <button class="btn-p" style="flex:1;height:32px;font-size:11.5px" onclick="saveNode()">Save</button>
+                <button class="btn-g" style="height:32px;font-size:11.5px" onclick="duplicateNode()">⧉</button>
+                <button class="btn-g" style="height:32px;font-size:11.5px;color:var(--red)" onclick="deleteNode()">🗑</button>
               </div>
             </div>
           </div>
@@ -1559,6 +1990,63 @@ body{background:var(--bg);transition:background var(--tr)}
     </div><!-- /main -->
   </div><!-- /app-shell -->
 </div><!-- /v-app -->
+
+<!-- FLOATING AI ASSISTANT (FloatingAiAssistant-inspired) -->
+<div id="floating-ai">
+  <!-- Chat panel -->
+  <div id="fab-chat" style="display:none;position:absolute;bottom:68px;right:0;width:360px">
+    <div style="background:var(--sb);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border:.5px solid var(--b2);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.4);overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:fab-ping-anim 2s ease-in-out infinite"></div>
+          <span style="font-size:12px;font-weight:600;color:var(--t2)">AI Advisor</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="padding:2px 8px;font-size:9.5px;font-weight:700;background:var(--inp);color:var(--t2);border-radius:20px;border:.5px solid var(--b1)">Sonnet 4</span>
+          <span style="padding:2px 8px;font-size:9.5px;font-weight:700;background:rgba(104,54,245,.15);color:rgba(168,128,255,.9);border-radius:20px;border:.5px solid rgba(104,54,245,.25)">Pro</span>
+          <div onclick="toggleFabChat()" style="width:24px;height:24px;border-radius:8px;background:var(--inp);border:.5px solid var(--b1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);font-size:15px;line-height:1;transition:all .15s">×</div>
+        </div>
+      </div>
+      <div id="fab-chat-area" style="height:220px;overflow-y:auto;padding:8px 14px;display:flex;flex-direction:column;gap:8px">
+        <div class="msg ai">
+          <div class="msg-av" style="background:rgba(18,196,130,.15);color:#12c482;width:24px;height:24px;font-size:9px">AI</div>
+          <div class="msg-body"><div class="msg-bubble" style="font-size:12px">Hi! 👋 I have full context of your strategy — goals, risks, pipeline. Ask anything.</div></div>
+        </div>
+      </div>
+      <div style="padding:0 12px 8px;display:flex;gap:5px;flex-wrap:wrap">
+        <button onclick="fabAsk('What are my top risks?')" class="fab-q-btn">⚠️ Risks</button>
+        <button onclick="fabAsk('Prioritize my Q2 goals')" class="fab-q-btn">🎯 Q2 goals</button>
+        <button onclick="fabAsk('How is my CRM pipeline?')" class="fab-q-btn">💰 CRM</button>
+        <button onclick="fabAsk('What should I focus on this week?')" class="fab-q-btn">📋 This week</button>
+      </div>
+      <div style="padding:8px 12px 12px;border-top:.5px solid var(--b1)">
+        <div style="display:flex;gap:7px;align-items:flex-end">
+          <textarea id="fab-inp" rows="2" placeholder="Ask anything about your strategy…" style="flex:1;background:var(--inp);border:.5px solid var(--b1);border-radius:10px;padding:8px 11px;font-size:12px;color:var(--t1);font-family:inherit;outline:none;resize:none;line-height:1.5;min-height:36px;max-height:100px;transition:border-color .18s" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();fabSend()}" onfocus="this.style.borderColor='rgba(104,54,245,.45)'" onblur="this.style.borderColor=''"></textarea>
+          <button onclick="fabSend()" style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#6836f5,#a050ff);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(104,54,245,.35);transition:all .18s" onmouseenter="this.style.transform='translateY(-1px)'" onmouseleave="this.style.transform=''">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11.5 1.5L1.5 6.5l3.5 1.5 1 3.5z" fill="rgba(255,255,255,.95)"/></svg>
+          </button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px">
+          <span style="font-size:9.5px;color:var(--t3)">Shift+Enter = new line</span>
+          <div style="display:flex;align-items:center;gap:3px"><div style="width:5px;height:5px;border-radius:50%;background:var(--green)"></div><span style="font-size:9.5px;color:var(--t3)">Systems OK</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- FAB button -->
+  <button class="fab-btn" id="fab-main-btn" onclick="toggleFabChat()">
+    <div class="fab-ping"></div>
+    <svg id="fab-icon-bot" width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M11 2a7 7 0 0 1 7 7v1a7 7 0 0 1-7 7H7l-4 3v-3A7 7 0 0 1 4 9V9a7 7 0 0 1 7-7z" stroke="rgba(255,255,255,.9)" stroke-width="1.4" fill="none"/>
+      <circle cx="8" cy="9.5" r="1.2" fill="rgba(255,255,255,.9)"/>
+      <circle cx="14" cy="9.5" r="1.2" fill="rgba(255,255,255,.9)"/>
+    </svg>
+    <svg id="fab-icon-x" width="16" height="16" viewBox="0 0 16 16" fill="none" style="display:none">
+      <path d="M3 3l10 10M13 3L3 13" stroke="rgba(255,255,255,.9)" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <div class="fab-label">Ask AI advisor</div>
+</div>
 
 <!-- AUTH MODALS -->
 <div class="overlay" id="modal-login" onclick="closeModalOnBg(event,'modal-login')">
@@ -1657,8 +2145,7 @@ body{background:var(--bg);transition:background var(--tr)}
 <script>
 let dark=true, currentLang='en', currentUser=null, currentProject=null, currentMapTool='select';
 let zoom=1, panX=0, panY=0, isPanning=false, panStart={x:0,y:0};
-let nodes=[], edges=[], selectedNode=null, connectSrc=null, chatInit=false, chatHistory=[];
-let autoSaveTimer=null;
+let nodes=[], edges=[], selectedNode=null, connectSrc=null, chatInit=false, chatHistory=[], mapInited=false, edgeDragActive=false, edgeSrcNode=null, selectedEdge=null, autoSaveTimer=null;
 
 const SEED={email:'denisblackman2@gmail.com',pass:'Denis123',name:'Denis Blackman',initials:'DB'};
 
@@ -1842,7 +2329,9 @@ function bootApp(){
   renderProjects();
   renderNotifs();
   initBanners();
-  goApp('projects',document.getElementById('ni-projects'));
+  // Show floating AI
+  const fab=document.getElementById('floating-ai');if(fab)fab.classList.add('visible');
+  goApp('dashboard',document.getElementById('ni-dashboard'));
   setTimeout(()=>{
     showToast(`Welcome back, ${currentUser?.name?.split(' ')[0]||'there'}! 👋`,'green');
     setTimeout(()=>showToast('CRM synced · $284K pipeline loaded','cyan'),1400);
@@ -1850,8 +2339,8 @@ function bootApp(){
 }
 
 /* ─────────────── APP NAV ─────────────── */
-const screenTitles={projects:'Projects','project-card':'Project',map:'Strategy Map',scenarios:'Scenarios',timeline:'Timeline',ai:'AI Advisor',insights:'Insights',team:'Team',settings:'Settings',profile:'Profile',content:'Content Plan'};
-const screenSubs={projects:'Your strategic workspace','project-card':'',map:'Q2 2025 · 12 nodes · 4 goals',scenarios:'3 scenarios · Aggressive active',timeline:'2025 roadmap · 8 initiatives',ai:'Context-aware advisor',insights:'Strategy health · 74%',team:'4 members',settings:'Workspace configuration',content:'Content strategy board'};
+const screenTitles={dashboard:'Dashboard',projects:'Projects','project-card':'Project',map:'Strategy Map',scenarios:'Scenarios',timeline:'Timeline',ai:'AI Advisor',insights:'Insights',team:'Team',settings:'Settings',profile:'Profile',content:'Content Plan'};
+const screenSubs={dashboard:'Your strategy at a glance',projects:'Your strategic workspace','project-card':'',map:'Q2 2025 · 12 nodes · 4 goals',scenarios:'3 scenarios · Aggressive active',timeline:'2025 roadmap · 8 initiatives',ai:'Context-aware advisor',insights:'Strategy health · 74%',team:'4 members',settings:'Workspace configuration',content:'Content strategy board'};
 const allNi=()=>document.querySelectorAll('.ni');
 
 function goApp(id,el){
@@ -1869,6 +2358,7 @@ function goApp(id,el){
   if(tbCta){tbCta.textContent='+ New project';tbCta.onclick=newProject;tbCta.style.display=''}
 
   if(id==='map'){initMap();if(tbCta){tbCta.textContent='+ Add node';tbCta.onclick=addNodePrompt}}
+  else if(id==='dashboard'){renderDashboard();if(tbCta)tbCta.style.display='none'}
   else if(id==='ai'){if(!chatInit)initAIChat();if(tbCta){tbCta.textContent='New chat';tbCta.onclick=()=>clearChat()}}
   else if(id==='timeline'){renderGantt()}
   else if(id==='scenarios'){renderScenarios()}
@@ -1927,25 +2417,24 @@ function renderProjects(){
 }
 
 function openProject(id){
+  const prevId=currentProject?.id;
   currentProject=PROJECTS.find(p=>p.id===id);
   if(!currentProject)return;
-  // Show project-specific nav items
+  // Per-project map isolation: reset when switching projects
+  if(prevId!==id){mapInited=false;nodes=[];edges=[]}
   ['ni-map','ni-scenarios','ni-timeline','ni-team','ni-content'].forEach(nid=>{
     const el=document.getElementById(nid);if(el)el.style.display='flex'
   });
-  document.getElementById('sc-count').style.display='flex';
-  // Go to project card overview
+  const sc=document.getElementById('sc-count');if(sc)sc.style.display='flex';
   renderProjectCard();
   goApp('project-card',null);
-  document.getElementById('tb-title').textContent=currentProject.name;
-  document.getElementById('tb-sub').textContent=`${currentProject.role} · ${currentProject.maps} maps · ${currentProject.steps} steps`;
-  document.getElementById('tb-cta').textContent='+ New map';
-  document.getElementById('tb-cta').onclick=()=>showToast('Map creation coming soon','purple');
+  const tbTitle=document.getElementById('tb-title');if(tbTitle)tbTitle.textContent=currentProject.name;
+  const tbSub=document.getElementById('tb-sub');if(tbSub)tbSub.textContent=currentProject.role+' · '+currentProject.maps+' maps';
+  const tbCta=document.getElementById('tb-cta');if(tbCta){tbCta.textContent='+ New map';tbCta.onclick=()=>showToast('New map coming soon','purple')}
 }
 
 function renderProjectCard(){
   const p=currentProject;if(!p)return;
-  // Build tabs
   const tabsBar=document.getElementById('proj-tabs-bar');
   const tabContents=document.getElementById('proj-tab-contents');
   const tabs=[
@@ -1957,12 +2446,13 @@ function renderProjectCard(){
     {id:'team',label:'Team',icon:'👥',count:p.members},
     {id:'proj-settings',label:'Settings',icon:'⚙️'},
   ];
+  // Expandable animated tabs — icon only by default, expands on active
   tabsBar.innerHTML=tabs.map(t=>`
-    <div class="proj-tab${t.id==='overview'?' on':''}" onclick="switchProjTab('${t.id}',this)">
-      ${t.icon} ${t.label}
+    <button class="proj-tab${t.id==='overview'?' on':''}" onclick="switchProjTab('${t.id}',this)" title="${t.label}">
+      <span class="proj-tab-icon">${t.icon}</span>
+      <span class="proj-tab-label">${t.label}${t.pro?` <span style="font-size:8px;background:rgba(240,148,40,.2);color:rgba(240,148,40,.9);border-radius:4px;padding:0 4px;font-weight:700">PRO</span>`:''}</span>
       ${t.count!=null?`<span class="proj-tab-badge">${t.count}</span>`:''}
-      ${t.pro?`<span style="font-size:8px;background:rgba(240,148,40,.15);color:rgba(240,148,40,.9);border-radius:4px;padding:1px 5px;font-weight:700">PRO</span>`:''}
-    </div>`).join('');
+    </button>`).join('');
   tabContents.style.cssText='flex:1;overflow:hidden;display:flex;flex-direction:column';
   switchProjTab('overview',tabsBar.querySelector('.proj-tab'));
 }
@@ -2034,14 +2524,14 @@ function switchProjTab(id,el){
     </div></div>`;
   } else if(id==='scenarios'){
     tc.innerHTML=`<div class="scr"><div class="sc-grid">${SCENARIOS.map(s=>`
-      <div class="sc-card${s.active?' active-sc':''}" onclick="activateScenario('${s.id}')">
+      <div class="sc-card glow-card${s.active?' active-sc':''}" onclick="activateScenario('${s.id}')">
         <div class="sc-icon" style="background:${s.iconBg}">${s.icon}</div>
         <div class="sc-name">${s.name}</div>
         <div class="sc-desc">${s.desc}</div>
         <div class="sc-tags">${s.tags.map(t=>`<span class="sc-tag" style="background:${t.c};color:${t.tc}">${t.l}</span>`).join('')}</div>
         <div class="sc-meta"><span class="sc-date">Modified ${s.date}</span><span class="sc-status-pill" style="${s.statusStyle}">● ${s.status}</span></div>
       </div>`).join('')}
-      <div class="sc-card" onclick="showToast('New scenario coming soon','purple')" style="border-style:dashed;background:var(--inp);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:160px">
+      <div class="sc-card glow-card" onclick="showToast('New scenario coming soon','purple')" style="border-style:dashed;background:var(--inp);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:160px">
         <span style="font-size:24px">+</span><span style="font-size:12px;color:var(--t3)">New scenario</span>
       </div>
     </div></div>`;
@@ -2389,6 +2879,15 @@ function newProject(){
   };
 }
 
+/* ─────────────── PER-PROJECT DATA STORE ─────────────── */
+const PROJECT_DATA={};
+function getProjectData(pid){
+  if(!PROJECT_DATA[pid]){
+    PROJECT_DATA[pid]=pid==='p1'?{nodes:JSON.parse(JSON.stringify(MAP_NODES)),edges:JSON.parse(JSON.stringify(MAP_EDGES))}:{nodes:[],edges:[]};
+  }
+  return PROJECT_DATA[pid];
+}
+
 /* ─────────────── MAP ENGINE ─────────────── */
 const typeConfig={
   goal:{label:'🎯 Goal',bar:'linear-gradient(90deg,#6836f5,#a050ff)',typeColor:'rgba(168,128,255,.9)',statusBg:'rgba(104,54,245,.12)',statusC:'rgba(168,128,255,.9)'},
@@ -2398,36 +2897,38 @@ const typeConfig={
   task:{label:'✅ Task',bar:'linear-gradient(90deg,#06b6d4,rgba(6,182,212,.4))',typeColor:'rgba(6,182,212,.9)',statusBg:'rgba(6,182,212,.1)',statusC:'rgba(6,182,212,.85)'},
 };
 const statusConfig={'not-started':{l:'Not started',bg:'var(--tag)',c:'var(--t3)'},'in-progress':{l:'In progress',bg:'rgba(104,54,245,.12)',c:'rgba(168,128,255,.9)'},done:{l:'Done',bg:'rgba(18,196,130,.12)',c:'rgba(18,196,130,.9)'}};
+const edgeConfig={
+  contributes:{label:'Contributes to',col:'rgba(104,54,245,.55)',marker:'arr-dk',dash:'none',width:1.8},
+  enables:{label:'Enables',col:'rgba(18,196,130,.55)',marker:'arr-g',dash:'none',width:1.8},
+  measures:{label:'Measures',col:'rgba(240,148,40,.55)',marker:'arr-a',dash:'5 3',width:1.6},
+  blocks:{label:'Blocks',col:'rgba(240,68,88,.6)',marker:'arr-r',dash:'5 3',width:2},
+  risks:{label:'At risk of',col:'rgba(240,68,88,.45)',marker:'arr-r',dash:'3 3',width:1.5},
+};
 
-let mapInited=false;
+let dragging=null,dragStart={},nodeStart={};
+
 function initMap(){
-  if(mapInited)return;
-  mapInited=true;
-  // Try autosave first
-  const restored=loadFromLS();
-  if(!restored){nodes=[...MAP_NODES];edges=[...MAP_EDGES]}
-  buildNodes();
-  renderEdges();
-  fitMap();
-  setupMapPan();
-  setTimeout(initPresence,800);
-  if(restored)showToast('Map restored from last session','cyan');
+  const pid=currentProject?.id||'p1';
+  const saved=localStorage.getItem('sa_map_'+pid);
+  if(saved){try{const d=JSON.parse(saved);nodes=d.nodes||[];edges=d.edges||[]}catch{loadProjectNodes(pid)}}else{loadProjectNodes(pid)}
+  if(!mapInited){mapInited=true;setupMapPan();setupEdgePreview();setTimeout(initPresence,800)}
+  buildNodes();renderEdges();fitMap();
+  showToast((currentProject?.name||'Strategy Map')+' · '+nodes.length+' nodes','purple');
 }
 
+function loadProjectNodes(pid){const d=getProjectData(pid);nodes=[...d.nodes];edges=[...d.edges]}
+
 function buildNodes(){
-  const canvas=document.getElementById('canvas');
-  canvas.querySelectorAll('.node').forEach(n=>n.remove());
-  nodes.forEach(n=>canvas.appendChild(makeNodeEl(n)));
+  const canvas=document.getElementById('canvas');canvas.querySelectorAll('.node').forEach(n=>n.remove());
+  nodes.forEach((n,i)=>{const el=makeNodeEl(n);el.style.animationDelay=(i*0.04)+'s';canvas.appendChild(el)});
 }
 
 function makeNodeEl(n){
   const tc=typeConfig[n.type]||typeConfig.goal;
   const sc=statusConfig[n.status]||statusConfig['in-progress'];
   const el=document.createElement('div');
-  el.className=`node nt-${n.type}`;
-  el.id='node-'+n.id;
-  el.style.left=n.x+'px';
-  el.style.top=n.y+'px';
+  el.className='node nt-'+n.type;el.id='node-'+n.id;
+  el.style.left=n.x+'px';el.style.top=n.y+'px';
   el.innerHTML=`
     <div class="node-type-bar" style="background:${tc.bar}"></div>
     <div class="node-type-label" style="color:${tc.typeColor}">${tc.label}</div>
@@ -2441,156 +2942,526 @@ function makeNodeEl(n){
       <div class="node-owner">👤 ${n.owner}</div>
       ${n.deadline?`<div class="node-deadline ${isDue(n.deadline)?'overdue':''}">${formatDate(n.deadline)}</div>`:''}
     </div>
-    ${n.tags.length?`<div class="node-tags">${n.tags.map(t=>`<div class="node-tag">${t}</div>`).join('')}</div>`:''}`;
+    ${n.tags?.length?`<div class="node-tags">${n.tags.map(t=>`<div class="node-tag">${t}</div>`).join('')}</div>`:''}
+    <div class="node-port port-bottom" data-id="${n.id}"></div>
+    <div class="node-port port-right" data-id="${n.id}"></div>`;
   el.addEventListener('click',e=>{e.stopPropagation();nodeClick(n,el)});
-  el.addEventListener('mousedown',e=>{if(currentMapTool==='select'){e.stopPropagation();startNodeDrag(e,n,el)}else if(currentMapTool==='connect'){e.stopPropagation();connectFrom(n)}});
+  el.addEventListener('mousedown',e=>{
+    if(e.button!==0)return;e.stopPropagation();
+    if(connectSrc){connectTo(n);return}
+    if(currentMapTool==='connect'){connectFrom(n);return}
+    startNodeDrag(e,n,el);
+  });
+  el.addEventListener('contextmenu',e=>{e.preventDefault();e.stopPropagation();showContextMenu(e,n)});
+  el.querySelectorAll('.node-port').forEach(port=>{
+    port.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();startEdgeDrag(e,n)});
+  });
   return el;
 }
 
 function isDue(d){return d&&new Date(d)<new Date()}
-function formatDate(d){if(!d)return'';const dt=new Date(d);return dt.toLocaleDateString('en',{month:'short',day:'numeric'})}
+function formatDate(d){if(!d)return'';return new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'})}
 
 function nodeClick(n,el){
-  if(currentMapTool==='connect'){connectTo(n);return}
-  document.querySelectorAll('.node').forEach(nd=>nd.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedNode=n;
+  if(connectSrc){connectTo(n);return}
+  document.querySelectorAll('.node').forEach(nd=>nd.classList.remove('selected','dimmed','highlighted'));
+  el.classList.add('selected');selectedNode=n;
+  const connIds=new Set();
+  edges.forEach(e=>{if(e.f===n.id)connIds.add(e.t);if(e.t===n.id)connIds.add(e.f)});
+  if(connIds.size>0){nodes.forEach(nn=>{if(nn.id===n.id)return;const nel=document.getElementById('node-'+nn.id);if(nel){nel.classList.toggle('highlighted',connIds.has(nn.id));nel.classList.toggle('dimmed',!connIds.has(nn.id))}})}
   openNodePanel(n);
 }
 
-function connectFrom(n){connectSrc=n;showToast('Click a target node to connect','purple')}
-function connectTo(n){
-  if(!connectSrc||connectSrc.id===n.id){connectSrc=null;return}
-  const e={id:'e'+Date.now(),f:connectSrc.id,t:n.id,type:'contributes'};
-  edges.push(e);renderEdges();
-  connectSrc=null;
-  triggerAutoSave();
-  showToast('Connection created','green');
-}
-
-function renderEdges(){
-  const svg=document.getElementById('edges-svg');
-  svg.querySelectorAll('path,text').forEach(e=>e.remove());
-  edges.forEach(edge=>{
-    const fn=nodes.find(n=>n.id===edge.f);
-    const tn=nodes.find(n=>n.id===edge.t);
-    if(!fn||!tn)return;
-    const fel=document.getElementById('node-'+fn.id);
-    const tel=document.getElementById('node-'+tn.id);
-    if(!fel||!tel)return;
-    const fw=fel.offsetWidth, fh=fel.offsetHeight;
-    const tw=tel.offsetWidth;
-    const fx=fn.x+fw/2, fy=fn.y+fh;
-    const tx=tn.x+tw/2, ty=tn.y;
-    const cy=(fy+ty)/2;
-    const edgeColors={contributes:'rgba(104,54,245,.4)',enables:'rgba(18,196,130,.4)',measures:'rgba(240,148,40,.4)',blocks:'rgba(240,68,88,.4)',risks:'rgba(240,68,88,.35)'};
-    const markerId=edge.type==='blocks'||edge.type==='risks'?'arr-r':edge.type==='enables'||edge.type==='measures'?'arr-g':'arr-dk';
-    const col=edgeColors[edge.type]||'rgba(104,54,245,.4)';
-    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d',`M${fx},${fy} C${fx},${cy} ${tx},${cy} ${tx},${ty}`);
-    path.setAttribute('stroke',col);
-    path.setAttribute('stroke-width','1.8');
-    path.setAttribute('fill','none');
-    path.setAttribute('marker-end',`url(#${markerId})`);
-    path.setAttribute('stroke-dasharray',edge.type==='blocks'?'5 3':'none');
-    svg.appendChild(path);
+/* ── Edge drag-to-connect ── */
+function setupEdgePreview(){
+  document.addEventListener('mousemove',e=>{
+    if(!edgeDragActive)return;
+    const canvas=document.getElementById('canvas');
+    const rect=canvas.getBoundingClientRect();
+    const mx=(e.clientX-rect.left-panX*zoom)/zoom;
+    const my=(e.clientY-rect.top-panY*zoom)/zoom;
+    if(edgeSrcNode){
+      const src=document.getElementById('node-'+edgeSrcNode.id);
+      if(src){
+        const sx=edgeSrcNode.x+src.offsetWidth/2,sy=edgeSrcNode.y+src.offsetHeight;
+        const cy=(sy+my)/2;
+        const p=document.getElementById('edge-preview');
+        if(p){p.setAttribute('d',`M${sx},${sy} C${sx},${cy} ${mx},${cy} ${mx},${my}`);p.removeAttribute('display')}
+      }
+    }
+    nodes.forEach(nn=>{const nel=document.getElementById('node-'+nn.id);if(nel&&nn.id!==edgeSrcNode?.id)nel.classList.add('connect-target')});
+  });
+  document.addEventListener('mouseup',e=>{
+    if(!edgeDragActive)return;
+    edgeDragActive=false;
+    const p=document.getElementById('edge-preview');if(p)p.setAttribute('display','none');
+    nodes.forEach(nn=>{const nel=document.getElementById('node-'+nn.id);if(nel)nel.classList.remove('connect-target','connecting-src')});
+    const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.node');
+    if(target&&edgeSrcNode){
+      const tid=target.id.replace('node-','');
+      const tn=nodes.find(x=>x.id===tid);
+      if(tn&&tn.id!==edgeSrcNode.id){showEdgeTypePicker(e.clientX,e.clientY,edgeSrcNode,tn)}
+    }
+    edgeSrcNode=null;
   });
 }
 
-// Drag nodes
-let dragging=null, dragStart={}, nodeStart={};
+function startEdgeDrag(e,n){
+  edgeDragActive=true;edgeSrcNode=n;
+  const nel=document.getElementById('node-'+n.id);if(nel)nel.classList.add('connecting-src');
+}
+
+function showEdgeTypePicker(cx,cy,src,tgt){
+  document.getElementById('ctx-menu-el')?.remove();
+  const picker=document.createElement('div');
+  picker.className='edge-picker';picker.id='ctx-menu-el';
+  const px=Math.min(cx+8,window.innerWidth-200);
+  const py=Math.min(cy,window.innerHeight-300);
+  picker.style.cssText='left:'+px+'px;top:'+py+'px';
+  // Build using DOM to avoid quote escaping issues
+  const lbl=document.createElement('div');
+  lbl.style.cssText='font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;font-weight:600;padding:2px 6px 6px';
+  lbl.textContent='Connection type';
+  picker.appendChild(lbl);
+  Object.entries(edgeConfig).forEach(([type,cfg])=>{
+    const opt=document.createElement('div');
+    opt.className='edge-type-opt';
+    opt.innerHTML='<div class="edge-type-dot" style="background:'+cfg.col+'"></div><span>'+cfg.label+'</span>';
+    opt.addEventListener('click',()=>createEdge(src.id,tgt.id,type));
+    picker.appendChild(opt);
+  });
+  const sep=document.createElement('div');sep.style.cssText='height:.5px;background:var(--b1);margin:4px 0';picker.appendChild(sep);
+  const cancel=document.createElement('div');cancel.className='edge-type-opt';cancel.style.color='var(--t3)';cancel.textContent='Cancel';
+  cancel.addEventListener('click',()=>picker.remove());picker.appendChild(cancel);
+  document.body.appendChild(picker);
+  setTimeout(()=>document.addEventListener('click',()=>picker.remove(),{once:true}),50);
+}
+
+function createEdge(fid,tid,type){
+  document.getElementById('ctx-menu-el')?.remove();
+  if(edges.find(e=>e.f===fid&&e.t===tid)){showToast('Already connected','amber');return}
+  edges.push({id:'e'+Date.now(),f:fid,t:tid,type});
+  renderEdges();triggerAutoSave();
+  showToast((edgeConfig[type]?.label||'Connected'),'green');
+}
+
+/* ── Edge rendering ── */
+function renderEdges(){
+  const svg=document.getElementById('edges-svg');if(!svg)return;
+  svg.querySelectorAll('.edge-path,.edge-label,.edge-click-zone').forEach(e=>e.remove());
+  edges.forEach(edge=>{
+    const fn=nodes.find(n=>n.id===edge.f),tn=nodes.find(n=>n.id===edge.t);if(!fn||!tn)return;
+    const fel=document.getElementById('node-'+fn.id),tel=document.getElementById('node-'+tn.id);if(!fel||!tel)return;
+    const cfg=edgeConfig[edge.type]||edgeConfig.contributes;
+    const fx=fn.x+fel.offsetWidth/2,fy=fn.y+fel.offsetHeight;
+    const tx=tn.x+tel.offsetWidth/2,ty=tn.y;
+    const cy=(fy+ty)/2;
+    const d='M'+fx+','+fy+' C'+fx+','+cy+' '+tx+','+cy+' '+tx+','+ty;
+    const isSelected=selectedEdge?.id===edge.id;
+    // Click zone
+    const zone=document.createElementNS('http://www.w3.org/2000/svg','path');
+    zone.setAttribute('d',d);zone.setAttribute('stroke','transparent');zone.setAttribute('stroke-width','14');zone.setAttribute('fill','none');
+    zone.style.cursor='pointer';zone.style.pointerEvents='stroke';
+    zone.addEventListener('click',ev=>{ev.stopPropagation();selectedEdge=edge;renderEdges();showEdgePanel(edge,ev.clientX,ev.clientY)});
+    zone.addEventListener('contextmenu',ev=>{ev.preventDefault();ev.stopPropagation();showEdgeCtxMenu(ev,edge)});
+    zone.classList.add('edge-click-zone');svg.appendChild(zone);
+    // Visible path
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',d);
+    path.setAttribute('stroke',isSelected?'rgba(104,54,245,.9)':cfg.col);
+    path.setAttribute('stroke-width',cfg.width.toString());
+    path.setAttribute('fill','none');
+    path.setAttribute('marker-end','url(#'+cfg.marker+')');
+    if(cfg.dash!=='none'){path.setAttribute('stroke-dasharray',cfg.dash);path.classList.add('edge-animated')}
+    path.classList.add('edge-path');svg.appendChild(path);
+    // Label
+    const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x',((fx+tx)/2).toString());lbl.setAttribute('y',((fy+ty)/2-6).toString());
+    lbl.setAttribute('text-anchor','middle');lbl.setAttribute('font-size','8');
+    lbl.setAttribute('fill','var(--t3)');lbl.setAttribute('font-family','Inter,sans-serif');
+    lbl.textContent=cfg.label;lbl.classList.add('edge-label');svg.appendChild(lbl);
+  });
+}
+
+function showEdgePanel(edge,cx,cy){
+  document.getElementById('edge-panel-el')?.remove();
+  const fn=nodes.find(n=>n.id===edge.f),tn=nodes.find(n=>n.id===edge.t);
+  const panel=document.createElement('div');
+  panel.id='edge-panel-el';panel.className='edge-panel';
+  // Header
+  const head=document.createElement('div');head.className='edge-panel-title';
+  const title=document.createElement('span');title.textContent='Connection';head.appendChild(title);
+  const cls=document.createElement('div');cls.style.cssText='cursor:pointer;color:var(--t3);font-size:18px;line-height:1';cls.textContent='×';
+  cls.addEventListener('click',()=>{panel.remove();selectedEdge=null;renderEdges()});head.appendChild(cls);
+  panel.appendChild(head);
+  // From → To
+  const route=document.createElement('div');route.style.cssText='font-size:11.5px;color:var(--t2);margin-bottom:12px';
+  route.innerHTML='<span style="color:var(--t1);font-weight:600">'+(fn?.title||'?')+'</span> <span style="color:var(--t3)">→</span> <span style="color:var(--t1);font-weight:600">'+(tn?.title||'?')+'</span>';
+  panel.appendChild(route);
+  // Type label
+  const lbl=document.createElement('div');lbl.className='np-lbl';lbl.textContent='Type';panel.appendChild(lbl);
+  // Type grid
+  const grid=document.createElement('div');grid.className='edge-type-grid';
+  Object.entries(edgeConfig).forEach(([t,cfg])=>{
+    const btn=document.createElement('button');btn.className='edge-type-btn'+(edge.type===t?' on':'');
+    btn.textContent=cfg.label;btn.addEventListener('click',()=>changeEdgeType(edge.id,t));
+    grid.appendChild(btn);
+  });
+  panel.appendChild(grid);
+  // Delete
+  const del=document.createElement('button');del.className='btn-g';
+  del.style.cssText='width:100%;height:30px;font-size:11px;color:var(--red);margin-top:8px';
+  del.textContent='Delete connection';del.addEventListener('click',()=>deleteEdge(edge.id));
+  panel.appendChild(del);
+  document.body.appendChild(panel);
+}
+
+
+function changeEdgeType(eid,type){
+  const e=edges.find(x=>x.id===eid);if(!e)return;
+  e.type=type;if(selectedEdge?.id===eid)selectedEdge=e;
+  renderEdges();document.getElementById('edge-panel-el')?.remove();
+  showEdgePanel(e,400,200);
+  showToast('Changed to "'+edgeConfig[type].label+'"','purple');triggerAutoSave();
+}
+
+function deleteEdge(eid){
+  edges=edges.filter(e=>e.id!==eid);selectedEdge=null;
+  renderEdges();document.getElementById('edge-panel-el')?.remove();
+  showToast('Connection removed','red');triggerAutoSave();
+}
+
+function showEdgeCtxMenu(e,edge){
+  document.getElementById('ctx-menu-el')?.remove();
+  const fn=nodes.find(n=>n.id===edge.f),tn=nodes.find(n=>n.id===edge.t);
+  const menu=document.createElement('div');menu.className='ctx-menu';menu.id='ctx-menu-el';
+  menu.style.cssText='left:'+e.clientX+'px;top:'+e.clientY+'px';
+  // Route label
+  const routeDiv=document.createElement('div');
+  routeDiv.className='ctx-item';routeDiv.style.cssText='font-size:11px;color:var(--t3);cursor:default';
+  routeDiv.textContent=(fn?.title||'?')+' → '+(tn?.title||'?');
+  menu.appendChild(routeDiv);
+  const sep=document.createElement('div');sep.className='ctx-sep';menu.appendChild(sep);
+  // Type options
+  Object.entries(edgeConfig).forEach(([t,cfg])=>{
+    const opt=document.createElement('div');
+    opt.className='ctx-item'+(edge.type===t?' on':'');
+    opt.innerHTML='<span class="ctx-icon">→</span>'+cfg.label;
+    opt.addEventListener('click',()=>{changeEdgeType(edge.id,t);menu.remove()});
+    menu.appendChild(opt);
+  });
+  const sep2=document.createElement('div');sep2.className='ctx-sep';menu.appendChild(sep2);
+  // Delete
+  const del=document.createElement('div');del.className='ctx-item danger';
+  del.innerHTML='<span class="ctx-icon">🗑</span>Delete';
+  del.addEventListener('click',()=>{deleteEdge(edge.id);menu.remove()});
+  menu.appendChild(del);
+  document.body.appendChild(menu);
+  setTimeout(()=>document.addEventListener('click',()=>menu.remove(),{once:true}),50);
+}
+
+
+function showContextMenu(e,n){
+  document.getElementById('ctx-menu-el')?.remove();document.getElementById('edge-panel-el')?.remove();
+  const menu=document.createElement('div');menu.className='ctx-menu';menu.id='ctx-menu-el';
+  const px=Math.min(e.clientX,window.innerWidth-180),py=Math.min(e.clientY,window.innerHeight-320);
+  menu.style.cssText='left:'+px+'px;top:'+py+'px';
+  const connCount=edges.filter(x=>x.f===n.id||x.t===n.id).length;
+
+  function addItem(icon,label,cls,badge,onClick){
+    const item=document.createElement('div');item.className='ctx-item'+(cls?' '+cls:'');
+    item.innerHTML='<span class="ctx-icon">'+icon+'</span>'+label+(badge?'<span style="margin-left:auto;font-size:10px;color:var(--t3)">'+badge+'</span>':'');
+    item.addEventListener('click',onClick);menu.appendChild(item);
+  }
+  function addSep(){const s=document.createElement('div');s.className='ctx-sep';menu.appendChild(s)}
+
+  addItem('✏️','Edit node','',null,()=>{nodeClick_ctx(n.id);menu.remove()});
+  addItem('🔗','Connect to…','',connCount+' links',()=>{startConnect_ctx(n.id);menu.remove()});
+  addItem('⧉','Duplicate','',null,()=>{duplicateNode_ctx(n.id);menu.remove()});
+  addSep();
+  const statusLbl=document.createElement('div');
+  statusLbl.style.cssText='padding:5px 11px 3px;font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em';
+  statusLbl.textContent='Status';menu.appendChild(statusLbl);
+  ['not-started','in-progress','done'].forEach(s=>{
+    const icons={['not-started']:'○',['in-progress']:'⚡',done:'✅'};
+    addItem(icons[s],statusConfig[s].l,n.status===s?'on':'',null,()=>{setNodeStatusCtx(n.id,s);menu.remove()});
+  });
+  addSep();
+  addItem('🗑','Delete node','danger',null,()=>{deleteNodeById(n.id);menu.remove()});
+
+  document.body.appendChild(menu);
+  setTimeout(()=>document.addEventListener('click',()=>menu.remove(),{once:true}),50);
+}
+
+
+function nodeClick_ctx(nid){const n=nodes.find(x=>x.id===nid);const el=document.getElementById('node-'+nid);if(n&&el)nodeClick(n,el)}
+function startConnect_ctx(nid){
+  const n=nodes.find(x=>x.id===nid);if(!n)return;
+  connectSrc=n;
+  document.querySelectorAll('.node').forEach(el=>{el.classList.add('connect-target')});
+  const src=document.getElementById('node-'+nid);
+  if(src){src.classList.remove('connect-target');src.classList.add('connecting-src')}
+  showToast('Click a target node','purple');
+}
+function setNodeStatusCtx(nid,status){
+  const n=nodes.find(x=>x.id===nid);if(!n)return;
+  n.status=status;const el=document.getElementById('node-'+nid);if(el)el.replaceWith(makeNodeEl(n));
+  renderEdges();triggerAutoSave();showToast('Status: '+statusConfig[status].l,'green');
+}
+function duplicateNode_ctx(nid){
+  const n=nodes.find(x=>x.id===nid);if(!n)return;
+  const copy={...JSON.parse(JSON.stringify(n)),id:'n'+Date.now(),x:n.x+220,y:n.y+20};
+  nodes.push(copy);const el=makeNodeEl(copy);el.style.animationDelay='0s';
+  document.getElementById('canvas').appendChild(el);renderEdges();triggerAutoSave();showToast('Duplicated','purple');
+}
+function deleteNodeById(nid){
+  if(selectedNode?.id===nid){closeNodePanel();selectedNode=null}
+  nodes=nodes.filter(n=>n.id!==nid);edges=edges.filter(e=>e.f!==nid&&e.t!==nid);
+  document.getElementById('node-'+nid)?.remove();renderEdges();triggerAutoSave();showToast('Node deleted','red');
+}
+
+/* ── Connect mode ── */
+function connectFrom(n){
+  connectSrc=n;
+  document.querySelectorAll('.node').forEach(el=>{el.classList.add('connect-target')});
+  const src=document.getElementById('node-'+n.id);
+  if(src){src.classList.remove('connect-target');src.classList.add('connecting-src')}
+  showToast('Click a target node','purple');
+}
+function connectTo(n){
+  if(!connectSrc||connectSrc.id===n.id){
+    connectSrc=null;document.querySelectorAll('.node').forEach(el=>el.classList.remove('connect-target','connecting-src'));return;
+  }
+  document.querySelectorAll('.node').forEach(el=>el.classList.remove('connect-target','connecting-src'));
+  const tel=document.getElementById('node-'+n.id);const rect=tel?.getBoundingClientRect();
+  showEdgeTypePicker(rect?.right||400,rect?.top||300,connectSrc,n);
+  connectSrc=null;setMapTool('select',document.getElementById('tool-select'));
+}
+
+/* ── Add node modal ── */
+function addNodePrompt(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(8px)';
+  let selType='init';
+  const types=[{t:'goal',icon:'🎯',label:'Goal'},{t:'init',icon:'⚡',label:'Initiative'},{t:'kpi',icon:'📊',label:'KPI'},{t:'risk',icon:'⚠️',label:'Risk'},{t:'task',icon:'✅',label:'Task'}];
+
+  const box=document.createElement('div');box.className='add-node-modal';
+  box.innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'+
+    '<div style="font-size:16px;font-weight:700;color:var(--t1)">Add node</div>'+
+    '<div id="ann-close" style="cursor:pointer;color:var(--t3);font-size:20px">×</div></div>'+
+    '<div class="np-lbl">Type</div>'+
+    '<div class="node-type-selector" id="nts-wrap">'+
+    types.map(o=>'<div class="nts-btn'+(o.t===selType?' on':'')+'" data-type="'+o.t+'"><span class="nts-icon">'+o.icon+'</span><span class="nts-label">'+o.label+'</span></div>').join('')+
+    '</div>'+
+    '<div class="np-lbl">Title *</div>'+
+    '<input id="new-node-title" class="np-input" style="margin-bottom:12px" placeholder="e.g. Achieve $1M ARR"/>'+
+    '<div class="np-lbl">Description</div>'+
+    '<textarea id="new-node-desc" class="np-textarea" rows="2" style="margin-bottom:12px" placeholder="What does this represent?"></textarea>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'+
+    '<div><div class="np-lbl">Owner</div><input id="new-node-owner" class="np-input" value="'+(currentUser?.name||'Denis B.')+'"/></div>'+
+    '<div><div class="np-lbl">Progress %</div><input id="new-node-prog" class="np-input" type="number" min="0" max="100" value="0"/></div></div>'+
+    '<div style="display:flex;gap:8px">'+
+    '<button id="ann-submit" style="flex:1;height:40px;border-radius:22px;background:linear-gradient(135deg,#6836f5,#a050ff);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Add node</button>'+
+    '<button id="ann-cancel" style="height:40px;padding:0 18px;border-radius:22px;background:var(--inp);color:var(--t2);border:.5px solid var(--b1);font-size:13px;cursor:pointer;font-family:inherit">Cancel</button></div>';
+
+  ov.appendChild(box);document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()});
+  document.getElementById('ann-close').addEventListener('click',()=>ov.remove());
+  document.getElementById('ann-cancel').addEventListener('click',()=>ov.remove());
+  setTimeout(()=>document.getElementById('new-node-title')?.focus(),50);
+
+  // Type selector
+  document.querySelectorAll('#nts-wrap .nts-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      selType=btn.dataset.type;
+      document.querySelectorAll('#nts-wrap .nts-btn').forEach(b=>b.classList.remove('on'));
+      btn.classList.add('on');
+    });
+  });
+
+  document.getElementById('ann-submit').addEventListener('click',()=>{
+    const title=document.getElementById('new-node-title')?.value.trim();
+    if(!title){document.getElementById('new-node-title').style.borderColor='var(--red)';return}
+    const cx=(-panX)+(window.innerWidth/2/zoom)-100;
+    const cy=(-panY)+(window.innerHeight/2/zoom)-80;
+    const newN={
+      id:'n'+Date.now(),
+      x:cx+Math.random()*60-30,y:cy+Math.random()*60-30,
+      type:selType,title,
+      desc:document.getElementById('new-node-desc')?.value||'',
+      status:'not-started',priority:'medium',
+      progress:Math.min(100,Math.max(0,parseInt(document.getElementById('new-node-prog')?.value)||0)),
+      owner:document.getElementById('new-node-owner')?.value||currentUser?.name||'Denis B.',
+      deadline:null,tags:[],kpi:''
+    };
+    nodes.push(newN);
+    const el=makeNodeEl(newN);el.style.animationDelay='0s';
+    document.getElementById('canvas').appendChild(el);
+    renderEdges();triggerAutoSave();ov.remove();
+    showToast(typeConfig[selType].label+' added','green');
+    setTimeout(()=>nodeClick(newN,el),200);
+  });
+}
+
+
+function onCanvasClick(e){
+  if(e.target!==document.getElementById('canvas')&&e.target.id!=='edges-svg'&&!e.target.classList.contains('edges-layer'))return;
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('selected','dimmed','highlighted','connect-target','connecting-src'));
+  closeNodePanel();selectedNode=null;selectedEdge=null;connectSrc=null;
+  document.getElementById('edge-panel-el')?.remove();document.getElementById('ctx-menu-el')?.remove();
+  renderEdges();
+}
+
+/* ── Drag ── */
 function startNodeDrag(e,n,el){
-  dragging={n,el};
-  dragStart={x:e.clientX,y:e.clientY};
-  nodeStart={x:n.x,y:n.y};
-  e.preventDefault();
-  document.addEventListener('mousemove',onNodeDrag);
-  document.addEventListener('mouseup',stopNodeDrag);
+  dragging={n,el};dragStart={x:e.clientX,y:e.clientY};nodeStart={x:n.x,y:n.y};e.preventDefault();
+  document.addEventListener('mousemove',onNodeDrag);document.addEventListener('mouseup',stopNodeDrag);
 }
 function onNodeDrag(e){
   if(!dragging)return;
-  dragging.n.x=nodeStart.x+(e.clientX-dragStart.x)/zoom;
-  dragging.n.y=nodeStart.y+(e.clientY-dragStart.y)/zoom;
-  dragging.el.style.left=dragging.n.x+'px';
-  dragging.el.style.top=dragging.n.y+'px';
-  renderEdges();triggerAutoSave();
+  dragging.n.x=nodeStart.x+(e.clientX-dragStart.x)/zoom;dragging.n.y=nodeStart.y+(e.clientY-dragStart.y)/zoom;
+  dragging.el.style.left=dragging.n.x+'px';dragging.el.style.top=dragging.n.y+'px';renderEdges();
 }
-function stopNodeDrag(){dragging=null;document.removeEventListener('mousemove',onNodeDrag);document.removeEventListener('mouseup',stopNodeDrag)}
+function stopNodeDrag(){if(dragging)triggerAutoSave();dragging=null;document.removeEventListener('mousemove',onNodeDrag);document.removeEventListener('mouseup',stopNodeDrag)}
 
-// Pan canvas
+/* ── Pan/Zoom ── */
 function setupMapPan(){
   const wrap=document.getElementById('map-canvas-wrap');
+  const canvas=document.getElementById('canvas');
+  canvas.addEventListener('click',onCanvasClick);
   wrap.addEventListener('mousedown',e=>{
-    if(e.target!==document.getElementById('canvas')&&e.target.id!=='edges-svg'&&!e.target.classList.contains('edges-layer'))return;
-    isPanning=true;panStart={x:e.clientX-panX*zoom,y:e.clientY-panY*zoom};
+    if(e.target!==canvas&&e.target.id!=='edges-svg'&&!e.target.classList.contains('edges-layer'))return;
+    isPanning=true;panStart={x:e.clientX-panX*zoom,y:e.clientY-panY*zoom};canvas.style.cursor='grabbing';
   });
-  document.addEventListener('mousemove',e=>{
-    if(!isPanning)return;
-    panX=(e.clientX-panStart.x)/zoom;
-    panY=(e.clientY-panStart.y)/zoom;
-    applyCanvasTransform();
-  });
-  document.addEventListener('mouseup',()=>{isPanning=false});
-  wrap.addEventListener('wheel',e=>{e.preventDefault();zoomMap(e.deltaY<0?.1:-.1);},{passive:false});
+  document.addEventListener('mousemove',e=>{if(!isPanning)return;panX=(e.clientX-panStart.x)/zoom;panY=(e.clientY-panStart.y)/zoom;applyCanvasTransform()});
+  document.addEventListener('mouseup',()=>{isPanning=false;const c=document.getElementById('canvas');if(c)c.style.cursor='grab'});
+  wrap.addEventListener('wheel',e=>{e.preventDefault();zoomMap(e.deltaY<0?.12:-.12)},{passive:false});
 }
 
 function applyCanvasTransform(){
-  const c=document.getElementById('canvas');
-  c.style.transform=`translate(${panX*zoom}px,${panY*zoom}px) scale(${zoom})`;
-  c.style.transformOrigin='0 0';
-  drawMinimap();
+  const c=document.getElementById('canvas');c.style.transform='translate('+(panX*zoom)+'px,'+(panY*zoom)+'px) scale('+zoom+')';c.style.transformOrigin='0 0';drawMinimap();
 }
-function zoomMap(d){zoom=Math.max(.2,Math.min(2.5,zoom+d));document.getElementById('zoom-lbl').textContent=Math.round(zoom*100)+'%';applyCanvasTransform()}
+function zoomMap(d){zoom=Math.max(.15,Math.min(3,zoom+d));const lbl=document.getElementById('zoom-lbl');if(lbl)lbl.textContent=Math.round(zoom*100)+'%';applyCanvasTransform()}
 function fitMap(){
   if(!nodes.length)return;
-  const minX=Math.min(...nodes.map(n=>n.x));const maxX=Math.max(...nodes.map(n=>n.x+200));
-  const minY=Math.min(...nodes.map(n=>n.y));const maxY=Math.max(...nodes.map(n=>n.y+120));
-  const wrap=document.getElementById('map-canvas-wrap');
+  const minX=Math.min(...nodes.map(n=>n.x)),maxX=Math.max(...nodes.map(n=>n.x+210));
+  const minY=Math.min(...nodes.map(n=>n.y)),maxY=Math.max(...nodes.map(n=>n.y+130));
+  const wrap=document.getElementById('map-canvas-wrap');if(!wrap)return;
   const ww=wrap.clientWidth,wh=wrap.clientHeight;
-  const scaleX=ww/(maxX-minX+80),scaleY=wh/(maxY-minY+80);
-  zoom=Math.min(scaleX,scaleY,.9);
-  panX=(ww/zoom-(maxX+minX))/2;
-  panY=(wh/zoom-(maxY+minY))/2;
-  document.getElementById('zoom-lbl').textContent=Math.round(zoom*100)+'%';
+  zoom=Math.min((ww-80)/(maxX-minX||1),(wh-80)/(maxY-minY||1),.9);
+  panX=(ww/zoom-(maxX+minX))/2;panY=(wh/zoom-(maxY+minY))/2;
+  const lbl=document.getElementById('zoom-lbl');if(lbl)lbl.textContent=Math.round(zoom*100)+'%';
   applyCanvasTransform();
 }
 function drawMinimap(){
-  const canvas=document.getElementById('minimap-canvas');
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,140,90);
-  if(!nodes.length)return;
-  const minX=Math.min(...nodes.map(n=>n.x));const maxX=Math.max(...nodes.map(n=>n.x+200));
-  const minY=Math.min(...nodes.map(n=>n.y));const maxY=Math.max(...nodes.map(n=>n.y+140));
-  const sx=130/(maxX-minX||1),sy=80/(maxY-minY||1),s=Math.min(sx,sy);
-  const ox=5,oy=5;
+  const canvas=document.getElementById('minimap-canvas');if(!canvas)return;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,140,90);if(!nodes.length)return;
+  const minX=Math.min(...nodes.map(n=>n.x)),maxX=Math.max(...nodes.map(n=>n.x+200));
+  const minY=Math.min(...nodes.map(n=>n.y)),maxY=Math.max(...nodes.map(n=>n.y+140));
+  const s=Math.min(128/(maxX-minX||1),78/(maxY-minY||1));
   const cols={goal:'rgba(104,54,245,.7)',init:'rgba(18,196,130,.7)',kpi:'rgba(240,148,40,.7)',risk:'rgba(240,68,88,.7)',task:'rgba(6,182,212,.7)'};
-  nodes.forEach(n=>{ctx.fillStyle=cols[n.type]||'rgba(104,54,245,.7)';ctx.beginPath();ctx.roundRect((n.x-minX)*s+ox,(n.y-minY)*s+oy,28*s,18*s,2);ctx.fill()});
+  nodes.forEach(n=>{ctx.fillStyle=cols[n.type]||'rgba(104,54,245,.7)';ctx.fillRect((n.x-minX)*s+6,(n.y-minY)*s+6,28*s,18*s)});
 }
-function setMapTool(t,el){currentMapTool=t;document.querySelectorAll('.mt-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');if(t==='connect')showToast('Click source node, then target','purple')}
+
+function setMapTool(t,el){
+  currentMapTool=t;document.querySelectorAll('.mt-btn').forEach(b=>b.classList.remove('on'));if(el)el.classList.add('on');
+  if(t==='connect')showToast('Drag from a port (●) or right-click node → Connect to','purple');
+  else{connectSrc=null;document.querySelectorAll('.node').forEach(n=>n.classList.remove('connect-target','connecting-src'))}
+}
+
 function autoLayout(){
-  const cols=4,padX=240,padY=180,startX=60,startY=60;
   const byType=['goal','init','kpi','risk','task'];
-  let row=0,col=0,lastType='';
-  nodes.forEach((n,i)=>{
-    if(n.type!==lastType&&lastType){row++;col=0}
-    n.x=startX+col*padX;
-    n.y=startY+byType.indexOf(n.type)*padY;
-    col++;lastType=n.type;
-    const el=document.getElementById('node-'+n.id);
-    if(el){el.style.left=n.x+'px';el.style.top=n.y+'px';}
+  const groups={};byType.forEach(t=>{groups[t]=nodes.filter(n=>n.type===t)});
+  let y=60;byType.forEach(t=>{
+    const grp=groups[t];if(!grp.length)return;
+    grp.forEach((n,i)=>{n.x=60+i*230;n.y=y;const el=document.getElementById('node-'+n.id);if(el){el.style.transition='left .4s ease,top .4s ease';el.style.left=n.x+'px';el.style.top=n.y+'px';setTimeout(()=>{if(el)el.style.transition=''},450)}});y+=160;
   });
   renderEdges();fitMap();showToast('Auto-layout applied','purple');triggerAutoSave();
 }
-function addNodePrompt(){
-  const type=prompt('Node type (goal/init/kpi/risk/task):','init');
-  if(!type||!typeConfig[type]){showToast('Invalid type','red');return}
-  const title=prompt('Node title:','New '+type);
-  if(!title)return;
-  const newN={id:'n'+Date.now(),x:100+nodes.length*30,y:100+nodes.length*15,type,title,desc:'',status:'not-started',priority:'medium',progress:0,owner:currentUser?.name||'Denis B.',deadline:null,tags:[],kpi:''};
-  nodes.push(newN);
-  document.getElementById('canvas').appendChild(makeNodeEl(newN));
-  renderEdges();showToast(`${typeConfig[type].label} added`,'green');triggerAutoSave();
+
+/* ── Autosave ── */
+function triggerAutoSave(){clearTimeout(autoSaveTimer);autoSaveTimer=setTimeout(autoSaveToLS,1500)}
+function autoSaveToLS(){
+  const pid=currentProject?.id||'p1';
+  localStorage.setItem('sa_map_'+pid,JSON.stringify({nodes,edges}));
+  if(PROJECT_DATA[pid]){PROJECT_DATA[pid].nodes=[...nodes];PROJECT_DATA[pid].edges=[...edges]}
+  const ind=document.getElementById('save-ind');if(ind){ind.classList.add('show');setTimeout(()=>ind.classList.remove('show'),2000)}
 }
+function loadFromLS(){
+  const pid=currentProject?.id||'p1';const saved=localStorage.getItem('sa_map_'+pid);
+  if(!saved)return false;try{const d=JSON.parse(saved);nodes=d.nodes||[];edges=d.edges||[];return true}catch{return false}
+}
+
+/* ── Dashboard ── */
+function renderDashboard(){
+  const cont=document.getElementById('dash-content');if(!cont)return;
+  const avgProg=Math.round(MAP_NODES.reduce((a,n)=>a+n.progress,0)/MAP_NODES.length);
+  const onTrack=MAP_NODES.filter(n=>n.status==='in-progress'&&n.progress>=50).length;
+  const atRisk=MAP_NODES.filter(n=>n.type==='risk').length;
+  const h=new Date().getHours();
+  const greet=h<12?'morning':h<17?'afternoon':'evening';
+  const name=currentUser?.name?.split(' ')[0]||'there';
+
+  const kpis=[
+    {icon:'📁',val:PROJECTS.length,lbl:'Projects',trend:'↗ 1 active',color:'var(--acc)',clr:'neu',fn:()=>goApp('projects',document.getElementById('ni-projects'))},
+    {icon:'🗺️',val:MAP_NODES.length,lbl:'Strategy nodes',trend:'↑ '+onTrack+' on track',color:'var(--green)',clr:'up',fn:()=>goApp('map',document.getElementById('ni-map'))},
+    {icon:'📈',val:avgProg+'%',lbl:'Avg progress',trend:avgProg>50?'↑ On track':'↓ Needs focus',color:'var(--amber)',clr:avgProg>50?'up':'dn',fn:()=>goApp('insights',document.getElementById('ni-insights'))},
+    {icon:'⚠️',val:atRisk,lbl:'Active risks',trend:atRisk>1?'↓ Review needed':'→ Monitoring',color:'var(--cyan)',clr:atRisk>1?'dn':'neu',fn:()=>goApp('ai',document.getElementById('ni-ai'))},
+  ];
+
+  const activity=[
+    {icon:'🎯',bg:'rgba(104,54,245,.12)',text:'<strong>Revenue Goal</strong> updated to 40%',time:'2h ago'},
+    {icon:'⚡',bg:'rgba(18,196,130,.12)',text:'<strong>Product Hunt</strong> reached 85%',time:'5h ago'},
+    {icon:'🤖',bg:'rgba(6,182,212,.12)',text:'AI briefing generated',time:'Yesterday'},
+    {icon:'🔗',bg:'rgba(240,148,40,.12)',text:'CRM sync — $284K updated',time:'Yesterday'},
+  ];
+
+  cont.innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">'+
+    '<div><div style="font-size:20px;font-weight:800;color:var(--t1);letter-spacing:-.03em">Good '+greet+', '+name+' 👋</div>'+
+    '<div style="font-size:13px;color:var(--t3);margin-top:3px">'+new Date().toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'})+'</div></div>'+
+    '<button class="btn-p" id="dash-briefing-btn">📋 Weekly briefing</button></div>'+
+    '<div class="dash-grid" id="dash-kpis"></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'+
+    '<div><div class="slbl">Recent activity</div><div class="card">'+
+    activity.map(a=>'<div class="activity-item"><div class="act-icon" style="background:'+a.bg+'">'+a.icon+'</div><div class="act-text">'+a.text+'</div><div class="act-time">'+a.time+'</div></div>').join('')+
+    '</div></div>'+
+    '<div><div class="slbl">Goals</div><div class="card" id="dash-goals"></div></div></div>';
+
+  // Briefing button
+  document.getElementById('dash-briefing-btn')?.addEventListener('click',openBriefing);
+
+  // KPI cards
+  const kpiGrid=document.getElementById('dash-kpis');
+  kpis.forEach(k=>{
+    const card=document.createElement('div');card.className='dash-card glow-card';
+    card.innerHTML='<div style="font-size:20px;margin-bottom:6px">'+k.icon+'</div>'+
+      '<div class="dc-val" style="color:'+k.color+'">'+k.val+'</div>'+
+      '<div class="dc-lbl">'+k.lbl+'</div>'+
+      '<div class="dc-trend '+k.clr+'">'+k.trend+'</div>';
+    card.addEventListener('click',k.fn);
+    kpiGrid.appendChild(card);
+  });
+
+  // Goals list
+  const goalsEl=document.getElementById('dash-goals');
+  MAP_NODES.filter(n=>n.type==='goal').forEach(n=>{
+    const tc=typeConfig[n.type];
+    const row=document.createElement('div');
+    row.style.cssText='padding:10px 14px;border-bottom:.5px solid var(--b0);cursor:pointer';
+    row.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">'+
+      '<div style="font-size:12px;font-weight:600;color:var(--t1)">'+n.title+'</div>'+
+      '<div style="font-size:11px;font-weight:700;color:var(--acc)">'+n.progress+'%</div></div>'+
+      '<div style="height:3px;background:var(--b0);border-radius:3px;overflow:hidden">'+
+      '<div style="width:'+n.progress+'%;height:100%;background:'+tc.bar+';border-radius:3px"></div></div>';
+    row.addEventListener('click',()=>goApp('map',document.getElementById('ni-map')));
+    goalsEl.appendChild(row);
+  });
+}
+
+
+/* ─────────────── NODE PANEL ─────────────── */
 function openNodePanel(n){
   const panel=document.getElementById('node-panel');if(!panel)return;
   panel.classList.add('open');
@@ -2607,35 +3478,102 @@ function openNodePanel(n){
   if(n.deadline)set('np-deadline',n.deadline);
   document.querySelectorAll('.status-opt').forEach(el=>el.classList.remove('on'));
   document.querySelectorAll('.status-opt').forEach(el=>{
-    if(el.textContent.toLowerCase().replace(' ','-')===n.status||el.textContent.toLowerCase()===n.status.replace('-',' '))el.classList.add('on')
+    const txt=el.textContent.toLowerCase();
+    if(txt.replace(' ','-')===n.status||txt===n.status.replace('-',' '))el.classList.add('on');
   });
+  document.querySelectorAll('.prio-btn').forEach(el=>el.classList.toggle('on',el.dataset.p===n.priority));
+  // Relations
+  renderNodeRelations(n);
 }
-function closeNodePanel(){document.getElementById('node-panel').classList.remove('open');document.querySelectorAll('.node').forEach(n=>n.classList.remove('selected'));selectedNode=null}
+
+function renderNodeRelations(n){
+  const relSection=document.getElementById('np-relations');
+  if(!relSection)return;
+  const outgoing=edges.filter(e=>e.f===n.id);
+  const incoming=edges.filter(e=>e.t===n.id);
+  if(!outgoing.length&&!incoming.length){
+    relSection.innerHTML='<div style="font-size:11px;color:var(--t3);text-align:center;padding:8px 0">No connections yet<br><span style="font-size:10px">Drag from a port ● to connect</span></div>';
+    return;
+  }
+  const renderLink=(e,isOut)=>{
+    const other=nodes.find(x=>x.id===(isOut?e.t:e.f));if(!other)return'';
+    const cfg=edgeConfig[e.type]||edgeConfig.contributes;
+    const otc=typeConfig[other.type]||typeConfig.goal;
+    return`<div class="np-relation-row" onclick="nodeClick_ctx('${other.id}')">
+      <div style="width:3px;height:30px;border-radius:2px;background:${cfg.col};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em">${isOut?'→ '+cfg.label:'← '+cfg.label}</div>
+        <div style="font-size:11.5px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${other.title}">${other.title}</div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:${otc.typeColor}">${other.progress}%</div>
+    </div>`;
+  };
+  relSection.innerHTML=
+    (outgoing.length?`<div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:4px">Outgoing (${outgoing.length})</div>`+outgoing.map(e=>renderLink(e,true)).join(''):'') +
+    (incoming.length?`<div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin:${outgoing.length?'10px':0} 0 4px">Incoming (${incoming.length})</div>`+incoming.map(e=>renderLink(e,false)).join(''):'');
+}
+
+function closeNodePanel(){
+  const panel=document.getElementById('node-panel');if(panel)panel.classList.remove('open');
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('selected','dimmed','highlighted'));
+  selectedNode=null;
+}
+
 function saveNode(){
   if(!selectedNode)return;
   const n=selectedNode;
   n.title=document.getElementById('np-title')?.value||n.title;
-  n.desc=document.getElementById('np-desc')?.value||n.desc;
+  n.desc=document.getElementById('np-desc')?.value||'';
   n.owner=document.getElementById('np-owner')?.value||n.owner;
-  n.progress=parseInt(document.getElementById('np-prog')?.value||n.progress);
+  n.progress=parseInt(document.getElementById('np-prog')?.value||n.progress)||0;
+  const statusOn=document.querySelector('.status-opt.on');
+  if(statusOn)n.status=statusOn.textContent.toLowerCase().replace(' ','-');
+  const prioOn=document.querySelector('.prio-btn.on');
+  if(prioOn)n.priority=prioOn.dataset.p||n.priority;
   const el=document.getElementById('node-'+n.id);
   if(el)el.replaceWith(makeNodeEl(n));
   renderEdges();showToast('Node saved','green');triggerAutoSave();
-}
-function duplicateNode(){if(!selectedNode)return;const n={...selectedNode,id:'n'+Date.now(),x:selectedNode.x+30,y:selectedNode.y+30};nodes.push(n);document.getElementById('canvas').appendChild(makeNodeEl(n));renderEdges();showToast('Node duplicated','purple');triggerAutoSave()}
-function deleteNode(){if(!selectedNode)return;nodes=nodes.filter(n=>n.id!==selectedNode.id);edges=edges.filter(e=>e.f!==selectedNode.id&&e.t!==selectedNode.id);const el=document.getElementById('node-'+selectedNode.id);if(el)el.remove();renderEdges();closeNodePanel();showToast('Node deleted','red');triggerAutoSave()}
-function setStatus(el,s){document.querySelectorAll('.status-opt').forEach(e=>e.classList.remove('on'));el.classList.add('on')}
-function setPrio(el,p){document.querySelectorAll('.prio-btn').forEach(e=>e.classList.remove('on'));el.classList.add('on')}
-function addTag(){const t=prompt('Tag name:');if(t){const wrap=document.getElementById('np-tags');const tag=document.createElement('div');tag.className='tag-item';tag.textContent=t;wrap.insertBefore(tag,wrap.lastElementChild)}}
-function addComment(inp){if(!inp.value.trim())return;const list=document.querySelector('.comment-list');const c=document.createElement('div');c.className='comment';c.innerHTML=`<div class="comment-header"><div class="comment-av">${currentUser?.initials||'?'}</div><span class="comment-name">${currentUser?.name||'You'}</span><span class="comment-time" style="margin-left:auto">Now</span></div><div class="comment-text">${inp.value}</div>`;list.appendChild(c);inp.value='';showToast('Comment added','green')}
-function exportMap(){openExportPanel()}
-function shareMap(){
-  navigator.clipboard?.writeText('https://strategyai.app/share/'+Date.now()).catch(()=>{});
-  showToast('Share link copied to clipboard','cyan');
+  // Re-open to refresh relations
+  setTimeout(()=>{if(selectedNode?.id===n.id)renderNodeRelations(n)},50);
 }
 
-/* ─────────────── EXPORT PANEL ─────────────── */
-let mapVersions=[];
+function duplicateNode(){
+  if(!selectedNode)return;
+  duplicateNode_ctx(selectedNode.id);
+}
+
+function deleteNode(){
+  if(!selectedNode)return;
+  deleteNodeById(selectedNode.id);
+}
+
+function setStatus(el,s){
+  document.querySelectorAll('.status-opt').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');
+  if(selectedNode){selectedNode.status=s;triggerAutoSave()}
+}
+function setPrio(el,p){
+  document.querySelectorAll('.prio-btn').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');
+  if(selectedNode)selectedNode.priority=p;
+}
+function addTag(){
+  const t=prompt('Tag name:');
+  if(!t)return;
+  const wrap=document.getElementById('np-tags');
+  const tag=document.createElement('div');tag.className='tag-item';tag.textContent=t;
+  wrap.insertBefore(tag,wrap.lastElementChild);
+  if(selectedNode){selectedNode.tags=selectedNode.tags||[];selectedNode.tags.push(t);triggerAutoSave()}
+}
+function addComment(inp){
+  if(!inp.value.trim())return;
+  const list=document.querySelector('.comment-list');
+  const c=document.createElement('div');c.className='comment';
+  c.innerHTML=`<div class="comment-header"><div class="comment-av">${currentUser?.initials||'?'}</div><span class="comment-name">${currentUser?.name||'You'}</span><span class="comment-time" style="margin-left:auto">Now</span></div><div class="comment-text">${inp.value}</div>`;
+  list.appendChild(c);inp.value='';
+  showToast('Comment added','green');
+}
+
 function openExportPanel(){
   try{mapVersions=JSON.parse(localStorage.getItem('sa_versions')||'[]')}catch(e){mapVersions=[]}
   const ov=document.createElement('div');ov.id='export-ov';
@@ -2805,31 +3743,117 @@ function triggerAutoSave(){
 
 /* ─────────────── SCENARIOS ─────────────── */
 function renderScenarios(){
-  document.getElementById('sc-grid').innerHTML=SCENARIOS.map(s=>`
-    <div class="sc-card${s.active?' active-sc':''}" onclick="activateScenario('${s.id}',this)">
+  const grid=document.getElementById('sc-grid');if(!grid)return;
+  // Header with compare mode toggle
+  const screen=document.getElementById('s-scenarios');
+  const existing=screen.querySelector('.scr');
+  if(existing)existing.remove();
+  const scr=document.createElement('div');scr.className='scr';
+  scr.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--t1)">Scenario Planning</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px">Model different strategic paths. Active scenario affects your strategy map.</div>
+      </div>
+      <button class="btn-g" onclick="showToast('New scenario coming soon','purple')">+ New scenario</button>
+    </div>
+    <div id="sc-grid" class="sc-grid"></div>
+    <div class="slbl" style="margin-top:20px">Scenario comparison</div>
+    <div class="card" style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;min-width:500px">
+        <thead>
+          <tr>
+            <th style="padding:10px 14px;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;text-align:left;border-bottom:.5px solid var(--b1)">Metric</th>
+            ${SCENARIOS.map(s=>`<th style="padding:10px 14px;font-size:10px;color:${s.active?'var(--acc)':'var(--t3)'};text-transform:uppercase;letter-spacing:.08em;text-align:center;border-bottom:.5px solid var(--b1)">${s.icon} ${s.name}${s.active?' ✦':''}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${[
+            {metric:'Revenue target',vals:['$500K','$350K','$220K']},
+            {metric:'Team growth',vals:['+8 people','+3 people','0 people']},
+            {metric:'Marketing spend',vals:['$80K/mo','$40K/mo','$20K/mo']},
+            {metric:'Risk level',vals:['🔴 High','🟡 Medium','🟢 Low']},
+            {metric:'Timeline to goal',vals:['6 months','10 months','18 months']},
+            {metric:'Runway required',vals:['18+ months','12 months','8 months']},
+          ].map(row=>`<tr style="border-bottom:.5px solid var(--b0)">
+            <td style="padding:9px 14px;font-size:12.5px;color:var(--t2);font-weight:500">${row.metric}</td>
+            ${row.vals.map((v,i)=>`<td style="padding:9px 14px;font-size:12px;color:${SCENARIOS[i]?.active?'var(--t1)':'var(--t3)'};text-align:center;font-weight:${SCENARIOS[i]?.active?'600':'400'}">${v}</td>`).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  screen.appendChild(scr);
+  // Re-render scenario cards
+  const cardGrid=document.getElementById('sc-grid');
+  cardGrid.innerHTML=SCENARIOS.map(s=>`
+    <div class="sc-card glow-card${s.active?' active-sc':''}" onclick="activateScenario('${s.id}')">
       <div class="sc-icon" style="background:${s.iconBg}">${s.icon}</div>
       <div class="sc-name">${s.name}</div>
       <div class="sc-desc">${s.desc}</div>
       <div class="sc-tags">${s.tags.map(t=>`<span class="sc-tag" style="background:${t.c};color:${t.tc}">${t.l}</span>`).join('')}</div>
+      ${s.active?'<div style="margin-top:8px;font-size:10.5px;color:var(--green);font-weight:600">✓ Currently active</div>':'<div style="margin-top:8px"><button class="btn-g" style="height:26px;font-size:11px;width:100%">Activate</button></div>'}
       <div class="sc-meta"><span class="sc-date">Modified ${s.date}</span><span class="sc-status-pill" style="${s.statusStyle}">● ${s.status}</span></div>
-    </div>`).join('');
+    </div>`).join('')+
+    `<div class="sc-card glow-card" style="border-style:dashed;background:var(--inp);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;cursor:pointer" onclick="showToast('New scenario coming soon','purple')">
+      <span style="font-size:28px">+</span>
+      <span style="font-size:12px;color:var(--t3)">New scenario</span>
+    </div>`;
 }
-function activateScenario(id){SCENARIOS.forEach(s=>s.active=s.id===id);renderScenarios();showToast('Scenario activated','purple')}
+function activateScenario(id){
+  SCENARIOS.forEach(s=>s.active=s.id===id);
+  renderScenarios();
+  const s=SCENARIOS.find(x=>x.id===id);
+  showToast(`${s?.icon||''} ${s?.name||'Scenario'} activated`,'purple');
+}
 
 /* ─────────────── GANTT ─────────────── */
 function renderGantt(){
   const cont=document.getElementById('gantt-container');if(!cont)return;
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today=new Date();const todayMonth=today.getMonth()+1; // 1-12
+  const todayPct=((todayMonth-1)/12*100).toFixed(1);
+
   cont.innerHTML=`
-    <div class="gantt-head">
-      <div class="gantt-lc">Initiative</div>
-      ${months.map(m=>`<div class="gantt-month">${m}</div>`).join('')}
+    <div style="padding:12px 18px 8px;border-bottom:.5px solid var(--b1);background:var(--top);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:13px;font-weight:600;color:var(--t1)">Timeline · 2025</div>
+      <div style="display:flex;gap:12px;font-size:10.5px;color:var(--t3)">
+        <span>🎯 Goals</span><span>⚡ Initiatives</span><span>● Today: ${today.toLocaleDateString('en',{month:'short',day:'numeric'})}</span>
+      </div>
     </div>
-    <div id="gantt-rows"></div>`;
+    <div class="gantt-container" style="overflow:auto;flex:1">
+      <div class="gantt-head">
+        <div class="gantt-lc">Initiative</div>
+        ${months.map((m,i)=>`<div class="gantt-month" style="${i+1===todayMonth?'color:var(--acc);font-weight:700':''}">${m}</div>`).join('')}
+      </div>
+      <div id="gantt-rows" style="position:relative">
+        <div style="position:absolute;top:0;bottom:0;left:calc(220px + ${todayPct}% * (100% - 220px) / 100);width:1px;background:rgba(104,54,245,.4);z-index:3;pointer-events:none">
+          <div style="position:sticky;top:0;background:var(--acc);color:#fff;font-size:8px;padding:2px 5px;border-radius:0 4px 4px 0;white-space:nowrap">Today</div>
+        </div>
+      </div>
+    </div>`;
+
   const rows=document.getElementById('gantt-rows');
   GANTT.forEach((item,i)=>{
     const row=document.createElement('div');row.className='gantt-row';
-    row.innerHTML=`<div class="gantt-item-label"><div class="gantt-dot" style="background:${item.color}"></div>${item.label}</div><div class="gantt-months" style="position:relative"><div class="gantt-bar" style="left:calc(${(item.start-1)/12*100}%);width:calc(${(item.end-item.start+1)/12*100}%);background:${item.color};animation-delay:${i*.06}s">${item.progress}%</div></div>`;
+    const isGoal=item.type==='goal';
+    const pct=(item.start-1)/12*100;
+    const width=(item.end-item.start+1)/12*100;
+    row.innerHTML=`
+      <div class="gantt-item-label">
+        <div class="gantt-dot" style="background:${item.color}"></div>
+        <div>
+          <div>${item.label}</div>
+          <div style="font-size:9.5px;color:var(--t3);margin-top:1px">${item.progress}% complete</div>
+        </div>
+      </div>
+      <div class="gantt-months" style="position:relative">
+        <div class="gantt-bar" style="left:calc(${pct}%);width:calc(${width}%);background:${item.color};animation-delay:${i*.07}s;cursor:pointer;position:relative;overflow:hidden" 
+             title="${item.label}: ${item.progress}%"
+             onclick="showToast('${item.label}: ${item.progress}% complete','purple')">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${item.progress}%;background:rgba(255,255,255,.25);border-radius:inherit"></div>
+          <span style="position:relative;z-index:1">${item.progress}%</span>
+        </div>
+      </div>`;
     rows.appendChild(row);
   });
 }
@@ -2839,18 +3863,89 @@ function renderInsights(){
   const kpis=document.getElementById('insight-kpis');
   const cards=document.getElementById('insight-cards');
   if(!kpis||!cards)return;
+
+  // Compute real stats from MAP_NODES
+  const total=MAP_NODES.length;
+  const done=MAP_NODES.filter(n=>n.status==='done').length;
+  const inProg=MAP_NODES.filter(n=>n.status==='in-progress').length;
+  const risks=MAP_NODES.filter(n=>n.type==='risk');
+  const avgProg=Math.round(MAP_NODES.reduce((a,n)=>a+n.progress,0)/total);
+  const healthScore=Math.round((done/total*30)+(avgProg/100*40)+(risks.length<2?30:risks.length<3?15:0));
+
   kpis.innerHTML=[
-    {label:'Strategy health',val:'74%',color:'var(--green)',icon:'💚',trend:'+4% this week'},
-    {label:'Goals on track',val:'3/4',color:'var(--acc)',icon:'🎯',trend:'1 at risk'},
+    {label:'Strategy health',val:healthScore+'%',color:healthScore>70?'var(--green)':healthScore>50?'var(--amber)':'var(--red)',icon:'💚',trend:healthScore>70?'On track':'Needs attention'},
+    {label:'Goals on track',val:`${MAP_NODES.filter(n=>n.type==='goal'&&n.progress>=40).length}/${MAP_NODES.filter(n=>n.type==='goal').length}`,color:'var(--acc)',icon:'🎯',trend:`Avg ${Math.round(MAP_NODES.filter(n=>n.type==='goal').reduce((a,n)=>a+n.progress,0)/MAP_NODES.filter(n=>n.type==='goal').length)}%`},
     {label:'CRM pipeline',val:'$284K',color:'var(--cyan)',icon:'💰',trend:'+$40K vs last week'},
-    {label:'AI recommendations',val:'5',color:'var(--amber)',icon:'🤖',trend:'2 critical'},
-  ].map(k=>`<div class="kpi-card"><div class="kglow" style="opacity:.4"></div><div style="font-size:22px;margin-bottom:6px">${k.icon}</div><div class="kv" style="color:${k.color}">${k.val}</div><div class="kl">${k.label}</div><div style="font-size:10px;color:var(--t3);margin-top:4px">${k.trend}</div></div>`).join('');
-  cards.innerHTML=[
-    {border:'var(--green)',icon:'✅',title:'Revenue goal on track','body':'Q2 Revenue Goal is at 40% with $113K needed to hit $500K. At current MRR growth (+8%/mo), you\'ll reach 68% by June — accelerate CRM closure by 2 deals to hit target.'},
-    {border:'var(--amber)',icon:'⚠️',title:'SEO initiative lagging','body':'SEO Content Pipeline is at 30% with 3 months left. Based on your velocity, you\'ll finish at ~50%. Recommended: add 2 hrs/day for 3 weeks.'},
-    {border:'var(--acc)',icon:'💡',title:'Enterprise upside','body':'Enterprise Partnership ($340K potential) is only 20% complete. Moving this to 40% by Q3 would exceed your annual goal. Prioritize 2 meetings/week.'},
-    {border:'var(--red)',icon:'🔴',title:'Runway risk','body':'Current burn rate puts runway at 8 months. Closing Prime Ventures ($95K) and Cloud9 ($35K) extends it to 11 months. Follow up this week.'},
-  ].map(c=>`<div class="insight-card" style="border-left:3px solid ${c.border}"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:18px">${c.icon}</span><div style="font-size:13px;font-weight:600;color:var(--t1)">${c.title}</div></div><div style="font-size:12.5px;color:var(--t2);line-height:1.65">${c.body}</div></div>`).join('');
+    {label:'Active risks',val:risks.length,color:risks.length>2?'var(--red)':'var(--amber)',icon:'⚠️',trend:risks.length>2?'Review needed':'Monitoring'},
+  ].map(k=>`<div class="kpi-card" style="cursor:pointer" onclick="goApp('map',document.getElementById('ni-map'))">
+    <div class="kglow" style="opacity:.4"></div>
+    <div style="font-size:22px;margin-bottom:6px">${k.icon}</div>
+    <div class="kv" style="color:${k.color}">${k.val}</div>
+    <div class="kl">${k.label}</div>
+    <div style="font-size:10px;color:var(--t3);margin-top:4px">${k.trend}</div>
+  </div>`).join('');
+
+  // Progress by type
+  const byType=Object.entries({goal:'🎯 Goals',init:'⚡ Initiatives',kpi:'📊 KPIs',risk:'⚠️ Risks'}).map(([type,label])=>{
+    const group=MAP_NODES.filter(n=>n.type===type);
+    if(!group.length)return'';
+    const avg=Math.round(group.reduce((a,n)=>a+n.progress,0)/group.length);
+    const tc=typeConfig[type];
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <div style="font-size:12px;color:var(--t2)">${label} (${group.length})</div>
+        <div style="font-size:11px;font-weight:600;color:var(--t1)">${avg}%</div>
+      </div>
+      <div style="height:6px;background:var(--b0);border-radius:6px;overflow:hidden">
+        <div style="width:${avg}%;height:100%;background:${tc.bar};border-radius:6px;transition:width .8s ease"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  cards.innerHTML=`
+    <div class="insight-card" style="border-left:3px solid var(--green)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:18px">📊</span>
+        <div style="font-size:13px;font-weight:600;color:var(--t1)">Progress by type</div>
+      </div>
+      ${byType}
+    </div>
+    <div class="insight-card" style="border-left:3px solid var(--acc)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:18px">💡</span><div style="font-size:13px;font-weight:600;color:var(--t1)">Enterprise upside</div></div>
+      <div style="font-size:12.5px;color:var(--t2);line-height:1.65">Enterprise Partnership ($340K potential) is only 20% complete. Moving to 40% by Q3 would exceed annual goal. Prioritize 2 meetings/week.</div>
+      <button class="btn-g" style="margin-top:10px;height:28px;font-size:11px" onclick="goApp('map',document.getElementById('ni-map'))">View on map →</button>
+    </div>
+    <div class="insight-card" style="border-left:3px solid var(--amber)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:18px">⚠️</span><div style="font-size:13px;font-weight:600;color:var(--t1)">SEO lagging</div></div>
+      <div style="font-size:12.5px;color:var(--t2);line-height:1.65">SEO Pipeline at 30% with 3 months left. Projected finish ~50%. Add 2 hrs/day for 3 weeks to close gap.</div>
+    </div>
+    <div class="insight-card" style="border-left:3px solid var(--red)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:18px">🔴</span><div style="font-size:13px;font-weight:600;color:var(--t1)">Runway risk</div></div>
+      <div style="font-size:12.5px;color:var(--t2);line-height:1.65">8 months runway. Closing Prime Ventures ($95K) extends to 11 months. Follow up this week.</div>
+      <button class="btn-g" style="margin-top:10px;height:28px;font-size:11px" onclick="goApp('ai',document.getElementById('ni-ai'))">Ask AI advisor →</button>
+    </div>`
+    // Node health table
+    +`<div class="insight-card" style="border-left:3px solid var(--t3);grid-column:1/-1">
+      <div style="font-size:13px;font-weight:600;color:var(--t1);margin-bottom:12px">All nodes health</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:500px">
+        <thead><tr>${['Node','Type','Status','Progress','Owner','Deadline'].map(h=>`<th style="padding:7px 10px;font-size:9.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;text-align:left;border-bottom:.5px solid var(--b1)">${h}</th>`).join('')}</tr></thead>
+        <tbody>${MAP_NODES.map(n=>{const tc=typeConfig[n.type];const sc=statusConfig[n.status];return`<tr style="border-bottom:.5px solid var(--b0);cursor:pointer" onclick="goApp('map',document.getElementById('ni-map'))">
+          <td style="padding:8px 10px;font-size:12.5px;font-weight:500;color:var(--t1)">${n.title}</td>
+          <td style="padding:8px 10px"><span style="font-size:9px;font-weight:700;color:${tc.typeColor};background:${tc.statusBg};padding:2px 7px;border-radius:20px">${n.type.toUpperCase()}</span></td>
+          <td style="padding:8px 10px"><span style="font-size:9px;font-weight:600;color:${sc.c};background:${sc.bg};padding:2px 7px;border-radius:20px">${sc.l}</span></td>
+          <td style="padding:8px 10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:60px;height:4px;background:var(--b0);border-radius:4px;overflow:hidden"><div style="width:${n.progress}%;height:100%;background:${tc.bar};border-radius:4px"></div></div>
+              <span style="font-size:11px;color:var(--t2);font-weight:600">${n.progress}%</span>
+            </div>
+          </td>
+          <td style="padding:8px 10px;font-size:11px;color:var(--t3)">${n.owner}</td>
+          <td style="padding:8px 10px;font-size:11px;color:${n.deadline&&isDue(n.deadline)?'var(--red)':'var(--t3)'}">${n.deadline?formatDate(n.deadline):'—'}</td>
+        </tr>`}).join('')}</tbody>
+      </table></div>
+    </div>`;
+  // Fix grid to be single column for the last card
+  cards.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:12px';
 }
 function renderTeam(){
   document.getElementById('team-list').innerHTML=TEAM.map(m=>`
@@ -2925,7 +4020,7 @@ function signOut(){
 }
 
 /* ─────────────── LANDING HELPERS ─────────────── */
-function scrollLand(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
+function scrollLand(id){const el=document.getElementById(id);const landing=document.getElementById('v-landing');if(el&&landing){const top=el.getBoundingClientRect().top-landing.getBoundingClientRect().top+landing.scrollTop-80;landing.scrollTo({top,behavior:'smooth'})}}
 
 function updateLandingNav(){
   const navR=document.getElementById('land-nav-r');
@@ -3397,10 +4492,308 @@ document.addEventListener('keydown',e=>{
   if(kbdSeq==='gs'){kbdSeq='';goApp('settings',document.getElementById('ni-settings'))}
 });
 
-/* ─────────────── LANDING i18n ─────────────── */
+/* ─────────────── FLOATING AI BUTTON ─────────────── */
+function openFloatingAI(){
+  goApp('ai',document.getElementById('ni-ai'));
+}
+
+let fabChatOpen=false,fabHistory=[];
+function toggleFabChat(){
+  fabChatOpen=!fabChatOpen;
+  const chat=document.getElementById('fab-chat');
+  const bot=document.getElementById('fab-icon-bot');
+  const x=document.getElementById('fab-icon-x');
+  const btn=document.getElementById('fab-main-btn');
+  if(!chat)return;
+  if(fabChatOpen){
+    chat.style.display='block';
+    chat.style.animation='fab-chat-in .28s cubic-bezier(.34,1.56,.64,1) both';
+    if(bot)bot.style.display='none';
+    if(x)x.style.display='block';
+    if(btn){btn.style.transform='rotate(90deg) scale(1.05)'}
+    setTimeout(()=>document.getElementById('fab-inp')?.focus(),200);
+  } else {
+    chat.style.animation='';
+    chat.style.display='none';
+    if(bot)bot.style.display='block';
+    if(x)x.style.display='none';
+    if(btn){btn.style.transform=''}
+  }
+}
+
+function fabAppendMsg(role,text){
+  const area=document.getElementById('fab-chat-area');if(!area)return;
+  const d=document.createElement('div');d.className='msg '+role;
+  const avS=role==='user'?'background:rgba(104,54,245,.2);color:#a278ff':'background:rgba(18,196,130,.15);color:#12c482';
+  const avT=role==='user'?(currentUser?.initials||'?'):'AI';
+  d.innerHTML=`<div class="msg-av" style="${avS};width:24px;height:24px;font-size:9px">${avT}</div><div class="msg-body"><div class="msg-bubble" style="font-size:12px">${text}</div></div>`;
+  area.appendChild(d);area.scrollTop=area.scrollHeight;
+}
+
+async function fabSend(){
+  const inp=document.getElementById('fab-inp');if(!inp)return;
+  const text=inp.value.trim();if(!text)return;
+  inp.value='';
+  fabAppendMsg('user',text);
+  fabHistory.push({role:'user',content:text});
+  // Typing indicator
+  const area=document.getElementById('fab-chat-area');
+  const typ=document.createElement('div');typ.className='msg ai';typ.id='fab-typing';
+  typ.innerHTML=`<div class="msg-av" style="background:rgba(18,196,130,.15);color:#12c482;width:24px;height:24px;font-size:9px">AI</div><div class="msg-body"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  area?.appendChild(typ);if(area)area.scrollTop=area.scrollHeight;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:400,
+      system:`You are a concise strategy AI advisor. User context: 4 goals, $284K CRM pipeline, 12 strategy nodes, 74% health. Be very brief (2-3 sentences max), direct, and actionable.`,
+      messages:fabHistory
+    })});
+    const data=await res.json();
+    document.getElementById('fab-typing')?.remove();
+    const reply=data.content?.[0]?.text||'I\'ll help you with that. What specifically would you like to analyze?';
+    fabAppendMsg('ai',reply);
+    fabHistory.push({role:'assistant',content:reply});
+  } catch{
+    document.getElementById('fab-typing')?.remove();
+    const fallbacks=['Your top risk right now is runway — 8 months. Close Prime Ventures ($95K) this week to extend to 11 months.','Q2 Revenue Goal is at 40%. Focus on closing Cloud9 ($35K) and TechFlow ($34K) to push it to 54%.','SEO pipeline is lagging at 30%. Add 2 hrs/day for 3 weeks to hit the minimum viable 60%.'];
+    fabAppendMsg('ai',fallbacks[Math.floor(Math.random()*fallbacks.length)]);
+  }
+}
+function fabAsk(q){
+  const inp=document.getElementById('fab-inp');if(inp){inp.value=q;fabSend()}
+}
+
+/* ─────────────── GLOWING BORDER EFFECT ─────────────── */
+(function initGlowCards(){
+  let rafId=null;
+  function applyGlow(e){
+    const cards=document.querySelectorAll('.glow-card');
+    cards.forEach(card=>{
+      const rect=card.getBoundingClientRect();
+      const cx=rect.left+rect.width/2;
+      const cy=rect.top+rect.height/2;
+      const dist=Math.hypot(e.clientX-cx,e.clientY-cy);
+      const maxDist=Math.max(rect.width,rect.height)*0.8;
+      if(dist<maxDist){
+        const angle=Math.atan2(e.clientY-cy,e.clientX-cx)*(180/Math.PI)+90;
+        card.style.setProperty('--glow-start',String(angle));
+        card.style.setProperty('--glow-active','1');
+        card.classList.add('glow-lit');
+      } else {
+        card.style.setProperty('--glow-active','0');
+        card.classList.remove('glow-lit');
+      }
+    });
+  }
+  document.addEventListener('mousemove',e=>{
+    if(rafId)cancelAnimationFrame(rafId);
+    rafId=requestAnimationFrame(()=>applyGlow(e));
+  });
+  document.addEventListener('mouseleave',()=>{
+    document.querySelectorAll('.glow-card').forEach(c=>{c.style.setProperty('--glow-active','0');c.classList.remove('glow-lit')});
+  });
+})();
+
+/* ─────────────── ORBITAL MAP VIEW ─────────────── */
+let orbitalActive=false,orbRotation=0,orbRAF=null,orbSelectedId=null;
+
+function toggleOrbitalView(btn){
+  orbitalActive=!orbitalActive;
+  const orb=document.getElementById('orbital-view');
+  const wrap=document.getElementById('map-canvas-wrap');
+  const minimap=document.getElementById('minimap');
+  if(!orb)return;
+  if(orbitalActive){
+    orb.classList.add('active');
+    if(minimap)minimap.style.display='none';
+    btn.classList.add('on');
+    btn.title='Canvas view';
+    renderOrbitalView();
+    startOrbitalRotation();
+    showToast('Orbital view — click nodes to explore','purple');
+  } else {
+    orb.classList.remove('active');
+    if(minimap)minimap.style.display='';
+    btn.classList.remove('on');
+    btn.title='Orbital view';
+    stopOrbitalRotation();
+    orbSelectedId=null;
+  }
+}
+
+function startOrbitalRotation(){
+  let lastTime=0;
+  function tick(t){
+    if(!orbitalActive)return;
+    if(!orbSelectedId){
+      const dt=t-lastTime;lastTime=t;
+      orbRotation=(orbRotation+dt*0.018)%360;
+      updateOrbitalPositions();
+    }
+    orbRAF=requestAnimationFrame(tick);
+  }
+  orbRAF=requestAnimationFrame(tick);
+}
+function stopOrbitalRotation(){if(orbRAF)cancelAnimationFrame(orbRAF);orbRAF=null}
+
+function renderOrbitalView(){
+  const cont=document.getElementById('orbital-view');if(!cont||!nodes.length)return;
+  const W=cont.clientWidth||800,H=cont.clientHeight||600;
+  const cx=W/2,cy=H/2;
+  const baseR=Math.min(W,H)*0.32;
+
+  cont.innerHTML='';
+  // Rings
+  [1,.7,.45].forEach((r,i)=>{
+    const ring=document.createElement('div');ring.className='orb-ring';
+    const sz=baseR*2*(i===0?1:i===1?.72:.46);
+    ring.style.cssText=`width:${sz}px;height:${sz}px;left:${cx-sz/2}px;top:${cy-sz/2}px`;
+    cont.appendChild(ring);
+  });
+
+  // Center core
+  const core=document.createElement('div');core.className='orb-center';
+  core.style.cssText=`left:${cx}px;top:${cy}px;transform:translate(-50%,-50%)`;
+  core.innerHTML=`<svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="10" stroke="rgba(255,255,255,.9)" stroke-width="1.5" fill="none"/><circle cx="13" cy="13" r="4" fill="rgba(255,255,255,.9)"/></svg>`;
+  core.title='Strategy Center';
+  cont.appendChild(core);
+
+  // Edge SVG
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width','100%');svg.setAttribute('height','100%');
+  svg.style.cssText='position:absolute;inset:0;pointer-events:none;overflow:visible';
+  svg.id='orb-svg';cont.appendChild(svg);
+
+  // Nodes — distribute by type on different radii
+  const typeOrder=['goal','init','kpi','risk','task'];
+  const nodeGroups={};
+  typeOrder.forEach(t=>{nodeGroups[t]=nodes.filter(n=>n.type===t)});
+
+  nodes.forEach((n,i)=>{
+    const el=document.createElement('div');
+    el.className='orb-node';el.id='orbn-'+n.id;
+    el.dataset.idx=String(i);
+    el.dataset.total=String(nodes.length);
+    el.dataset.radius=String(baseR);
+    const tc=typeConfig[n.type]||typeConfig.goal;
+    el.innerHTML=`<div class="orb-node-inner">
+      <div style="font-size:11px;font-weight:700;color:${tc.typeColor};margin-bottom:3px;text-transform:uppercase;letter-spacing:.08em;font-size:8.5px">${tc.label}</div>
+      <div style="font-size:11.5px;font-weight:600;color:var(--t1);line-height:1.25;margin-bottom:4px">${n.title.length>22?n.title.slice(0,22)+'…':n.title}</div>
+      <div style="height:3px;background:var(--b0);border-radius:3px;overflow:hidden;margin-bottom:3px">
+        <div style="width:${n.progress}%;height:100%;background:${tc.bar};border-radius:3px;transition:width .5s ease"></div>
+      </div>
+      <div style="font-size:9px;color:var(--t3)">${n.progress}%</div>
+    </div>`;
+    el.style.animationDelay=(i*0.05)+'s';
+    el.addEventListener('click',e=>{e.stopPropagation();selectOrbNode(n.id)});
+    cont.appendChild(el);
+  });
+
+  updateOrbitalPositions();
+
+  // Click background = deselect
+  cont.addEventListener('click',e=>{
+    if(e.target===cont){orbSelectedId=null;resetOrbHighlights()}
+  });
+}
+
+function updateOrbitalPositions(){
+  const cont=document.getElementById('orbital-view');if(!cont)return;
+  const W=cont.clientWidth||800,H=cont.clientHeight||600;
+  const cx=W/2,cy=H/2;
+  const baseR=Math.min(W,H)*0.32;
+  const total=nodes.length;
+
+  nodes.forEach((n,i)=>{
+    const el=document.getElementById('orbn-'+n.id);if(!el)return;
+    const angle=((i/total)*360+orbRotation)%360;
+    const rad=angle*Math.PI/180;
+    // Different radii by type for visual depth
+    const rMod={goal:1,init:.85,kpi:.72,risk:.62,task:.55}[n.type]||.8;
+    const r=baseR*rMod;
+    const x=cx+r*Math.cos(rad);
+    const y=cy+r*Math.sin(rad);
+    const depth=(1+Math.sin(rad))/2; // 0=back, 1=front
+    const opacity=Math.max(0.35,0.35+0.65*depth);
+    const scale=0.75+0.35*depth;
+    el.style.left=x+'px';el.style.top=y+'px';
+    el.style.opacity=String(orbSelectedId?1:opacity);
+    el.style.zIndex=String(Math.round(depth*100));
+    el.querySelector('.orb-node-inner').style.transform=`scale(${scale})`;
+  });
+
+  // Update edge lines
+  renderOrbEdges(cx,cy);
+}
+
+function renderOrbEdges(cx,cy){
+  const svg=document.getElementById('orb-svg');if(!svg)return;
+  svg.innerHTML='';
+  if(!orbSelectedId){
+    // Draw faint connection lines to center for goals
+    nodes.filter(n=>n.type==='goal').forEach(n=>{
+      const el=document.getElementById('orbn-'+n.id);if(!el)return;
+      const x=parseFloat(el.style.left),y=parseFloat(el.style.top);
+      if(isNaN(x))return;
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',String(cx));line.setAttribute('y1',String(cy));
+      line.setAttribute('x2',String(x));line.setAttribute('y2',String(y));
+      line.setAttribute('stroke','rgba(104,54,245,.12)');line.setAttribute('stroke-width','1');
+      svg.appendChild(line);
+    });
+    return;
+  }
+  // Show connected edges for selected node
+  const connEdges=edges.filter(e=>e.f===orbSelectedId||e.t===orbSelectedId);
+  connEdges.forEach(edge=>{
+    const cfg=edgeConfig[edge.type]||edgeConfig.contributes;
+    const srcEl=document.getElementById('orbn-'+edge.f);
+    const tgtEl=document.getElementById('orbn-'+edge.t);
+    if(!srcEl||!tgtEl)return;
+    const x1=parseFloat(srcEl.style.left),y1=parseFloat(srcEl.style.top);
+    const x2=parseFloat(tgtEl.style.left),y2=parseFloat(tgtEl.style.top);
+    if(isNaN(x1)||isNaN(x2))return;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    const cy_=(y1+y2)/2;
+    path.setAttribute('d',`M${x1},${y1} C${x1},${cy_} ${x2},${cy_} ${x2},${y2}`);
+    path.setAttribute('stroke',cfg.col);path.setAttribute('stroke-width','2');path.setAttribute('fill','none');
+    if(cfg.dash!=='none')path.setAttribute('stroke-dasharray',cfg.dash);
+    // Animated
+    path.classList.add('edge-animated');
+    svg.appendChild(path);
+    // Label
+    const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x',String((x1+x2)/2));lbl.setAttribute('y',String((y1+y2)/2-5));
+    lbl.setAttribute('text-anchor','middle');lbl.setAttribute('font-size','9');
+    lbl.setAttribute('fill','var(--t3)');lbl.setAttribute('font-family','Inter,sans-serif');
+    lbl.textContent=cfg.label;svg.appendChild(lbl);
+  });
+}
+
+function selectOrbNode(nid){
+  orbSelectedId=orbSelectedId===nid?null:nid;
+  resetOrbHighlights();
+  if(!orbSelectedId)return;
+  stopOrbitalRotation();
+  const connIds=new Set();
+  edges.forEach(e=>{if(e.f===nid)connIds.add(e.t);if(e.t===nid)connIds.add(e.f)});
+  nodes.forEach(n=>{
+    const el=document.getElementById('orbn-'+n.id);if(!el)return;
+    if(n.id===nid){el.classList.add('orb-selected')}
+    else if(connIds.has(n.id)){el.classList.add('orb-related');el.classList.remove('orb-dimmed')}
+    else{el.classList.add('orb-dimmed')}
+  });
+  // Show node info popup
+  const n=nodes.find(x=>x.id===nid);
+  if(n){showToast(`${n.title} · ${n.progress}% · ${edges.filter(e=>e.f===nid||e.t===nid).length} connections`,'purple')}
+}
+
+function resetOrbHighlights(){
+  document.querySelectorAll('.orb-node').forEach(el=>el.classList.remove('orb-selected','orb-dimmed','orb-related'));
+  if(!orbSelectedId)startOrbitalRotation();
+}
 const LAND_LANG={
   en:{
-    nav_features:'Features',nav_pricing:'Pricing',nav_faq:'FAQ',
+    nav_features:'Features',nav_how:'How it works',nav_pricing:'Pricing',nav_faq:'FAQ',
     nav_signin:'Sign in',nav_getstarted:'Get started free',
     hero_badge:'✦ AI-Powered Strategic Planning · v2.0',
     hero_h1_pre:'Strategy that',hero_h1_grad:'thinks with you',
@@ -3410,6 +4803,8 @@ const LAND_LANG={
     stats_teams:'Teams using',stats_maps:'Strategy maps',stats_sat:'Satisfaction',stats_ph:'Product Hunt',
     feat_lbl:'Everything you need',feat_title:'Built for strategic thinkers',
     feat_sub:'From solo founders to enterprise teams — Strategy AI adapts to how you think and plan.',
+    how_lbl:'How it works',how_title:'From vision to execution in 4 steps',
+    how_sub:'Strategy AI guides you from the big picture to daily action — without the complexity of traditional tools.',
     compare_lbl:'Compare alternatives',compare_title:'Why teams choose Strategy AI',
     compare_sub:'Strategy AI combines the best of Notion, Miro and ChatGPT — purpose-built for strategic planning.',
     testi_lbl:'What teams say',testi_title:'Trusted by founders and strategists',
@@ -3422,7 +4817,7 @@ const LAND_LANG={
     footer_copy:'© 2025 Strategy AI · Built for strategic thinkers',
   },
   ru:{
-    nav_features:'Функции',nav_pricing:'Тарифы',nav_faq:'FAQ',
+    nav_features:'Функции',nav_how:'Как это работает',nav_pricing:'Тарифы',nav_faq:'FAQ',
     nav_signin:'Войти',nav_getstarted:'Начать бесплатно',
     hero_badge:'✦ Стратегическое планирование на базе ИИ · v2.0',
     hero_h1_pre:'Стратегия, которая',hero_h1_grad:'думает вместе с вами',
@@ -3432,6 +4827,8 @@ const LAND_LANG={
     stats_teams:'Команд использует',stats_maps:'Карт стратегий',stats_sat:'Удовлетворённость',stats_ph:'Product Hunt',
     feat_lbl:'Всё что нужно',feat_title:'Создан для стратегического мышления',
     feat_sub:'От соло-основателей до корпоративных команд — Strategy AI адаптируется к тому, как вы думаете и планируете.',
+    how_lbl:'Как это работает',how_title:'От идеи до исполнения за 4 шага',
+    how_sub:'Strategy AI ведёт вас от глобальной картины к ежедневным действиям — без сложности традиционных инструментов.',
     compare_lbl:'Сравнение с аналогами',compare_title:'Почему команды выбирают Strategy AI',
     compare_sub:'Strategy AI объединяет лучшее от Notion, Miro и ChatGPT — создан специально для стратегического планирования.',
     testi_lbl:'Что говорят команды',testi_title:'Доверяют основатели и стратеги',
@@ -3444,7 +4841,7 @@ const LAND_LANG={
     footer_copy:'© 2025 Strategy AI · Создан для стратегического мышления',
   },
   uz:{
-    nav_features:"Imkoniyatlar",nav_pricing:"Narxlar",nav_faq:"FAQ",
+    nav_features:"Imkoniyatlar",nav_how:"Qanday ishlaydi",nav_pricing:"Narxlar",nav_faq:"FAQ",
     nav_signin:"Kirish",nav_getstarted:"Bepul boshlash",
     hero_badge:"✦ Sun'iy intellekt asosida strategik rejalashtirish · v2.0",
     hero_h1_pre:"Siz bilan birga",hero_h1_grad:"o'ylaydigan strategiya",
@@ -3454,6 +4851,8 @@ const LAND_LANG={
     stats_teams:"Jamoalar foydalanmoqda",stats_maps:"Strategiya xaritalari",stats_sat:"Mamnunlik",stats_ph:"Product Hunt",
     feat_lbl:"Kerak bo'lgan hamma narsa",feat_title:"Strategik mutafakkirlar uchun yaratilgan",
     feat_sub:"Yolg'iz asoschilardан korporativ jamoalargacha — Strategy AI sizning fikrlash uslubingizga moslashadi.",
+    how_lbl:"Qanday ishlaydi",how_title:"G'oyadan bajarilishigacha 4 qadam",
+    how_sub:"Strategy AI sizni katta rasmdan kunlik harakatlarga olib boradi — an'anaviy vositalarning murakkabligisiz.",
     compare_lbl:"Muqobillari bilan solishtirish",compare_title:"Jamoalar nima uchun Strategy AI ni tanlaydi",
     compare_sub:"Strategy AI Notion, Miro va ChatGPT ning eng yaxshi tomonlarini birlashtiradi — strategik rejalashtirish uchun maxsus yaratilgan.",
     testi_lbl:"Jamoalar nima deydi",testi_title:"Asoschilар va strateglar ishonadi",
