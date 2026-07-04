@@ -231,4 +231,34 @@ router.delete('/:projectId/members/:memberEmail', requireAuth, async (req, res, 
   } catch (err) { next(err); }
 });
 
+// POST /api/projects/:projectId/join — self-join по invite-ссылке (?join=)
+router.post('/:projectId/join', requireAuth, async (req, res, next) => {
+  try {
+    const email = req.user.email.trim().toLowerCase();
+    const { rows } = await pool.query('SELECT * FROM projects WHERE id = $1', [req.params.projectId]);
+    if (!rows[0]) return res.status(404).json({ error: 'Проект не найден' });
+
+    const project = rows[0];
+    if (project.owner_email === email) return res.json({ project: rows[0] });
+
+    const members = Array.isArray(project.members) ? project.members : [];
+    if (members.some((m) => m.email === email)) return res.json({ project: rows[0] });
+
+    const { rows: ownerRows } = await pool.query('SELECT tier FROM users WHERE email = $1', [project.owner_email]);
+    const ownerTier = ownerRows[0]?.tier || 'free';
+    const MEMBER_LIMITS = { free: 1, starter: 3, pro: 5, team: 10, enterprise: Infinity };
+    const limit = MEMBER_LIMITS[ownerTier] ?? 1;
+    if (members.length >= limit) {
+      return res.status(403).json({ error: 'Лимит участников проекта исчерпан', code: 'MEMBER_LIMIT' });
+    }
+
+    const newMembers = [...members, { email, role: 'viewer' }];
+    const { rows: updated } = await pool.query(
+      `UPDATE projects SET members = $1, updated_at = now() WHERE id = $2 RETURNING *`,
+      [JSON.stringify(newMembers), req.params.projectId]
+    );
+    res.json({ project: updated[0] });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

@@ -951,8 +951,9 @@ ${ctx}
           }
         />
       )}
-      {/* ── TOOLBAR — 2 rows ── */}
-      <div className={shellUi?"sa-map-toolbar-rows":undefined} style={{flexShrink:0,zIndex:30,borderBottom:"1px solid var(--glass-border-accent,var(--border))",background:shellUi?"transparent":"var(--bg2)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",boxShadow:shellUi?"none":"0 1px 0 var(--glass-border-accent,var(--border))"}}>
+      {!shellUi&&(<>
+      {/* ── TOOLBAR — 2 rows (mobile / legacy) ── */}
+      <div style={{flexShrink:0,zIndex:30,borderBottom:"1px solid var(--glass-border-accent,var(--border))",background:"var(--bg2)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",boxShadow:"0 1px 0 var(--glass-border-accent,var(--border))"}}>
 
         {/* ROW 1 — primary actions + search */}
         <div style={{minHeight:60,display:"flex",alignItems:"center",gap:isMobile?10:12,padding:isMobile?"10px 16px":shellUi?"0 20px":"0 24px",borderBottom:"1px solid var(--border)",flexWrap:isMobile?"wrap":shellUi?"wrap":undefined}}>
@@ -1159,6 +1160,7 @@ ${ctx}
         </div>
         </>)}
       </div>
+      </>)}
       {/* canvas — в оболочке макета: .sa-screen-map + .sa-canvas-wrap (точки через :: при grid) */}
       <div className="sa-screen-map screen on" style={{flex:1,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"}}>
       <div
@@ -1175,6 +1177,23 @@ ${ctx}
         {bgMode==="stars"&&theme==="dark"&&(
           <div style={{position:"absolute",inset:0,zIndex:0,pointerEvents:"none"}}>
             <SparklesCanvas density={175} speed={0.35} minSz={0.3} maxSz={1.0} color="#ffffff" style={{opacity:.4}}/>
+          </div>
+        )}
+        {shellUi&&!zenMode&&(
+          <div className="map-filter-bar">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{opacity:.4,flexShrink:0}} aria-hidden><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.3"/><line x1="7.8" y1="7.8" x2="11" y2="11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+            <input className="mfb-inp" value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("map_search_nodes","Search nodes…")}/>
+            <div className="mfb-sep"/>
+            {([["all",t("all_statuses","All")],["active",(STATUS as any).active?.label||"In progress"],["completed",(STATUS as any).completed?.label||"Done"],["planning",(STATUS as any).planning?.label||"Not started"]] as const).map(([k,lbl])=>(
+              <div key={k} className={"mfb-filter"+(statusFilter===k?" on":"")} onClick={()=>setStatusFilter(k)} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")setStatusFilter(k);}}>{lbl}</div>
+            ))}
+            {!readOnly&&(
+              <>
+                <div className="mfb-sep"/>
+                {(TIERS[user?.tier||"free"]?.templates)&&<div className="mfb-filter" onClick={()=>setShowTemplates(true)} title={t("templates_hint","Шаблоны карт")} role="button" tabIndex={0}>📋</div>}
+                <div className="mfb-filter" onClick={()=>setShowSim(true)} title={t("simulation_hint","Симуляция")} role="button" tabIndex={0}>▶</div>
+              </>
+            )}
           </div>
         )}
         {showSearch&&(
@@ -1381,15 +1400,27 @@ ${ctx}
           />
         )}
         {!zenMode&&(
-        <div className={"zoom-ctrl"+(shellUi?" map-toolbar":"")+" glass-card"} style={{position:"absolute",bottom:shellUi?20:28,left:shellUi?"50%":28,transform:shellUi?"translateX(-50%)":undefined,display:"flex",gap:8,alignItems:"center",zIndex:30,padding:"10px 16px",borderRadius:16,border:shellUi?"none":undefined,boxShadow:shellUi?undefined:"var(--glass-shadow-accent,none),0 8px 32px rgba(0,0,0,.2)"}}>
-          <button className="zoom-ctrl-btn" onClick={()=>{const nz=Math.min(3,view.zoom*1.2);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}} title={t("zoom_in","Увеличить")} style={{width:36,height:36,borderRadius:10,border:"none",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
-          <div style={{fontSize:14,color:"var(--text3)",fontWeight:700,minWidth:48,textAlign:"center"}}>{Math.round(view.zoom*100)}%</div>
-          <button className="zoom-ctrl-btn" onClick={()=>{const nz=Math.max(.2,view.zoom*.83);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}} title={t("zoom_out","Уменьшить")} style={{width:36,height:36,borderRadius:10,border:"none",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
+        <div className={shellUi?"map-toolbar":"zoom-ctrl glass-card"} style={shellUi?undefined:{position:"absolute",bottom:28,left:28,display:"flex",gap:8,alignItems:"center",zIndex:30,padding:"10px 16px",borderRadius:16,boxShadow:"var(--glass-shadow-accent,none),0 8px 32px rgba(0,0,0,.2)"}}>
+          {!readOnly&&shellUi&&(
+            <>
+              <button type="button" className={"mt-btn"+(!connecting?" on":"")} onClick={()=>{setConnecting(false);setConnectSrc(null);}} title={t("tool_select","Select (V)")} aria-label={t("tool_select","Select")}>▣</button>
+              <button type="button" className={"mt-btn"+(connecting?" on":"")} onClick={()=>{setConnecting(c=>!c);setConnectSrc(null);}} title={t("link_mode_hint","Connect")} aria-label={t("link_btn","Связать")}>⇒</button>
+              <button type="button" className="mt-btn" onClick={addNode} title={t("add_step_hint","Add node")} aria-label={t("step_short","Шаг")}>+</button>
+              <div className="mt-sep" aria-hidden/>
+            </>
+          )}
+          <button className={shellUi?"mt-btn":"zoom-ctrl-btn"} onClick={()=>{const nz=Math.max(.2,view.zoom*.83);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}} title={t("zoom_out","Уменьшить")} style={shellUi?undefined:{width:36,height:36,borderRadius:10,border:"none",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
+          <div className={shellUi?"mt-zoom":undefined} style={shellUi?undefined:{fontSize:14,color:"var(--text3)",fontWeight:700,minWidth:48,textAlign:"center"}} onClick={shellUi?fitView:undefined} role={shellUi?"button":undefined} tabIndex={shellUi?0:undefined} onKeyDown={shellUi?(e=>{if(e.key==="Enter"||e.key===" ")fitView();}):undefined}>{Math.round(view.zoom*100)}%</div>
+          <button className={shellUi?"mt-btn":"zoom-ctrl-btn"} onClick={()=>{const nz=Math.min(3,view.zoom*1.2);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}} title={t("zoom_in","Увеличить")} style={shellUi?undefined:{width:36,height:36,borderRadius:10,border:"none",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
           {shellUi&&(
             <>
+              <button type="button" className="mt-btn" onClick={fitView} title={t("fit_view_hint","Fit (Ctrl+0)")} aria-label={t("fit_view","Вписать")}>⊡</button>
+              {!readOnly&&<button type="button" className="mt-btn" onClick={autoLayout} title={t("auto_layout_hint","Auto layout")} aria-label={t("auto_layout","Расклад")}>⌥</button>}
+              <button type="button" className="mt-btn" onClick={exportJSON} title={t("export_json_title","Export JSON")} aria-label={t("export_label","Экспорт")}>⬇</button>
+              {!readOnly&&<button type="button" className="mt-btn" onClick={shareMap} title={t("share_map","Share")} aria-label={t("share_btn","Поделиться")}>🔗</button>}
+              <button type="button" className="mt-btn" onClick={()=>setShowShortcuts(true)} title={t("shortcuts_title","Shortcuts (?)")} aria-label={t("shortcuts_title","Горячие клавиши")}>⌨</button>
               <div className="mt-sep" aria-hidden/>
-              <button type="button" className={"mt-btn"+(showAI?" on":"")} onClick={()=>setShowAI(a=>!a)} title={t("ai_consultant_hint","AI-консультант (Ctrl+Shift+A)")} aria-label={t("ai_consultant_hint","AI-консультант")} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"0 8px",minWidth:"auto"}}><span aria-hidden>✦</span><span style={{fontSize:10.5,fontWeight:700}}>AI</span></button>
-              <button type="button" className="mt-btn" onClick={fitView} title={t("fit_view_hint","Вписать карту в экран")}>⊡</button>
+              <button type="button" className={"mt-btn"+(showAI?" on":"")} onClick={()=>setShowAI(a=>!a)} title={t("ai_consultant_hint","AI")} aria-label={t("ai_consultant","AI Советник")}><span aria-hidden>✦</span></button>
             </>
           )}
         </div>

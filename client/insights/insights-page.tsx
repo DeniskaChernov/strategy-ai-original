@@ -8,7 +8,7 @@ import { TIERS } from "../lib/tiers";
 import { getSTATUS, getPRIORITY } from "../lib/strategy-labels";
 import { useNotifications } from "../hooks/use-notifications";
 import { StrategyShellSidebar, StrategyShellBg, type StrategyShellNav } from "../../strategy-shell-sidebar";
-import { AppTopBar } from "../components/app-top-bar";
+import { WorkspaceTopBar } from "../components/workspace-top-bar";
 import { NotifBell } from "../components/notif-bell";
 import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { NotificationsCenterModal } from "../strategy-modals/notifications-ai-hub-modals";
@@ -122,10 +122,18 @@ export function InsightsPage({
   const body = (
     <>
       {shellUi && (
-        <AppTopBar
-          title={t("shell_insights", "Инсайты")}
-          subtitle={t("ins_subtitle", "Здоровье стратегии · {p}%").replace("{p}", String(m.health))}
-          rightContent={<>{API_BASE && <NotifBell unread={notifUnread} onClick={() => setShowNotifs(true)} className="btn-ic" />}</>}
+        <WorkspaceTopBar
+          title={t("shell_insights", "Insights")}
+          subtitle={t("ins_subtitle", "Strategy health · {p}%").replace("{p}", String(m.health))}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          searchPlaceholder={t("dash_search_ph", "Search… (⌘K)")}
+          showSearch={false}
+          notifUnread={notifUnread}
+          onNotifs={() => setShowNotifs(true)}
+          showNotifs={!!API_BASE}
+          onSettings={onProfile}
+          newProjectLabel={t("new_project", "New project")}
         />
       )}
       {!shellUi && (
@@ -142,16 +150,40 @@ export function InsightsPage({
 
       <div className={shellUi ? "scr" : undefined} style={{ flex: 1, overflowY: "auto", padding: shellUi ? "26px 28px 60px" : isMobile ? 16 : 24, position: "relative", zIndex: 5, minHeight: 0 }}>
         <div style={{ maxWidth: "min(1240px,100%)", width: "100%", margin: "0 auto" }}>
-          <div className="sa-page-reveal sa-bento sa-bento--4" style={{ marginBottom: 24 }}>
-            <StatCard icon="💚" value={<CountUp n={m.health} suffix="%" loading={loading} />} label={t("ins_health", "Здоровье стратегии")} sub={m.health >= 70 ? t("ins_health_ok", "в норме") : t("ins_health_attention", "нужно внимание")} accent={m.health >= 70 ? "#34d399" : m.health >= 40 ? "#fbbf24" : "#f87171"} />
-            <StatCard icon="🎯" value={loading ? "—" : <><CountUp n={m.onTrack} loading={loading} />/{m.total}</>} label={t("ins_on_track", "В графике")} sub={t("ins_avg_progress", "ср. {p}%").replace("{p}", String(m.avg))} accent="#a78bfa" />
-            <StatCard icon="⚡" value={<CountUp n={m.active} loading={loading} />} label={t("ins_active", "В работе")} sub={t("ins_completed_n", "{n} завершено").replace("{n}", String(m.completed))} accent="#22d3ee" />
-            <StatCard icon="⚠️" value={<CountUp n={m.risks.length} loading={loading} />} label={t("ins_risks", "Риски")} sub={m.risks.length ? t("ins_monitoring", "мониторинг") : t("dash_all_clear", "всё спокойно")} accent={m.risks.length ? "#f87171" : "#34d399"} />
+          <div className="r4" style={{ marginBottom: 24 }}>
+            <div className="kpi-card card">
+              <div className="kglow" style={{ opacity: 0.35 }} aria-hidden />
+              <div style={{ fontSize: 22, marginBottom: 6 }} aria-hidden>💚</div>
+              <div className="kval" style={{ color: m.health >= 70 ? "#34d399" : m.health >= 40 ? "#fbbf24" : "#f87171" }}><CountUp n={m.health} suffix="%" loading={loading} /></div>
+              <div className="klbl">{t("ins_health", "Strategy health")}</div>
+              <div className="ksub neu">{m.health >= 70 ? t("ins_health_ok", "on track") : t("ins_health_attention", "needs attention")}</div>
+            </div>
+            <div className="kpi-card card">
+              <div className="kglow" style={{ opacity: 0.35 }} aria-hidden />
+              <div style={{ fontSize: 22, marginBottom: 6 }} aria-hidden>🎯</div>
+              <div className="kval" style={{ color: "#a78bfa" }}>{loading ? "—" : <><CountUp n={m.onTrack} loading={loading} />/{m.total}</>}</div>
+              <div className="klbl">{t("ins_on_track", "On track")}</div>
+              <div className="ksub neu">{t("ins_avg_progress", "avg {p}%").replace("{p}", String(m.avg))}</div>
+            </div>
+            <div className="kpi-card card">
+              <div className="kglow" style={{ opacity: 0.35 }} aria-hidden />
+              <div style={{ fontSize: 22, marginBottom: 6 }} aria-hidden>⚡</div>
+              <div className="kval" style={{ color: "#22d3ee" }}><CountUp n={m.active} loading={loading} /></div>
+              <div className="klbl">{t("ins_active", "Active")}</div>
+              <div className="ksub neu">{t("ins_completed_n", "{n} completed").replace("{n}", String(m.completed))}</div>
+            </div>
+            <div className="kpi-card card">
+              <div className="kglow" style={{ opacity: 0.35 }} aria-hidden />
+              <div style={{ fontSize: 22, marginBottom: 6 }} aria-hidden>⚠️</div>
+              <div className="kval" style={{ color: m.risks.length ? "#f87171" : "#34d399" }}><CountUp n={m.risks.length} loading={loading} /></div>
+              <div className="klbl">{t("ins_risks", "Risks")}</div>
+              <div className="ksub neu">{m.risks.length ? t("ins_monitoring", "monitoring") : t("dash_all_clear", "all clear")}</div>
+            </div>
           </div>
 
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: .8, textTransform: "uppercase", color: "var(--text4)", margin: "4px 2px 12px" }}>{t("ins_ai_section", "AI-инсайты")}</div>
-          <div className="sa-page-reveal sa-pr-d1 sa-bento sa-bento--2-1" style={{ marginBottom: 24 }}>
-            <div className="sa-panel">
+          <div className="slbl">{t("ins_ai_section", "AI insights")}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+            <div className="card">
               <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}><span aria-hidden>📊</span>{t("ins_progress_by_status", "Прогресс по статусам")}</div>
               {loading ? <div style={{ fontSize: 13, color: "var(--text5)" }}>{t("loading_short", "Загрузка…")}</div> : byStatus.length === 0 ? <div style={{ fontSize: 13, color: "var(--text5)" }}>{t("ins_no_data", "Нет данных — добавьте узлы на карте.")}</div> : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -167,12 +199,19 @@ export function InsightsPage({
                 </div>
               )}
             </div>
-            <div style={{ display: "grid", gridTemplateRows: "auto", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {aiInsights.slice(0, 3).map((ins, i) => (
-                <div key={i} className="sa-card-pro sa-lift" style={{ borderLeft: `3px solid ${ins.tone}`, borderRadius: 18, padding: 16 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 900, color: "var(--text)", display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}><span aria-hidden>{ins.icon}</span>{ins.title}</div>
-                  <div style={{ fontSize: 12.5, color: "var(--text3)", lineHeight: 1.55 }}>{ins.text}</div>
-                  {i === 2 && <button type="button" onClick={() => onShellNav("ai")} style={{ marginTop: 10, background: "none", border: "1px solid var(--border)", borderRadius: 9, padding: "6px 12px", color: "var(--acc,#a78bfa)", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>{t("ins_ask_ai", "Спросить AI →")}</button>}
+                <div key={i} className="insight-card" style={{ borderLeft: `3px solid ${ins.tone}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 18 }} aria-hidden>{ins.icon}</span>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>{ins.title}</div>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--t2)", lineHeight: 1.65 }}>{ins.text}</div>
+                  {i === 2 && (
+                    <button type="button" onClick={() => onShellNav("ai")} className="btn-g" style={{ marginTop: 10, height: 32, fontSize: 12 }}>
+                      {t("ins_ask_ai", "Ask AI →")}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

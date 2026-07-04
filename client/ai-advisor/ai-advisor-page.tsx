@@ -7,7 +7,7 @@ import { useNotifications } from "../hooks/use-notifications";
 import { TIERS } from "../lib/tiers";
 import { getSTATUS } from "../lib/strategy-labels";
 import { StrategyShellSidebar, StrategyShellBg, type StrategyShellNav } from "../../strategy-shell-sidebar";
-import { AppTopBar } from "../components/app-top-bar";
+import { WorkspaceTopBar } from "../components/workspace-top-bar";
 import { NotifBell } from "../components/notif-bell";
 import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { NotificationsCenterModal } from "../strategy-modals/notifications-ai-hub-modals";
@@ -96,7 +96,7 @@ export function AiAdvisorPage({
   );
 
   const chat = (
-    <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", maxWidth: "min(1040px,100%)", width: "100%", margin: "0 auto", padding: shellUi ? "0 24px 16px" : 0 }}>
+    <div className="chat-area" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", maxWidth: "min(1040px,100%)", width: "100%", margin: "0 auto", padding: shellUi ? "0 24px 16px" : 0 }}>
       <div className="sa-ai-chat-shell sa-page-reveal sa-pr-d2">
         <AiPanel
           embedded={true}
@@ -124,10 +124,18 @@ export function AiAdvisorPage({
   const body = (
     <>
       {shellUi ? (
-        <AppTopBar
-          title={t("shell_ai_advisor", "AI советник")}
-          subtitle={t("ai_subtitle", "Контекстный советник по вашей стратегии")}
-          rightContent={API_BASE ? <NotifBell unread={notifUnread} onClick={() => setShowNotifs(true)} className="btn-ic" /> : undefined}
+        <WorkspaceTopBar
+          title={t("shell_ai_advisor", "AI Advisor")}
+          subtitle={t("ai_subtitle", "Contextual advisor for your strategy")}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          searchPlaceholder={t("dash_search_ph", "Search… (⌘K)")}
+          showSearch={false}
+          notifUnread={notifUnread}
+          onNotifs={() => setShowNotifs(true)}
+          showNotifs={!!API_BASE}
+          onSettings={onProfile}
+          newProjectLabel={t("new_project", "New project")}
         />
       ) : (
         <div className="sa-app-topbar">
@@ -140,7 +148,7 @@ export function AiAdvisorPage({
           </div>
         </div>
       )}
-      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: shellUi ? 18 : 12 }}>{ctxStrip}{chat}</div>
+      <div className={shellUi ? "sa-screen-ai scr" : undefined} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: shellUi ? 0 : 12 }}>{ctxStrip}{chat}</div>
     </>
   );
 

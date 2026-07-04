@@ -15,6 +15,7 @@ import { AiPanel } from "../map-editor/ai-panel";
 import { WeeklyBriefingModal } from "../strategy-modals/weekly-briefing-modal";
 import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { FloatingAiAssistant } from "../floating-ai-assistant";
+import { followNotificationLink } from "../lib/notif-deep-link";
 import { GlobalSearchOverlay } from "../components/global-search-overlay";
 
 type ProjLite = { id: string; name: string; owner?: string; updatedAt?: number; updated_at?: number };
@@ -295,6 +296,7 @@ export function DashboardPage({
           notifUnread={notifUnread}
           onNotifs={() => setShowNotifs(true)}
           showNotifs={!!API_BASE}
+          showSearch={!!API_BASE}
           onSettings={onProfile}
           onNewProject={openNewProject}
           newProjectLabel={t("dash_new_project", "Новый проект")}
@@ -434,7 +436,16 @@ export function DashboardPage({
           loadNotifications={loadNotifications}
           showItemMeta={false}
           deleteGlyph="×"
-          onFollowLink={async (n: any) => { if (n.link) window.location.href = n.link; }}
+          onFollowLink={async (n: any) => {
+            if (!n.link) return;
+            setShowNotifs(false);
+            const ok = await followNotificationLink(n.link, {
+              onContentPlan: () => { onOpenContentPlanHub?.(); },
+              onProject: (pid) => { const p = projects.find((x: any) => x.id === pid); if (p && onOpenProject) onOpenProject(p); },
+              onMap: (pid, mid, nid) => { const p = projects.find((x: any) => x.id === pid); if (p && onOpenMap) onOpenMap({ id: mid }, p, false, false, nid); },
+            });
+            if (!ok) window.location.href = n.link;
+          }}
         />
       )}
       {showAIHub && (

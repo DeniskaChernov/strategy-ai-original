@@ -13,6 +13,8 @@ import {
   normalizeUser,
   patchUser,
   getProjects,
+  joinProject,
+  normalizeProject,
 } from "./client/api";
 import { makeTfn } from "./client/i18n/makeTfn";
 import { StrategyShellBg, type StrategyShellNav } from "./strategy-shell-sidebar";
@@ -172,6 +174,7 @@ export default function App(){
 
   const initRunningRef=useRef(false);
   const pendingDeepLinkRef=useRef<any>(null);
+  const pendingJoinRef=useRef<string|null>(null);
 
   async function openDeepLink(dl:any, userObj:any){
     try{
@@ -227,6 +230,8 @@ export default function App(){
       // Проверяем share-ссылку и deep-link в URL (поддерживаем query)
       const searchParams=new URLSearchParams(window.location.search);
       const shareFromQuery=searchParams.get("share");
+      const joinParam=(searchParams.get("join")||"").trim();
+      if(joinParam)pendingJoinRef.current=joinParam;
       const openParam=(searchParams.get("open")||"").toLowerCase(); // projects | project | map | contentplan
       const dlProjectId=searchParams.get("projectId")||"";
       const dlMapId=searchParams.get("mapId")||"";
@@ -312,6 +317,7 @@ export default function App(){
                   return;
                 }
               }
+              if(await processPendingJoin()){setAuthChecked(true);return;}
               if(mp.type==="privacy"){
                 setLegalKind("privacy");setScreen("legal");setAuthChecked(true);return;
               }
@@ -465,10 +471,26 @@ export default function App(){
     }
   }
 
+  async function processPendingJoin(): Promise<boolean>{
+    const jid=pendingJoinRef.current;
+    if(!jid)return false;
+    pendingJoinRef.current=null;
+    try{
+      const p=await joinProject(jid);
+      if(p){
+        onSelectProject(p);
+        try{window.history.replaceState({},"","/app");}catch{}
+        return true;
+      }
+    }catch{/* — */}
+    return false;
+  }
+
   async function handleAuth(u:any,isNew:boolean){
     trackSaEvent(isNew?"sign_up":"login",{method:"email"});
     setUser(u);setShowAuth(false);
     try{window.history.replaceState({},"","/app");}catch{}
+    if(await processPendingJoin())return;
     if(isNew){setShowTiers(true);}
     else{setScreen("dashboard");}
   }
@@ -738,6 +760,7 @@ export default function App(){
                 aiChatSetMsgs={setAiChatMsgs}
                 onSelectProject={onSelectProject}
                 onOpenMap={onOpenMap}
+                onShellNav={handleGlobalNav}
               />
             </React.Suspense>
           </AuthenticatedAppShell>
@@ -777,6 +800,8 @@ export default function App(){
                 onToggleTheme={toggleTheme}
                 onChangeTier={onChangeTier}
                 onUpgrade={()=>setShowProfile(true)}
+                onShellNav={handleGlobalNav}
+                onLogout={onLogout}
                 onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
                 onOpenContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);navigateTo("contentPlanProject",{clearProject:false,clearMap:true,clearCp:false});}}
                 aiChatMsgs={aiChatMsgs}

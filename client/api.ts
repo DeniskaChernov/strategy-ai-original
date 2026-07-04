@@ -405,6 +405,16 @@ export async function addProjectMember(projectId: string, email: string, role: s
   return null;
 }
 
+export async function joinProject(projectId: string) {
+  if (!API_BASE) return null;
+  try {
+    const d = await apiFetch(`/api/projects/${projectId}/join`, { method: 'POST' });
+    return normalizeProject(d.project);
+  } catch {
+    return null;
+  }
+}
+
 export async function removeProjectMember(projectId: string, email: string): Promise<any> {
   if (API_BASE) {
     try {

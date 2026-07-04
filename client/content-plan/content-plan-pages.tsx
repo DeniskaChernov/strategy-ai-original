@@ -3,7 +3,9 @@ import { API_BASE, getProjects } from "../api";
 import { getMaps, getMapsByProject } from "../lib/maps-api";
 import { useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
-import { StrategyShellBg } from "../../strategy-shell-sidebar";
+import { StrategyShellSidebar, StrategyShellBg, type StrategyShellNav } from "../../strategy-shell-sidebar";
+import { WorkspaceTopBar } from "../components/workspace-top-bar";
+import { followNotificationLink } from "../lib/notif-deep-link";
 import { MainWorkspaceNav } from "../components/main-workspace-nav";
 import { NotifBell } from "../components/notif-bell";
 import { useNotifications } from "../hooks/use-notifications";
@@ -15,9 +17,10 @@ import { FloatingAiAssistant } from "../floating-ai-assistant";
 import { ContentPlanTab } from "./content-plan-tab";
 
 // ── Хаб контент-плана: те же проекты, что и в стратегии ──
-export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,onLogout,onUpgrade,onProfile,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onSelectProject,onOpenMap}){
-  const{t,lang}=useLang();
+export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,onLogout,onUpgrade,onProfile,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onSelectProject,onOpenMap,onShellNav}:{user:any;theme:string;onBackToStrategy:()=>void;onOpenProject:(p:any,maps:any[])=>void;onLogout:()=>void;onUpgrade?:()=>void;onProfile:()=>void;onToggleTheme:()=>void;aiChatMsgs?:any[];aiChatSetMsgs?:(m:any[])=>void;onSelectProject?:(p:any)=>void;onOpenMap?:(map:any,project:any,isNew?:boolean,readOnly?:boolean,focusNodeId?:string|null)=>void;onShellNav?:(nav:StrategyShellNav)=>void;}){
+  const{t,lang,setLang}=useLang();
   const isMobile=useIsMobile();
+  const shellUi=!!user&&!isMobile;
   const[projects,setProjects]=useState<any[]>([]);
   const[mapsByProj,setMapsByProj]=useState<Record<string,any[]>>({});
   const[loading,setLoading]=useState(true);
@@ -34,44 +37,8 @@ export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,on
   const aiEdges=allMapsForAI.flatMap((m:any)=>m.edges||[]).slice(0,260);
   const aiCtx=`Портфель (контент-план): ${(projects||[]).slice(0,20).map((p:any)=>`«${p.name||"Проект"}»`).join(", ")}. Проектов: ${(projects||[]).length}, карт загружено: ${allMapsForAI.length}.`;
 
-  return(
-    <div className={"sa-strategy-ui "+(theme==="dark"?"dk":"lt")} data-theme={theme} style={{width:"100%",maxWidth:"100%",boxSizing:"border-box",height:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden",position:"relative"}}>
-      <StrategyShellBg/>
-      <div style={{flex:1,minHeight:0,minWidth:0,display:"flex",flexDirection:"column",position:"relative",zIndex:1,overflow:"hidden"}}>
-      <div className="sa-app-topbar">
-        <div className="atb-cluster" style={{minWidth:0}}>
-          <div className="land-logo" style={{gap:10}}>
-            <div className="land-gem" style={{width:32,height:32,borderRadius:10,fontSize:12}}>SA</div>
-            <span className="land-brand" style={{fontSize:15}}>Strategy AI</span>
-          </div>
-        </div>
-        {!isMobile&&(
-          <div style={{flex:1,display:"flex",justifyContent:"center",minWidth:0}}>
-            <MainWorkspaceNav mode="contentPlan" onStrategy={onBackToStrategy} onContentPlan={()=>{}} t={t} isMobile={false}/>
-          </div>
-        )}
-        <div className="atb-cluster" style={{marginLeft:isMobile?0:"auto"}}>
-          <div className="tpill" onClick={onToggleTheme} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onToggleTheme();}} aria-label={t("toggle_theme_tip","Сменить тему оформления")}>
-            <div className={`tpi${theme==="dark"?" on":""}`}>☽</div>
-            <div className={`tpi${theme==="light"?" on":""}`}>☀</div>
-          </div>
-          <button type="button" className="btn-g" onClick={()=>setShowAIHub(true)} title={t("ai_hub_title","✦ AI (единый чат)")} style={{height:32,fontSize:11.5,padding:"0 12px",display:"inline-flex",alignItems:"center",gap:6}}>
-            <span aria-hidden>✦</span>{!isMobile&&t("ai_hub_btn_short","AI-чат")}
-          </button>
-          {API_BASE&&<NotifBell unread={notifUnread} onClick={()=>setShowNotifs(true)} className="btn-ic"/>}
-          <button type="button" className="btn-g" onClick={onProfile} style={{height:32,padding:"0 12px",gap:8,display:"inline-flex",alignItems:"center",maxWidth:isMobile?44:220}}>
-            <span style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,var(--acc),var(--acc2))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#fff",flexShrink:0}}>{(user.name||user.email||"?")[0].toUpperCase()}</span>
-            {!isMobile&&<><span style={{fontSize:12,fontWeight:600,color:"var(--t1)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name||user.email?.split("@")[0]||"?"}</span><span style={{fontSize:10,fontWeight:700,color:"var(--t3)",textTransform:"uppercase"}}>{tier.label}</span></>}
-          </button>
-          <button type="button" className="btn-g" onClick={onLogout} style={{height:32,fontSize:11.5,color:"var(--red)"}}>{t("logout","Выйти")}</button>
-        </div>
-      </div>
-      {isMobile&&(
-        <div style={{padding:"10px 16px",borderBottom:"1px solid var(--border)",background:"var(--bg2)",display:"flex",justifyContent:"center"}}>
-          <MainWorkspaceNav mode="contentPlan" onStrategy={onBackToStrategy} onContentPlan={()=>{}} t={t} isMobile={true}/>
-        </div>
-      )}
-      <div style={{flex:1,overflowY:"auto",padding:isMobile?16:28,position:"relative",zIndex:5}}>
+  const hubScroll=(
+    <div className={shellUi?"scr":undefined} style={{flex:1,overflowY:"auto",padding:shellUi?"26px 28px 60px":isMobile?16:28,position:"relative",zIndex:5,minHeight:0}}>
         <div style={{maxWidth:"min(1240px,100%)",width:"100%",margin:"0 auto"}}>
           <div className="sa-page-reveal sa-pr-d1 sa-panel" style={{marginBottom:24}}>
             <div className="sa-page-hero" style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
@@ -132,55 +99,103 @@ export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,on
             </div>
           )}
         </div>
-      </div>
+    </div>
+  );
 
-      {showNotifs&&onSelectProject&&onOpenMap&&(
-        <NotificationsCenterModal
-          open={showNotifs}
-          onClose={()=>setShowNotifs(false)}
-          isMobile={isMobile}
-          zIndex={220}
-          notifs={notifs}
-          setNotifs={setNotifs}
+  async function handleNotifLink(n:any){
+    if(!n.link)return;
+    setShowNotifs(false);
+    const ok=await followNotificationLink(n.link,{
+      onContentPlan:(projectId)=>{const p=projects.find((x:any)=>x.id===projectId);if(p)onOpenProject(p,mapsByProj[projectId]||[]);},
+      onProject:(projectId)=>{const p=projects.find((x:any)=>x.id===projectId);if(p&&onSelectProject)onSelectProject(p);},
+      onMap:(projectId,mapId,nodeId)=>{const p=projects.find((x:any)=>x.id===projectId);if(p&&onOpenMap)onOpenMap({id:mapId},p,false,false,nodeId);},
+    });
+    if(!ok)window.location.href=n.link;
+  }
+
+  const hubBody=(
+    <>
+      {shellUi?(
+        <WorkspaceTopBar
+          title={t("shell_content_plan","Content Plan")}
+          subtitle={t("cp_hub_subtitle_short","{n} projects").replace("{n}",String(projects.length))}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          searchPlaceholder={t("dash_search_ph","Search… (⌘K)")}
+          showSearch={false}
           notifUnread={notifUnread}
-          setNotifUnread={setNotifUnread}
-          notifLoading={notifLoading}
-          lang={lang}
-          t={t}
-          loadNotifications={loadNotifications}
-          onFollowLink={async(n:any)=>{
-            if(!n.link)return;
-            try{
-              const u=new URL(n.link,window.location.origin);
-              const open=(u.searchParams.get("open")||"").toLowerCase();
-              const projectId=u.searchParams.get("projectId")||"";
-              const mapId=u.searchParams.get("mapId")||"";
-              const nodeId=u.searchParams.get("nodeId")||"";
-              if(open==="contentplan"&&projectId){
-                const p=projects.find((x:any)=>x.id===projectId);
-                if(p){setShowNotifs(false);onOpenProject(p,mapsByProj[projectId]||[]);return;}
-              }
-              if(open==="project"&&projectId){
-                const p=projects.find((x:any)=>x.id===projectId);
-                if(p){setShowNotifs(false);onSelectProject(p);return;}
-              }
-              if(open==="map"&&projectId&&mapId){
-                const p=projects.find((x:any)=>x.id===projectId);
-                if(p){setShowNotifs(false);onOpenMap({id:mapId},p,false,false,nodeId||null);return;}
-              }
-            }catch{}
-            window.location.href=n.link;
-          }}
+          onNotifs={()=>setShowNotifs(true)}
+          showNotifs={!!API_BASE}
+          onSettings={onProfile}
+          newProjectLabel={t("new_project","New project")}
         />
+      ):(
+        <>
+          <div className="sa-app-topbar">
+            <div className="atb-cluster" style={{minWidth:0}}>
+              <div className="land-logo" style={{gap:10}}>
+                <div className="land-gem" style={{width:32,height:32,borderRadius:10,fontSize:12}}>SA</div>
+                <span className="land-brand" style={{fontSize:15}}>Strategy AI</span>
+              </div>
+            </div>
+            {!isMobile&&(
+              <div style={{flex:1,display:"flex",justifyContent:"center",minWidth:0}}>
+                <MainWorkspaceNav mode="contentPlan" onStrategy={onBackToStrategy} onContentPlan={()=>{}} t={t} isMobile={false}/>
+              </div>
+            )}
+            <div className="atb-cluster" style={{marginLeft:isMobile?0:"auto"}}>
+              <div className="tpill" onClick={onToggleTheme} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onToggleTheme();}} aria-label={t("toggle_theme_tip","Сменить тему оформления")}>
+                <div className={`tpi${theme==="dark"?" on":""}`}>☽</div>
+                <div className={`tpi${theme==="light"?" on":""}`}>☀</div>
+              </div>
+              <button type="button" className="btn-g" onClick={()=>setShowAIHub(true)} title={t("ai_hub_title","✦ AI (единый чат)")} style={{height:32,fontSize:11.5,padding:"0 12px",display:"inline-flex",alignItems:"center",gap:6}}>
+                <span aria-hidden>✦</span>{!isMobile&&t("ai_hub_btn_short","AI-чат")}
+              </button>
+              {API_BASE&&<NotifBell unread={notifUnread} onClick={()=>setShowNotifs(true)} className="btn-ic"/>}
+              <button type="button" className="btn-g" onClick={onProfile} style={{height:32,padding:"0 12px",gap:8,display:"inline-flex",alignItems:"center",maxWidth:isMobile?44:220}}>
+                <span style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,var(--acc),var(--acc2))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#fff",flexShrink:0}}>{(user.name||user.email||"?")[0].toUpperCase()}</span>
+                {!isMobile&&<><span style={{fontSize:12,fontWeight:600,color:"var(--t1)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name||user.email?.split("@")[0]||"?"}</span><span style={{fontSize:10,fontWeight:700,color:"var(--t3)",textTransform:"uppercase"}}>{tier.label}</span></>}
+              </button>
+              <button type="button" className="btn-g" onClick={onLogout} style={{height:32,fontSize:11.5,color:"var(--red)"}}>{t("logout","Выйти")}</button>
+            </div>
+          </div>
+          {isMobile&&(
+            <div style={{padding:"10px 16px",borderBottom:"1px solid var(--border)",background:"var(--bg2)",display:"flex",justifyContent:"center"}}>
+              <MainWorkspaceNav mode="contentPlan" onStrategy={onBackToStrategy} onContentPlan={()=>{}} t={t} isMobile={true}/>
+            </div>
+          )}
+        </>
       )}
-
+      {hubScroll}
+      {showNotifs&&onSelectProject&&onOpenMap&&(
+        <NotificationsCenterModal open={showNotifs} onClose={()=>setShowNotifs(false)} isMobile={isMobile} zIndex={220} notifs={notifs} setNotifs={setNotifs} notifUnread={notifUnread} setNotifUnread={setNotifUnread} notifLoading={notifLoading} lang={lang} t={t} loadNotifications={loadNotifications} onFollowLink={handleNotifLink}/>
+      )}
       {showAIHub&&(
         <AiHubModal open={showAIHub} onClose={()=>setShowAIHub(false)} isMobile={isMobile} t={t} hint={t("ai_hub_hint_cp","Тот же чат, что в стратегии. Контекст — проекты и карты, открытые в разделе контент-плана.")}>
           <AiPanel embedded={true} isMobile={isMobile} nodes={aiNodes} edges={aiEdges} ctx={aiCtx} tier={user?.tier||"free"} projectName={t("cp_hub_title","Контент-план")} mapName="" userName={user?.name||user?.email||""} msgs={aiChatMsgs||[]} onMsgsChange={aiChatSetMsgs||(()=>{})} onAddNode={()=>{}} onClose={()=>{}} externalMsgs={[]} onClearExternal={()=>{}} onError={()=>{}} statusMap={getSTATUS(t)}/>
         </AiHubModal>
       )}
-      <FloatingAiAssistant t={t} variant="app" onOpenFullChat={() => setShowAIHub(true)} />
-    </div></div>
+      <FloatingAiAssistant t={t} variant="app" onOpenFullChat={()=>setShowAIHub(true)}/>
+    </>
+  );
+
+  if(shellUi){
+    return(
+      <div className={"sa-strategy-ui sa-v-app "+(theme==="dark"?"dk":"lt")} data-theme={theme} style={{width:"100%",height:"100%",minHeight:"100vh",maxHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden"}}>
+        <StrategyShellBg/>
+        <div className="sa-app" style={{flex:1,minHeight:0,minWidth:0,display:"flex",overflow:"hidden",position:"relative",zIndex:1}}>
+          <StrategyShellSidebar theme={theme} onToggleTheme={onToggleTheme} activeNav="contentPlan" onNavigate={(nav)=>{if(nav==="contentPlan")return;onShellNav?onShellNav(nav):onBackToStrategy();}} tierLabel={tier.label} tierColor={tier.color} onTierClick={onUpgrade||onProfile} lang={lang} onLang={code=>setLang(code)} userName={user.name||""} userEmail={user.email||""} projectCount={projects.length} onUserCard={onProfile} onLogout={onLogout} showContentPlan={true} onContentPlan={()=>{}} showTrialBanner={(user?.tier||"free")==="free"} onLogoClick={()=>onShellNav?.("dashboard")} t={t}/>
+          <div className="sa-main" style={{flex:1,minWidth:0,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden"}}>{hubBody}</div>
+        </div>
+      </div>
+    );
+  }
+
+  return(
+    <div className={"sa-strategy-ui "+(theme==="dark"?"dk":"lt")} data-theme={theme} style={{width:"100%",maxWidth:"100%",boxSizing:"border-box",height:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden",position:"relative"}}>
+      <StrategyShellBg/>
+      <div style={{flex:1,minHeight:0,minWidth:0,display:"flex",flexDirection:"column",position:"relative",zIndex:1,overflow:"hidden"}}>{hubBody}</div>
+    </div>
   );
 }
 

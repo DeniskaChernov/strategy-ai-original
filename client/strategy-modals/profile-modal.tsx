@@ -11,7 +11,7 @@ import { TIER_ORDER, TIER_MKT, TIER_FEAT_KEY, ALL_FEATURES } from "../lib/tier-m
 import { getTierPrice } from "../lib/strategy-labels";
 import { fmt } from "../lib/util";
 
-export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme="dark",onToggleTheme,palette="indigo",onPaletteChange}){
+export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme="dark",onToggleTheme,palette="indigo",onPaletteChange,settingsShell=false}){
   const{t,lang,setLang}=useLang();
   const tier=TIERS[user.tier]||TIERS.free;
   const isMobile=useIsMobile();
@@ -159,7 +159,7 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
 
   return(
     <div data-theme={theme} className={closing?"modal-backdrop modal-backdrop-out":"modal-backdrop"} style={{position:"fixed",inset:0,background:"var(--modal-overlay-bg,rgba(0,0,0,.75))",display:"flex",alignItems:isMobile?"flex-end":"center",justifyContent:"center",zIndex:200,backdropFilter:"blur(16px)"}} onClick={e=>{if(e.target===e.currentTarget&&!buyPhase&&!showDeleteConfirm)handleClose();}}>
-<div role="dialog" aria-modal="true" aria-labelledby="sa-pf-title" className={`glass-panel glass-panel-lg ${closing?"modal-content-out":isMobile?"":"modal-content-pop"}`} style={{position:"relative",width:isMobile?"100%":"min(96vw,980px)",height:isMobile?"90vh":680,minHeight:520,borderRadius:20,display:"flex",flexDirection:"column",animation:isMobile&&!closing?"slideUp .3s cubic-bezier(0.22,1,0.36,1)":"none",overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
+<div role="dialog" aria-modal="true" aria-labelledby="sa-pf-title" className={`glass-panel glass-panel-lg ${settingsShell?"settings-layout":""} ${closing?"modal-content-out":isMobile?"":"modal-content-pop"}`} style={{position:"relative",width:isMobile?"100%":settingsShell?"min(96vw,1040px)":"min(96vw,980px)",height:isMobile?"90vh":settingsShell?720:680,minHeight:520,borderRadius:20,display:"flex",flexDirection:"column",animation:isMobile&&!closing?"slideUp .3s cubic-bezier(0.22,1,0.36,1)":"none",overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
         <SheetSwipeHandle enabled={isMobile&&!buyPhase&&!showDeleteConfirm} onClose={handleClose} />
 
         {/* Header */}
@@ -192,8 +192,6 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
 
         {/* Content — фиксированная высота для всех вкладок */}
         <div style={{flex:1,minHeight:380,overflow:"hidden",display:"flex"}}>
-
-          {/* ── PROFILE TAB ── */}
           {tab==="profile"&&(
             <div className="tab-content" style={{flex:1,overflowY:"auto",padding:isMobile?"20px 16px":"28px 32px",minHeight:380}}>
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?24:28,maxWidth:680}}>

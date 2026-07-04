@@ -7,12 +7,15 @@ export function WorkspaceTopBar({
   onToggleTheme,
   searchPlaceholder,
   onSearchClick,
+  showSearch = true,
   notifUnread = 0,
   onNotifs,
   showNotifs = true,
   onSettings,
   onNewProject,
   newProjectLabel,
+  onBack,
+  primaryCta,
 }: {
   title: string;
   subtitle?: string;
@@ -20,24 +23,34 @@ export function WorkspaceTopBar({
   onToggleTheme: () => void;
   searchPlaceholder: string;
   onSearchClick?: () => void;
+  /** When false, hides search affordance (e.g. offline / no API) */
+  showSearch?: boolean;
   notifUnread?: number;
   onNotifs?: () => void;
   showNotifs?: boolean;
   onSettings?: () => void;
   onNewProject?: () => void;
   newProjectLabel: string;
+  onBack?: () => void;
+  primaryCta?: { label: string; onClick: () => void };
 }) {
   const isDark = theme === "dark";
 
   return (
     <div className="sa-topbar">
       <div className="tb-l">
+        {onBack ? (
+          <button type="button" className="sa-back-ic" onClick={onBack} aria-label="Back" style={{ marginRight: 8 }}>
+            ←
+          </button>
+        ) : null}
         <div className="tb-title-wrap">
           <div className="tb-title">{title}</div>
           {subtitle ? <div className="tb-sub">{subtitle}</div> : null}
         </div>
       </div>
       <div className="tb-r">
+        {showSearch && onSearchClick ? (
         <div
           className="srch"
           onClick={onSearchClick}
@@ -71,6 +84,7 @@ export function WorkspaceTopBar({
             }}
           />
         </div>
+        ) : null}
         {showNotifs && onNotifs ? (
           <div
             className="btn-ic"
@@ -129,7 +143,11 @@ export function WorkspaceTopBar({
             </svg>
           </div>
         ) : null}
-        {onNewProject ? (
+        {primaryCta ? (
+          <button type="button" className="btn-p" onClick={primaryCta.onClick}>
+            {primaryCta.label}
+          </button>
+        ) : onNewProject ? (
           <button type="button" className="btn-p" onClick={onNewProject}>
             + {newProjectLabel}
           </button>

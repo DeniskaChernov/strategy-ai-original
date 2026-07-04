@@ -1,4 +1,5 @@
 import React from "react";
+import { useIsMobile } from "../hooks/use-is-mobile";
 import { TrialBanner, EmailVerifyBanner } from "./trial-email-banners";
 import { ProfileModal } from "../strategy-modals/profile-modal";
 
@@ -32,6 +33,8 @@ export function AuthenticatedAppShell({
   onPaletteChange,
   children,
 }: AuthenticatedAppShellProps) {
+  const isMobile = useIsMobile();
+  const settingsShell = !isMobile;
   return (
     <div className="screen-enter" style={{ height: "100%", display: "flex", flexDirection: "column", flex: 1 }}>
       <TrialBanner user={user} onUpgrade={onUpgrade} />
@@ -48,6 +51,7 @@ export function AuthenticatedAppShell({
           onChangeTier={onChangeTier}
           onLogout={onLogout}
           onToggleTheme={onToggleTheme}
+          settingsShell={settingsShell}
         />
       )}
     </div>

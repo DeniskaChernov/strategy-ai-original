@@ -390,6 +390,7 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
           notifUnread={notifUnread}
           onNotifs={()=>setShowNotifs(true)}
           showNotifs={!!API_BASE}
+          showSearch={!!API_BASE}
           onSettings={onProfile}
           onNewProject={atLimit?undefined:()=>setCreating(true)}
           newProjectLabel={t("new_project","New project")}
@@ -411,7 +412,21 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
               </>
             ):(
               <>
-                <div className="slbl">{t("all_projects","All projects")} <span style={{color:"var(--acc)",fontWeight:700}}>{filtered.length}</span></div>
+                <div className="slbl" style={{marginBottom:10}}>
+                  {t("all_projects","All projects")} <span style={{color:"var(--acc)",fontWeight:700}}>{filtered.length}</span>
+                </div>
+                <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap",alignItems:"center"}}>
+                  <select value={roleFilter} onChange={e=>setRoleFilter(e.target.value)} className="btn-g" style={{height:32,fontSize:12,padding:"0 10px",background:"var(--inp)",border:".5px solid var(--b1)",borderRadius:10,color:"var(--t1)"}}>
+                    <option value="all">{t("filter_all","All")}</option>
+                    <option value="owner">{t("filter_owner","Mine")}</option>
+                    <option value="member">{t("filter_member","Member")}</option>
+                  </select>
+                  <select value={sortMode} onChange={e=>setSortMode(e.target.value)} className="btn-g" style={{height:32,fontSize:12,padding:"0 10px",background:"var(--inp)",border:".5px solid var(--b1)",borderRadius:10,color:"var(--t1)"}}>
+                    <option value="recent">{t("sort_recent","Recent")}</option>
+                    <option value="oldest">{t("sort_oldest","Oldest")}</option>
+                    <option value="name">{t("sort_name","Name")}</option>
+                  </select>
+                </div>
                 <div className="proj-grid">
                   {filtered.map((p,i)=>renderReferenceProjectCard(p,i))}
                   {!atLimit&&(
@@ -796,9 +811,10 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
 }
 
 // ── ProjectDetail ──
-export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onToggleTheme,onChangeTier,onUpgrade,onOpenContentPlanHub,onOpenContentPlanProject,aiChatMsgs,aiChatSetMsgs}){
-  const{t,lang}=useLang();
+export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onToggleTheme,onChangeTier,onUpgrade,onOpenContentPlanHub,onOpenContentPlanProject,aiChatMsgs,aiChatSetMsgs,onShellNav,onLogout}:any){
+  const{t,lang,setLang}=useLang();
   const isMobile=useIsMobile();
+  const shellUi=!isMobile;
   const[maps,setMaps]=useState<MapLite[]>([]);
   const[loading,setLoading]=useState(true);
   const[tab,setTab]=useState<"maps"|"scenarios"|"content"|"ai"|"team"|"settings">("maps");
@@ -909,6 +925,24 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
   const regularMaps=maps.filter(m=>!m.isScenario);
   const scenarios=maps.filter(m=>m.isScenario);
 
+  function handleDetailShellNav(nav:StrategyShellNav){
+    if(nav==="projects"){onBack();return;}
+    onShellNav?.(nav);
+  }
+
+  async function copyProjectShareLink(){
+    const m=regularMaps[0];
+    if(!m){setToast({msg:t("share_need_map","Сначала создайте карту"),type:"warn"});return;}
+    try{
+      if(API_BASE){
+        const d=await apiFetch("/api/shares",{method:"POST",body:JSON.stringify({mapId:m.id,projectId:proj.id,projectName:proj.name||"",mapData:m})});
+        const url=d.url||`${window.location.origin}/?share=${d.shareId}`;
+        await navigator.clipboard.writeText(url);
+        setToast({msg:t("link_copied","Ссылка скопирована"),type:"success"});
+      }else{setToast({msg:t("share_online_only","Доступно при подключении к серверу"),type:"info"});}
+    }catch(e:any){setToast({msg:e?.message||t("share_err","Ошибка"),type:"error"});}
+  }
+
   // Stats
   const allNodes=maps.flatMap(m=>m.nodes||[]);
   const allEdges=maps.flatMap(m=>m.edges||[]);
@@ -951,12 +985,28 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
     );
   }
 
-  return(
-    <div className={"sa-strategy-ui "+(theme==="dark"?"dk":"lt")} data-theme={theme} style={{minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative",overflowX:"hidden"}}>
-      <StrategyShellBg/>
-      <div style={{position:"relative",zIndex:1,minHeight:"100vh",display:"flex",flexDirection:"column"}}>
+  const detailBody=(
+  <>
 {toast&&<Toast msg={toast.msg} type={toast.type} onClose={()=>setToast(null)}/>}
 
+      {shellUi?(
+        <WorkspaceTopBar
+          title={proj.name||t("project_short","Проект")}
+          subtitle={`${myRole} · ${regularMaps.length} ${t("maps_cap","Maps")} · ${totalNodes} ${t("steps_cap","Steps")}`}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          onBack={onBack}
+          searchPlaceholder={t("dash_search_ph","Search… (⌘K)")}
+          showSearch={false}
+          notifUnread={notifUnread}
+          onNotifs={()=>setShowNotifs(true)}
+          showNotifs={!!API_BASE}
+          onSettings={onProfile}
+          newProjectLabel={t("new_map","New map")}
+          primaryCta={canEdit?{label:"+ "+t("new_map","New map"),onClick:()=>createMap()}:undefined}
+        />
+      ):(
+      <>
       <div className="sa-app-topbar">
         <div className="atb-cluster" style={{minWidth:0,flex:isMobile?"1 1 100%":"1 1 auto",maxWidth:isMobile?"100%":"46%"}}>
           <button type="button" className="sa-back-ic" onClick={onBack} aria-label={t("back_btn","Назад")}>←</button>
@@ -984,7 +1034,10 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           <MainWorkspaceNav mode="strategy" onStrategy={()=>{}} onContentPlan={onOpenContentPlanHub} t={t} isMobile={true}/>
         </div>
       )}
+      </>
+      )}
 
+      {!shellUi&&(
       <div className="sa-page-reveal sa-pr-d1" style={{maxWidth:1000,width:"100%",margin:"0 auto",padding:isMobile?"18px 20px 0":"24px 32px 0"}}>
         <div className="sa-bento sa-bento--4" style={{gap:isMobile?12:16}}>
           {[
@@ -1004,8 +1057,9 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           ))}
         </div>
       </div>
+      )}
 
-      <div className="sa-proj-tabs sa-page-reveal sa-pr-d2" role="tablist">
+      <div className={"proj-tabs-bar"+(shellUi?"":" sa-proj-tabs sa-page-reveal sa-pr-d2")} role="tablist">
         {([
           ["maps",isMobile?`🗺 (${regularMaps.length})`:`🗺 ${t("pd_tab_maps","Карты")} (${regularMaps.length})`],
           ["scenarios",isMobile?`⎇ (${scenarios.length})`:`⎇ ${t("pd_tab_scenarios","Сценарии")} (${scenarios.length})`],
@@ -1018,7 +1072,8 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
         ))}
       </div>
 
-      <div className="sa-page-reveal sa-pr-d3" style={{maxWidth:1000,margin:"0 auto",padding:isMobile?"24px 20px":"36px 32px",flex:1}}>
+      <div className={shellUi?"scr":undefined} style={{flex:1,overflowY:"auto",minHeight:0}}>
+      <div className="sa-page-reveal sa-pr-d3" style={{maxWidth:shellUi?"min(1000px,100%)":1000,margin:"0 auto",padding:isMobile?"24px 20px":"36px 32px",flex:1}}>
         {/* Maps Tab */}
         {tab==="maps"&&(
           <div>
@@ -1244,11 +1299,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
                   <div style={{fontSize:13,fontWeight:700,color:"var(--text)"}}>{t("share_link_title","Ссылка только для чтения")}</div>
                   <div style={{fontSize:12.5,color:"var(--text5)"}}>{t("share_link_desc","Любой с этой ссылкой увидит карты и контент-план без возможности редактировать.")}</div>
                 </div>
-                <button onClick={async()=>{
-                  const url=`${window.location.origin}/?share=${proj.id}`;
-                  try{await navigator.clipboard.writeText(url);setToast({msg:t("link_copied","Ссылка скопирована"),type:"success"});setTimeout(()=>setToast(null),2500);}
-                  catch{setToast({msg:url,type:"info"});setTimeout(()=>setToast(null),5000);}
-                }} className="btn-interactive" style={{padding:"8px 14px",borderRadius:10,border:"1px solid var(--accent-1)",background:"var(--accent-soft)",color:"var(--accent-1)",cursor:"pointer",fontSize:12.5,fontWeight:800}}>🔗 {t("copy_link","Скопировать")}</button>
+                <button type="button" onClick={copyProjectShareLink} className="btn-interactive" style={{padding:"8px 14px",borderRadius:10,border:"1px solid var(--accent-1)",background:"var(--accent-soft)",color:"var(--accent-1)",cursor:"pointer",fontSize:12.5,fontWeight:800}}>🔗 {t("copy_link","Скопировать")}</button>
               </div>
             </div>
             <div>
@@ -1265,6 +1316,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
             )}
           </div>
         )}
+      </div>
       </div>
 
       {/* Modals */}
@@ -1339,7 +1391,42 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           </div>
         </div>
       )}
+  </>
+  );
+
+  return shellUi?(
+    <div className={"sa-strategy-ui sa-v-app "+(theme==="dark"?"dk":"lt")} data-theme={theme} style={{width:"100%",height:"100%",minHeight:"100vh",maxHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden"}}>
+      <StrategyShellBg/>
+      <div className="sa-app" style={{flex:1,minHeight:0,minWidth:0,display:"flex",overflow:"hidden",position:"relative",zIndex:1}}>
+        <StrategyShellSidebar
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          activeNav="projects"
+          onNavigate={handleDetailShellNav}
+          tierLabel={tier.label}
+          tierColor={tier.color}
+          onTierClick={onProfile}
+          lang={lang}
+          onLang={code=>setLang(code)}
+          userName={user.name||""}
+          userEmail={user.email||""}
+          scenarioCount={scenarios.length}
+          projectCount={1}
+          onUserCard={onProfile}
+          onLogout={onLogout}
+          showContentPlan={!!onOpenContentPlanHub}
+          onContentPlan={onOpenContentPlanHub?()=>onOpenContentPlanHub():undefined}
+          showTrialBanner={(user?.tier||"free")==="free"}
+          onLogoClick={onBack}
+          t={t}
+        />
+        <div className="sa-main" style={{flex:1,minWidth:0,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden"}}>{detailBody}</div>
       </div>
+    </div>
+  ):(
+    <div className={"sa-strategy-ui "+(theme==="dark"?"dk":"lt")} data-theme={theme} style={{minHeight:"100vh",fontFamily:"'Inter',system-ui,sans-serif",position:"relative",overflowX:"hidden"}}>
+      <StrategyShellBg/>
+      <div style={{position:"relative",zIndex:1,minHeight:"100vh",display:"flex",flexDirection:"column"}}>{detailBody}</div>
     </div>
   );
 }
