@@ -1,3 +1,5 @@
+import sharedTiers from "../../shared/tiers.json";
+
 export type TierKey = "free" | "starter" | "pro" | "team" | "enterprise";
 
 export type TierDef = {
@@ -25,114 +27,25 @@ const COLORS: Record<TierKey, string> = {
   enterprise: "#06b6d4",
 };
 
-const RAW: Record<TierKey, Omit<TierDef, "color" | "users" | "templates" | "contentPlan" | "pptx">> = {
-  free: {
-    label: "Free",
-    price: 0,
-    currency: "USD",
-    maps: 1,
-    projects: 1,
-    members: 1,
-    scenarios: 0,
-    ai_messages: 0,
-    features: [
-      "3 стратегии в месяц",
-      "Базовый анализ ниши",
-      "Базовая маркетинговая стратегия",
-      "Экспорт в текст",
-    ],
-  },
-  starter: {
-    label: "Starter",
-    price: 9,
-    currency: "USD",
-    maps: 3,
-    projects: 3,
-    members: 3,
-    scenarios: 2,
-    ai_messages: 1500,
-    features: [
-      "Unlimited стратегии",
-      "До 1500 AI сообщений/мес",
-      "Глубокий анализ ниши",
-      "Стратегия продвижения",
-      "Маркетинговая воронка",
-      "Контент-стратегия",
-      "Экспорт стратегии",
-    ],
-  },
-  pro: {
-    label: "Pro",
-    price: 29,
-    currency: "USD",
-    maps: 5,
-    projects: 10,
-    members: 5,
-    scenarios: 5,
-    ai_messages: 8000,
-    features: [
-      "Unlimited стратегии",
-      "До 8000 AI сообщений/мес",
-      "Расширенный анализ рынка",
-      "Анализ конкурентов",
-      "Воронки продаж",
-      "Рекламные стратегии",
-      "Генерация маркетинговых гипотез",
-      "Приоритетная скорость",
-    ],
-  },
-  team: {
-    label: "Team",
-    price: 59,
-    currency: "USD",
-    maps: 15,
-    projects: 25,
-    members: 10,
-    scenarios: 15,
-    ai_messages: 25000,
-    features: [
-      "Unlimited стратегии",
-      "До 25000 AI сообщений/мес",
-      "До 10 пользователей",
-      "Совместная работа",
-      "Сохранение стратегий",
-      "Приоритетная поддержка",
-    ],
-  },
-  enterprise: {
-    label: "Enterprise",
-    price: 149,
-    currency: "USD",
-    maps: 999999,
-    projects: 999999,
-    members: 999999,
-    scenarios: 999999,
-    ai_messages: 999999,
-    features: [
-      "Unlimited всё",
-      "Индивидуальные лимиты",
-      "API доступ",
-      "Кастомные модели",
-      "Персональная поддержка",
-    ],
-  },
-};
-
 function lim(n: number): number {
   return n >= 999999 ? Infinity : n;
 }
 
 function build(): Record<TierKey, TierDef> {
-  const keys: TierKey[] = ["free", "starter", "pro", "team", "enterprise"];
+  const keys = Object.keys(sharedTiers) as TierKey[];
   const out = {} as Record<TierKey, TierDef>;
   for (const k of keys) {
-    const r = RAW[k];
+    const r = sharedTiers[k];
     out[k] = {
-      ...r,
+      label: r.label,
+      price: r.price,
+      currency: r.currency,
       maps: lim(r.maps),
       projects: lim(r.projects),
       members: lim(r.members),
       scenarios: lim(r.scenarios),
+      ai_messages: r.ai_messages,
+      features: r.features,
       color: COLORS[k],
       users: lim(r.members),
       templates: k === "team" || k === "enterprise",

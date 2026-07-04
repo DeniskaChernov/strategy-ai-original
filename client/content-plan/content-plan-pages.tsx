@@ -1,92 +1,18 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
-import { NW, NH, fmt, sleep, uid, snap } from "../lib/util";
-import {
-  API_BASE,
-  apiFetch,
-  store,
-  refreshUserAfterPayment,
-  getJWT,
-  clearJWT,
-  clearRefreshToken,
-  getSession,
-  setSession,
-  clearSession,
-  seedDefault,
-  normalizeUser,
-  patchUser,
-  hashPw,
-  normalizeProject,
-  getProjects,
-  saveProject,
-  addProjectMember,
-  removeProjectMember,
-  deleteProject,
-} from "../api";
-import { makeTfn } from "../i18n/makeTfn";
-import { StrategyShellSidebar, StrategyShellBg, type StrategyShellNav } from "../../strategy-shell-sidebar";
-const ReferenceLandingView = React.lazy(() =>
-  import("../../reference-landing").then((m) => ({ default: m.ReferenceLandingView }))
-);
-import { GlowCard } from "../glow-card";
-import { FloatingAiAssistant } from "../floating-ai-assistant";
-import { SplashLoaderScreen } from "../splash-loader";
-import { GlassCalendar, dateToYMD } from "../glass-calendar";
-import { parseMarketingPath } from "../spa-path";
-import { applySeoForAppScreen } from "../seo-head";
-import { LegalDocumentPage, NotFoundPage } from "../legal-pages";
-import { trackSaEvent } from "../analytics";
-import {
-  UUID_RE,
-  isUUID,
-  normalizeMap,
-  edgePt,
-  defaultNodes,
-  topSort,
-} from "../lib/map-utils";
-import { getMaps, getMapsByProject, saveMap, deleteMap, getContentPlan, saveContentPlan } from "../lib/maps-api";
-import { AI_KNOWLEDGE, AI_STRICT_RULES, AI_TIER, OB_TIER, MAP_TIER } from "../lib/ai-prompts";
-import { LangCtx, useLang } from "../lang-context";
+import React, { useState, useEffect } from "react";
+import { API_BASE, getProjects } from "../api";
+import { getMaps, getMapsByProject } from "../lib/maps-api";
+import { useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
-import { SheetSwipeHandle } from "../components/sheet-swipe-handle";
-import { ConfirmDialog } from "../strategy-modals/confirm-dialog";
+import { StrategyShellBg } from "../../strategy-shell-sidebar";
+import { MainWorkspaceNav } from "../components/main-workspace-nav";
+import { NotifBell } from "../components/notif-bell";
+import { useNotifications } from "../hooks/use-notifications";
 import { AiHubModal, NotificationsCenterModal } from "../strategy-modals/notifications-ai-hub-modals";
 import { TIERS } from "../lib/tiers";
-import { getROLES, getSTATUS, getPRIORITY, getSTATUSES, getPRIORITIES, getETYPE, getTierPrice } from "../lib/strategy-labels";
-import { callAI } from "../lib/call-ai";
-import { StatsPopup } from "../strategy-modals/stats-popup";
-import { VersionHistoryModal } from "../strategy-modals/version-history-modal";
-import { WeeklyBriefingModal } from "../strategy-modals/weekly-briefing-modal";
-import { ScenarioTemplatesModal } from "../strategy-modals/scenario-templates-modal";
-import { TemplateModal } from "../strategy-modals/template-modal";
-import { useNotifications } from "../hooks/use-notifications";
-import { sanitize } from "../lib/sanitize";
-import { MainWorkspaceNav } from "../components/main-workspace-nav";
-import { Toggle } from "../components/toggle";
-import { IconButton } from "../components/icon-button";
-import { OfflineBanner } from "../components/offline-banner";
-import { CustomSelect } from "../components/custom-select";
-import { Toast } from "../components/toast";
-import { NotifBell } from "../components/notif-bell";
-import { MapTour } from "../components/map-tour";
-import { AppTopBar } from "../components/app-top-bar";
-import { SimulationModal } from "../strategy-modals/simulation-modal";
-import { PillGroup } from "../components/pill-group";
-import { MapConflictModal } from "../strategy-modals/map-conflict-modal";
-import { ALL_FEATURES, TIER_FEAT_KEY, TIER_ORDER, TIER_MKT } from "../lib/tier-marketing-data";
-import { FeatureValue } from "../components/feature-value";
-import { TierSelectionScreen } from "../components/tier-selection-screen";
-import { SavingScreen } from "../components/saving-screen";
-import { AuthModal } from "../strategy-modals/auth-modal";
-import { CookieConsent } from "../components/cookie-consent";
-import { MiniMap } from "../components/mini-map";
-import { GanttView } from "../components/gantt-view";
-import { ProfileModal } from "../strategy-modals/profile-modal";
-import { IconTrash } from "../components/icons";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Onboarding } from "../onboarding/onboarding";
+import { getSTATUS } from "../lib/strategy-labels";
 import { AiPanel } from "../map-editor/ai-panel";
-import { ContentPlanTab } from "../content-plan/content-plan-tab";
-import { ProjectsPage, ProjectDetail } from "../projects/projects";
+import { FloatingAiAssistant } from "../floating-ai-assistant";
+import { ContentPlanTab } from "./content-plan-tab";
 
 // ── Хаб контент-плана: те же проекты, что и в стратегии ──
 export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,onLogout,onUpgrade,onProfile,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onSelectProject,onOpenMap}){

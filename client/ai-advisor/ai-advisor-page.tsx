@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getProjects } from "../api";
+import { API_BASE, getProjects } from "../api";
 import { getMapsByProject } from "../lib/maps-api";
 import { useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
+import { useNotifications } from "../hooks/use-notifications";
 import { TIERS } from "../lib/tiers";
 import { getSTATUS } from "../lib/strategy-labels";
 import { StrategyShellSidebar, StrategyShellBg, type StrategyShellNav } from "../../strategy-shell-sidebar";
 import { AppTopBar } from "../components/app-top-bar";
+import { NotifBell } from "../components/notif-bell";
+import { NotificationsCenterModal } from "../strategy-modals/notifications-ai-hub-modals";
 import { AiPanel } from "../map-editor/ai-panel";
 
 export function AiAdvisorPage({
@@ -43,6 +46,8 @@ export function AiAdvisorPage({
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const { notifs, setNotifs, notifUnread, setNotifUnread, notifLoading, loadNotifications } = useNotifications(showNotifs, user?.email);
 
   useEffect(() => {
     let alive = true;
@@ -118,13 +123,18 @@ export function AiAdvisorPage({
   const body = (
     <>
       {shellUi ? (
-        <AppTopBar title={t("shell_ai_advisor", "AI советник")} subtitle={t("ai_subtitle", "Контекстный советник по вашей стратегии")} />
+        <AppTopBar
+          title={t("shell_ai_advisor", "AI советник")}
+          subtitle={t("ai_subtitle", "Контекстный советник по вашей стратегии")}
+          rightContent={API_BASE ? <NotifBell unread={notifUnread} onClick={() => setShowNotifs(true)} className="btn-ic" /> : undefined}
+        />
       ) : (
         <div className="sa-app-topbar">
           <div className="atb-cluster" style={{ minWidth: 0 }}>
             <div className="land-logo" style={{ gap: 10 }}><div className="land-gem" style={{ width: 32, height: 32, borderRadius: 10, fontSize: 12 }}>SA</div><span className="land-brand" style={{ fontSize: 15 }}>Strategy AI</span></div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+            {API_BASE && <NotifBell unread={notifUnread} onClick={() => setShowNotifs(true)} className="btn-ic" />}
             <button onClick={onToggleTheme} style={{ padding: "5px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text3)", cursor: "pointer", fontSize: 13 }}>{theme === "dark" ? "☀️" : "🌙"}</button>
           </div>
         </div>
@@ -132,6 +142,26 @@ export function AiAdvisorPage({
       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: shellUi ? 18 : 12 }}>{ctxStrip}{chat}</div>
     </>
   );
+
+  const notifsModal = showNotifs ? (
+    <NotificationsCenterModal
+      open={showNotifs}
+      onClose={() => setShowNotifs(false)}
+      isMobile={isMobile}
+      zIndex={260}
+      notifs={notifs}
+      setNotifs={setNotifs}
+      notifUnread={notifUnread}
+      setNotifUnread={setNotifUnread}
+      notifLoading={notifLoading}
+      lang={lang}
+      t={t}
+      loadNotifications={loadNotifications}
+      showItemMeta={false}
+      deleteGlyph="×"
+      onFollowLink={async (n: any) => { if (n.link) window.location.href = n.link; }}
+    />
+  ) : null;
 
   return shellUi ? (
     <div className={"sa-strategy-ui sa-v-app " + (theme === "dark" ? "dk" : "lt")} data-theme={theme} style={{ width: "100%", height: "100%", minHeight: "100vh", maxHeight: "100vh", display: "flex", flexDirection: "column", fontFamily: "'Inter',system-ui,sans-serif", overflow: "hidden" }}>
@@ -160,11 +190,13 @@ export function AiAdvisorPage({
         />
         <div className="sa-main" style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>{body}</div>
       </div>
+      {notifsModal}
     </div>
   ) : (
     <div className={"sa-strategy-ui " + (theme === "dark" ? "dk" : "lt")} data-theme={theme} style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box", height: "100vh", display: "flex", flexDirection: "column", fontFamily: "'Inter',system-ui,sans-serif", overflow: "hidden", position: "relative" }}>
       <StrategyShellBg />
       <div style={{ flex: 1, minHeight: 0, minWidth: 0, display: "flex", flexDirection: "column", position: "relative", zIndex: 1, overflow: "hidden" }}>{body}</div>
+      {notifsModal}
     </div>
   );
 }
