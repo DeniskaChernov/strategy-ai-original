@@ -302,21 +302,21 @@ SaaS для стратегического планирования:
 |----------|------------|----------|--------|
 | `ProjectsPage`, `ProjectDetail` | — | `client/projects/projects.tsx` | ✅ импорт |
 | `MapEditor` | — | `client/map-editor/` | ✅ импорт |
-| `ContentPlanHubPage`, `ContentPlanProjectPage` | inline ~258+ | `client/content-plan/content-plan-pages.tsx` | ❌ orphan, не импортируется |
-| `ContentPlanTab` | inline ~562+ | `client/content-plan/content-plan-tab.tsx` | ⚠️ projects импортирует extracted; monolith — inline |
-| `TrialBanner`, `EmailVerifyBanner` | inline | `client/components/trial-email-banners.tsx` | ❌ дубликат |
-| `EdgeLine` | inline | `client/map-editor/edge-line.tsx` | ❌ дубликат |
-| `DeadlineReminders` | inline | `client/map-editor/deadline-reminders.tsx` | ❌ дубликат в monolith |
-| `InMapOnboarding` | inline ~1147 | в `map-editor.tsx` | ❌ dead code в monolith |
-| `SplashScreen`, route boot | inline | `client/components/app-route-boot.tsx` | ❌ orphan |
-| `Onboarding` | import unused | `client/onboarding/onboarding.tsx` | ❌ мёртвый import |
+| `ContentPlanHubPage`, `ContentPlanProjectPage` | — | `client/content-plan/content-plan-pages.tsx` | ✅ импорт |
+| `ContentPlanTab` | — | `client/content-plan/content-plan-tab.tsx` | ✅ импорт |
+| `TrialBanner`, `EmailVerifyBanner` | — | `client/components/trial-email-banners.tsx` | ✅ импорт |
+| `EdgeLine` | — | `client/map-editor/edge-line.tsx` | ✅ только map-editor |
+| `DeadlineReminders` | — | `client/map-editor/deadline-reminders.tsx` | ✅ только map-editor |
+| `InMapOnboarding` | — | `map-editor.tsx` | ✅ удалён из monolith |
+| `SplashScreen`, route boot | — | `client/components/app-route-boot.tsx` | ✅ импорт |
+| `Onboarding` | — | `client/onboarding/onboarding.tsx` | ✅ unused import удалён |
 
 Утилита: `scripts/dedupe-pages.mjs` (частично применена).
 
 ### Прочее
 
 - Мёртвый `import { io } from "socket.io-client"` в `strategy-ai-full.tsx` (логика WS только в map-editor).
-- `client/lib/tiers.ts` vs `shared/tiers.json` — два источника; бэкенд читает JSON, фронт — статику.
+- `client/lib/tiers.ts` читает `shared/tiers.json` на этапе сборки (единый источник с бэкендом).
 - Таблица `sessions` в БД зарезервирована, revocation list не используется.
 - Смена пароля в demo-mode (`hashPw` / btoa) несовместима с bcrypt бэкенда.
 
@@ -337,12 +337,12 @@ SaaS для стратегического планирования:
 
 | Задача | Детали |
 |--------|--------|
-| **Дедуп Content Plan** | Импортировать `content-plan-pages.tsx` в monolith, удалить inline ~300+ строк |
-| **Дедуп баннеров, EdgeLine, InMapOnboarding** | Импорт из `client/`, удалить inline |
-| **Подключить `app-route-boot.tsx`** | Или удалить orphan |
-| **Единый источник тарифов на фронте** | `GET /api/tiers` или импорт из `shared/tiers.json` на этапе сборки |
-| **Monolith split** | Цель: `strategy-ai-full.tsx` только оркестрация + lazy routes |
-| **Покрытие уведомлений** | Единый центр на dashboard / insights / ai (сейчас разрозненно) |
+| **Дедуп Content Plan** | ✅ выполнено |
+| **Дедуп баннеров, EdgeLine, InMapOnboarding** | ✅ выполнено |
+| **Подключить `app-route-boot.tsx`** | ✅ выполнено |
+| **Единый источник тарифов на фронте** | ✅ `shared/tiers.json` → `client/lib/tiers.ts` |
+| **Monolith split** | частично: `strategy-ai-full.tsx` ~768 строк (оркестрация) |
+| **Покрытие уведомлений** | ✅ dashboard / insights / ai / content-plan |
 | **Офлайн-ошибки при старте** | Экран retry вместо белого экрана (`loadError` частично есть) |
 | **Лимиты при даунгрейде** | Явная политика: read-only лишних карт vs принудительное удаление |
 | **Viewer на API** | Дублировать запреты редактирования на бэкенде везде (частично есть) |

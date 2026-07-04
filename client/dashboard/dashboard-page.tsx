@@ -200,7 +200,7 @@ export function DashboardPage({
       value: <><CountUp n={stats.progress} suffix="%" loading={loading} /></>,
       label: t("dash_avg_progress_upper", "СРЕДНИЙ ПРОГРЕСС"),
       trend: stats.progress >= 50 ? `↑ ${t("dash_on_track_label", "В графике")}` : `↓ ${t("dash_review_needed", "Нужна проверка")}`,
-      trendCls: (stats.progress >= 50 ? "up" : "dn") as const,
+      trendCls: stats.progress >= 50 ? ("up" as const) : ("dn" as const),
       onClick: () => onShellNav("insights"),
     },
     {
@@ -209,7 +209,7 @@ export function DashboardPage({
       value: <CountUp n={stats.risks} loading={loading} />,
       label: t("dash_active_risks_upper", "АКТИВНЫЕ РИСКИ"),
       trend: stats.risks ? `↓ ${t("dash_review_needed", "Нужна проверка")}` : `→ ${t("dash_all_clear_short", "Всё спокойно")}`,
-      trendCls: (stats.risks ? "dn" : "neu") as const,
+      trendCls: stats.risks ? ("dn" as const) : ("neu" as const),
       onClick: () => onShellNav("ai"),
     },
   ];
