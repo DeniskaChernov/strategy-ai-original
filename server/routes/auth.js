@@ -114,7 +114,7 @@ router.post('/login', async (req, res, next) => {
 
 // GET /api/auth/me — получить текущего пользователя по токену
 router.get('/me', requireAuth, (req, res) => {
-  res.json({ user: req.user });
+  res.json({ user: safeUser(req.user, getDevEmails().includes(req.user.email)) });
 });
 
 // GET /api/auth/verify-email?token=xxx — подтверждение email

@@ -10,6 +10,9 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || (JWT_SECRET + '_ref
 if (process.env.NODE_ENV === 'production' && JWT_SECRET === DEFAULT_DEV_SECRET) {
   throw new Error('JWT_SECRET must be set to a strong unique value in production (default secret is not allowed).');
 }
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_REFRESH_SECRET) {
+  throw new Error('JWT_REFRESH_SECRET must be set in production (do not rely on JWT_SECRET+_refresh).');
+}
 if (JWT_SECRET === DEFAULT_DEV_SECRET) {
   console.warn('[auth] WARNING: using default JWT secret — set JWT_SECRET env var before deploying.');
 }
@@ -48,21 +51,33 @@ async function requireAuth(req, res, next) {
     const user = rows[0];
 
     // Если триал истёк и нет активной подписки — даунгрейд до free.
-    // Выполняем UPDATE только один раз (когда tier ещё не free),
-    // чтобы не делать лишний запрос на каждый API-вызов.
     if (
       user.tier !== 'free' &&
       user.trial_ends_at &&
       new Date(user.trial_ends_at) < new Date() &&
       !user.stripe_subscription_id
     ) {
-      // Только один UPDATE — не на каждый запрос, а только когда нужна смена
       pool.query(
         `UPDATE users SET tier = 'free', trial_ends_at = NULL, updated_at = now() WHERE email = $1`,
         [user.email]
       ).catch(e => console.error('Trial downgrade error:', e.message));
       user.tier = 'free';
       user.trial_ends_at = null;
+    }
+
+    // Платный период истёк (tier_valid_until), подписка не активна — даунгрейд до free.
+    if (
+      user.tier !== 'free' &&
+      user.tier_valid_until &&
+      new Date(user.tier_valid_until) < new Date() &&
+      !user.stripe_subscription_id
+    ) {
+      pool.query(
+        `UPDATE users SET tier = 'free', tier_valid_until = NULL, updated_at = now() WHERE email = $1`,
+        [user.email]
+      ).catch(e => console.error('Tier valid_until downgrade error:', e.message));
+      user.tier = 'free';
+      user.tier_valid_until = null;
     }
 
     user.is_dev = (process.env.DEV_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean).includes(user.email);
@@ -101,4 +116,4 @@ async function requireProjectAccess(req, res, next) {
   }
 }
 
-module.exports = { signToken, signRefreshToken, requireAuth, requireProjectAccess };
+module.exports = { signToken, signRefreshToken, requireAuth, requireProjectAccess, JWT_SECRET, JWT_REFRESH_SECRET };

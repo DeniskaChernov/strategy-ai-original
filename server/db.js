@@ -39,7 +39,7 @@ async function initDB() {
       )
     `);
 
-    // Сессии (JWT revocation list, если понадобится)
+    // Сессии — зарезервировано для refresh rotation / revoke (см. auth.js); пока не используется.
     await client.query(`
       CREATE TABLE IF NOT EXISTS sessions (
         id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -185,6 +185,10 @@ async function initDB() {
 
 // ── Seed: создаём dev-аккаунт и начальные данные ────────────────────────────
 async function seedDB() {
+  if (process.env.NODE_ENV === 'production' && (process.env.DEV_EMAIL || process.env.DEV_PASSWORD)) {
+    console.warn('⚠️  Seed skipped in production: unset DEV_EMAIL and DEV_PASSWORD');
+    return;
+  }
   const bcrypt = require('bcryptjs');
 
   const DEV_EMAIL    = process.env.DEV_EMAIL;

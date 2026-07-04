@@ -10,6 +10,7 @@ import { useNotifications } from "../hooks/use-notifications";
 import { StrategyShellSidebar, StrategyShellBg, type StrategyShellNav } from "../../strategy-shell-sidebar";
 import { AppTopBar } from "../components/app-top-bar";
 import { NotifBell } from "../components/notif-bell";
+import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { NotificationsCenterModal } from "../strategy-modals/notifications-ai-hub-modals";
 import { FloatingAiAssistant } from "../floating-ai-assistant";
 
@@ -133,7 +134,7 @@ export function InsightsPage({
             <div className="land-logo" style={{ gap: 10 }}><div className="land-gem" style={{ width: 32, height: 32, borderRadius: 10, fontSize: 12 }}>SA</div><span className="land-brand" style={{ fontSize: 15 }}>Strategy AI</span></div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
-            <button onClick={onToggleTheme} style={{ padding: "5px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text3)", cursor: "pointer", fontSize: 13 }}>{theme === "dark" ? "☀️" : "🌙"}</button>
+            <ThemeTogglePill theme={theme} onToggle={onToggleTheme} />
             <button type="button" className="btn-g" onClick={onProfile} style={{ height: 32, padding: "0 12px" }}>{(user?.name || user?.email || "?")[0].toUpperCase()}</button>
           </div>
         </div>

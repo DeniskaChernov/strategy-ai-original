@@ -11,7 +11,6 @@ const files = [
   'client/landing-pricing-cards.tsx',
   'client/landing-map-demo.tsx',
   'client/landing-testimonials-columns.tsx',
-  'client/contact-form-cosmic.tsx',
   'client/floating-ai-assistant.tsx',
   'client/glass-calendar.tsx',
   'client/legal-pages.tsx',

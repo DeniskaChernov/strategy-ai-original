@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import {
   API_BASE,
   apiFetch,
@@ -16,36 +16,59 @@ import {
 } from "./client/api";
 import { makeTfn } from "./client/i18n/makeTfn";
 import { StrategyShellBg, type StrategyShellNav } from "./strategy-shell-sidebar";
-const ReferenceLandingView = React.lazy(() =>
-  import("./reference-landing").then((m) => ({ default: m.ReferenceLandingView }))
-);
+import type { AppScreen } from "./client/app-screen";
+import { AuthenticatedAppShell } from "./client/components/authenticated-app-shell";
 import { SplashLoaderScreen } from "./client/splash-loader";
 import { parseMarketingPath } from "./client/spa-path";
 import { applySeoForAppScreen } from "./client/seo-head";
 import { LegalDocumentPage, NotFoundPage } from "./client/legal-pages";
 import { trackSaEvent } from "./client/analytics";
-import { getMaps, getMapsByProject } from "./client/lib/maps-api";
+import { getMaps } from "./client/lib/maps-api";
 import { LangCtx } from "./client/lang-context";
 import { OfflineBanner } from "./client/components/offline-banner";
 import { TierSelectionScreen } from "./client/components/tier-selection-screen";
 import { AuthModal } from "./client/strategy-modals/auth-modal";
 import { CookieConsent } from "./client/components/cookie-consent";
-import { ProfileModal } from "./client/strategy-modals/profile-modal";
-import { MapEditor } from "./client/map-editor/map-editor";
-import { DashboardPage } from "./client/dashboard/dashboard-page";
-import { InsightsPage } from "./client/insights/insights-page";
-import { AiAdvisorPage } from "./client/ai-advisor/ai-advisor-page";
 import { ResetPasswordModal } from "./client/strategy-modals/reset-password-modal";
-import { ProjectsPage, ProjectDetail } from "./client/projects/projects";
-import { ContentPlanHubPage, ContentPlanProjectPage } from "./client/content-plan/content-plan-pages";
-import { TrialBanner, EmailVerifyBanner } from "./client/components/trial-email-banners";
 import { SplashScreen, initialMarketingScreen, initialLegalKind } from "./client/components/app-route-boot";
+
+const ReferenceLandingView = React.lazy(() =>
+  import("./reference-landing").then((m) => ({ default: m.ReferenceLandingView }))
+);
+const MapEditor = React.lazy(() =>
+  import("./client/map-editor/map-editor").then((m) => ({ default: m.MapEditor }))
+);
+const DashboardPage = React.lazy(() =>
+  import("./client/dashboard/dashboard-page").then((m) => ({ default: m.DashboardPage }))
+);
+const InsightsPage = React.lazy(() =>
+  import("./client/insights/insights-page").then((m) => ({ default: m.InsightsPage }))
+);
+const AiAdvisorPage = React.lazy(() =>
+  import("./client/ai-advisor/ai-advisor-page").then((m) => ({ default: m.AiAdvisorPage }))
+);
+const ProjectsPageLazy = React.lazy(() =>
+  import("./client/projects/projects").then((m) => ({ default: m.ProjectsPage }))
+);
+const ProjectDetailLazy = React.lazy(() =>
+  import("./client/projects/projects").then((m) => ({ default: m.ProjectDetail }))
+);
+const ContentPlanHubPageLazy = React.lazy(() =>
+  import("./client/content-plan/content-plan-pages").then((m) => ({ default: m.ContentPlanHubPage }))
+);
+const ContentPlanProjectPageLazy = React.lazy(() =>
+  import("./client/content-plan/content-plan-pages").then((m) => ({ default: m.ContentPlanProjectPage }))
+);
+
+function LazyScreenFallback({ theme, text }: { theme: string; text: string }) {
+  return <SplashLoaderScreen theme={theme === "light" ? "light" : "dark"} text={text} />;
+}
 
 // Оркестратор SPA — экраны вынесены в client/*
 
 // ── App ──
 export default function App(){
-  const[screen,setScreen]=useState(initialMarketingScreen);
+  const[screen,setScreen]=useState<AppScreen>(() => initialMarketingScreen() as AppScreen);
   const[user,setUser]=useState<any>(null);
   const[theme,setTheme]=useState(()=>{
     try{
@@ -129,6 +152,23 @@ export default function App(){
   },[screen]);
   // t функция для LangCtx.Provider (App является корневым провайдером)
   const t = makeTfn(lang);
+
+  const navigateTo = useCallback((next: AppScreen, opts?: { clearProject?: boolean; clearMap?: boolean; clearCp?: boolean }) => {
+    const clearProject = opts?.clearProject !== false && ["dashboard", "insights", "ai", "projects", "contentPlanHub", "landing"].includes(next);
+    const clearMap = opts?.clearMap !== false && next !== "map" && next !== "sharedMap";
+    const clearCp = opts?.clearCp !== false && next !== "contentPlanProject" && next !== "contentPlanHub";
+    if (clearMap) {
+      setMapData(null);
+      setMapFocusNodeId(null);
+      setMapReadOnly(false);
+    }
+    if (clearProject && next !== "project" && next !== "map" && next !== "contentPlanProject") setProject(null);
+    if (clearCp) {
+      setCpProject(null);
+      setCpMaps([]);
+    }
+    setScreen(next);
+  }, []);
 
   const initRunningRef=useRef(false);
   const pendingDeepLinkRef=useRef<any>(null);
@@ -333,25 +373,83 @@ export default function App(){
       setScreen("landing");
       setAuthChecked(true);
     }catch(e:any){
-      setLoadError(e?.message||"Не удалось загрузить данные");
+      setLoadError(e?.message||t("load_data_failed","Не удалось загрузить данные"));
       setAuthChecked(true);
     }finally{
       initRunningRef.current=false;
     }
   }
 
-  useEffect(()=>{initApp();},[]);
-
-  // Глобальный обработчик истёкшей сессии
   useEffect(()=>{
-    const orig=window.fetch.bind(window);
     (window as any).__sa_onSessionExpired=()=>{
       setUser(null);setProject(null);setMapData(null);setCpProject(null);setCpMaps([]);
       try{window.history.replaceState({},"","/");}catch{}
       setScreen("landing");setShowAuth(true);setAuthTab("login");
     };
-    return()=>{};
+    return()=>{delete (window as any).__sa_onSessionExpired;};
   },[]);
+
+  useEffect(()=>{
+    applySeoForAppScreen(screen,{legalKind});
+  },[screen,legalKind]);
+
+  useEffect(()=>{
+    if(!["landing","legal","notFound"].includes(screen))return;
+    const onPop=()=>{
+      const mp=parseMarketingPath(window.location.pathname);
+      if(mp.type==="privacy"){setLegalKind("privacy");setScreen("legal");return;}
+      if(mp.type==="terms"){setLegalKind("terms");setScreen("legal");return;}
+      if(mp.type==="notFound"){setScreen("notFound");return;}
+      if(!user){
+        if(mp.type==="app"){
+          try{window.history.replaceState({},"","/");}catch{}
+          setAuthTab("register");
+          setShowAuth(true);
+          setScreen("landing");
+          return;
+        }
+        if(mp.type==="home"){setScreen("landing");return;}
+      }else{
+        if(mp.type==="home"){try{window.history.replaceState({},"","/app");}catch{}setScreen("dashboard");return;}
+        if(mp.type==="app"){setScreen("dashboard");}
+      }
+    };
+    window.addEventListener("popstate",onPop);
+    return()=>window.removeEventListener("popstate",onPop);
+  },[user,screen]);
+
+  useEffect(()=>{
+    if(screen==="splash"||screen==="landing"||screen==="sharedMap"||screen==="legal"||screen==="notFound")return;
+    const h=()=>{
+      const st=history.state?.screen as AppScreen|undefined;
+      if(st==="dashboard"||st==="insights"||st==="ai"||st==="projects"){
+        navigateTo(st,{clearProject:true,clearMap:true,clearCp:true});
+        return;
+      }
+      if(screen==="map"&&project){setMapData(null);setScreen("project");}
+      else if(screen==="project"&&project){setProject(null);setScreen("projects");}
+      else if(screen==="contentPlanProject"&&cpProject){setCpProject(null);setCpMaps([]);setScreen("contentPlanHub");}
+      else if(screen==="contentPlanHub"){navigateTo("dashboard");}
+      else if(screen==="projects"){navigateTo("dashboard");}
+      else if(screen==="insights"||screen==="ai"){navigateTo("dashboard");}
+    };
+    window.addEventListener("popstate",h);
+    return()=>window.removeEventListener("popstate",h);
+  },[screen,project,cpProject,navigateTo]);
+
+  useEffect(()=>{
+    if(screen==="dashboard"&&history.state?.screen!=="dashboard")history.pushState({screen:"dashboard"},"","/app");
+    else if(screen==="insights"&&history.state?.screen!=="insights")history.pushState({screen:"insights"},"","/app");
+    else if(screen==="ai"&&history.state?.screen!=="ai")history.pushState({screen:"ai"},"","/app");
+    else if(screen==="projects"&&history.state?.screen!=="projects")history.pushState({screen:"projects"},"","/app");
+    else if(screen==="project"&&project&&history.state?.screen!=="project")history.pushState({screen:"project",projectId:project.id},"","");
+    else if(screen==="map"&&mapData&&history.state?.screen!=="map")history.pushState({screen:"map",mapId:mapData.id},"","");
+    else if(screen==="contentPlanHub"&&history.state?.screen!=="contentPlanHub")history.pushState({screen:"contentPlanHub"},"","");
+    else if(screen==="contentPlanProject"&&cpProject&&history.state?.screen!=="contentPlanProject")history.pushState({screen:"contentPlanProject",projectId:cpProject.id},"","");
+  },[screen,project?.id,mapData?.id,cpProject?.id]);
+
+  // Глобальный обработчик истёкшей сессии — регистрация выше (после всех hooks)
+  useEffect(()=>{initApp();},[]);
 
   function goMarketingHome(){
     try{
@@ -376,14 +474,31 @@ export default function App(){
   }
 
   function handleGlobalNav(nav:StrategyShellNav){
-    if(nav==="dashboard"){setMapData(null);setProject(null);setCpProject(null);setCpMaps([]);setScreen("dashboard");return;}
-    if(nav==="projects"){setMapData(null);setProject(null);setScreen("projects");return;}
-    if(nav==="contentPlan"){setScreen("contentPlanHub");return;}
-    if(nav==="ai"){setScreen("ai");return;}
-    if(nav==="insights"){setScreen("insights");return;}
+    if(nav==="dashboard"){navigateTo("dashboard");return;}
+    if(nav==="projects"){navigateTo("projects");return;}
+    if(nav==="contentPlan"){navigateTo("contentPlanHub");return;}
+    if(nav==="ai"){navigateTo("ai");return;}
+    if(nav==="insights"){navigateTo("insights");return;}
     if(nav==="settings"||nav==="team"){setShowProfile(true);return;}
-    // экраны map/scenarios/timeline открываются из рабочей области проекта
-    setScreen("projects");
+    if(nav==="map"){
+      try{
+        const sp=localStorage.getItem("sa_last_project");
+        const sm=localStorage.getItem("sa_last_map");
+        if(sp&&sm){
+          const proj=JSON.parse(sp);
+          const map=JSON.parse(sm);
+          onOpenMap({id:map.id,name:map.name},proj,false,false);
+          return;
+        }
+        if(sp){
+          onSelectProject(JSON.parse(sp));
+          return;
+        }
+      }catch{/* — */}
+      navigateTo("projects");
+      return;
+    }
+    navigateTo("projects");
   }
 
   async function onChangeTier(t){
@@ -434,69 +549,6 @@ export default function App(){
   }
   function changePalette(p:string){setPalette(p);try{localStorage.setItem("sa_palette",p);}catch{};try{document.body.setAttribute("data-palette",p);}catch{};if(API_BASE&&user?.email)patchUser(user.email,{palette:p}).then(u=>u&&setUser(u)).catch(()=>{});}
 
-  if(showTiers){
-    return(
-      <LangCtx.Provider value={{lang,setLang:changeLang,t}}>
-        <div className={"sa-strategy-ui "+(theme==="dark"?"dk":"lt")} data-theme={theme} data-palette={palette} style={{minHeight:"100vh",background:"var(--bg)",position:"relative",fontFamily:"'Inter',system-ui,sans-serif"}}>
-          <StrategyShellBg/>
-          <TierSelectionScreen isNew={true} currentUser={user} theme={theme} palette={palette}
-            onSelect={onChangeTier}
-            onBack={()=>{setShowTiers(false);setScreen("projects");}}
-          />
-        </div>
-      </LangCtx.Provider>
-    );
-  }
-
-  useEffect(()=>{
-    applySeoForAppScreen(screen as "splash"|"landing"|"legal"|"notFound"|"projects"|"project"|"map"|"sharedMap"|"contentPlanHub"|"contentPlanProject",{legalKind});
-  },[screen,legalKind]);
-
-  useEffect(()=>{
-    if(!["landing","legal","notFound"].includes(screen))return;
-    const onPop=()=>{
-      const mp=parseMarketingPath(window.location.pathname);
-      if(mp.type==="privacy"){setLegalKind("privacy");setScreen("legal");return;}
-      if(mp.type==="terms"){setLegalKind("terms");setScreen("legal");return;}
-      if(mp.type==="notFound"){setScreen("notFound");return;}
-      if(!user){
-        if(mp.type==="app"){
-          try{window.history.replaceState({},"","/");}catch{}
-          setAuthTab("register");
-          setShowAuth(true);
-          setScreen("landing");
-          return;
-        }
-        if(mp.type==="home"){setScreen("landing");return;}
-      }else{
-        if(mp.type==="home"){try{window.history.replaceState({},"","/app");}catch{}setScreen("dashboard");return;}
-        if(mp.type==="app"){setScreen("dashboard");}
-      }
-    };
-    window.addEventListener("popstate",onPop);
-    return()=>window.removeEventListener("popstate",onPop);
-  },[user,screen]);
-
-  // Кнопка «Назад» в браузере
-  useEffect(()=>{
-    if(screen==="splash"||screen==="landing"||screen==="sharedMap")return;
-    const h=()=>{
-      if(screen==="map"&&project){setMapData(null);setScreen("project");}
-      else if(screen==="project"&&project){setProject(null);setScreen("projects");}
-      else if(screen==="contentPlanProject"&&cpProject){setCpProject(null);setCpMaps([]);setScreen("contentPlanHub");}
-      else if(screen==="contentPlanHub"){setScreen("dashboard");}
-      else if(screen==="projects"){setScreen("dashboard");}
-    };
-    window.addEventListener("popstate",h);
-    return()=>window.removeEventListener("popstate",h);
-  },[screen,project,cpProject]);
-  useEffect(()=>{
-    if(screen==="project"&&project&&history.state?.screen!=="project")history.pushState({screen:"project",projectId:project.id},"","");
-    else if(screen==="map"&&mapData&&history.state?.screen!=="map")history.pushState({screen:"map",mapId:mapData.id},"","");
-    else if(screen==="contentPlanHub"&&history.state?.screen!=="contentPlanHub")history.pushState({screen:"contentPlanHub"},"","");
-    else if(screen==="contentPlanProject"&&cpProject&&history.state?.screen!=="contentPlanProject")history.pushState({screen:"contentPlanProject",projectId:cpProject.id},"","");
-  },[screen,project?.id,mapData?.id,cpProject?.id]);
-
   const appPalette=screen==="landing"||screen==="legal"||screen==="notFound"?undefined:palette;
 
   if(loadError)return(
@@ -514,11 +566,35 @@ export default function App(){
     </LangCtx.Provider>
   );
 
+  const shellCommon = user ? {
+    user,
+    theme,
+    palette,
+    showProfile,
+    onShowProfile: setShowProfile,
+    onUpgrade: () => setShowProfile(true),
+    onUpdateUser: (u: any) => setUser(u),
+    onChangeTier,
+    onLogout,
+    onToggleTheme: toggleTheme,
+    onPaletteChange: changePalette,
+  } : null;
+
   return(
     <LangCtx.Provider value={{lang,setLang:changeLang,t}}>
       <div data-theme={theme} data-palette={appPalette} className="screen-wrap" style={{minHeight:"100vh",background:screen==="landing"||screen==="legal"||screen==="notFound"?"transparent":"var(--bg)",transition:"background .35s ease, color .35s ease"}}>
 <OfflineBanner/>
       <>
+        {showTiers&&(
+          <div className={"sa-strategy-ui "+(theme==="dark"?"dk":"lt")} data-theme={theme} data-palette={palette} style={{minHeight:"100vh",background:"var(--bg)",position:"relative",fontFamily:"'Inter',system-ui,sans-serif"}}>
+            <StrategyShellBg/>
+            <TierSelectionScreen isNew={true} currentUser={user} theme={theme} palette={palette}
+              onSelect={onChangeTier}
+              onBack={()=>{setShowTiers(false);navigateTo("projects");}}
+            />
+          </div>
+        )}
+        {!showTiers&&<>
         {screen==="splash"&&<SplashScreen onDone={()=>{
           const mp=parseMarketingPath(window.location.pathname);
           if(mp.type==="app"){
@@ -560,186 +636,181 @@ export default function App(){
           <NotFoundPage theme={theme} t={t} onHome={goMarketingHome}/>
         )}
         {screen==="sharedMap"&&sharedMapData&&(
-          <MapEditor
-            user={null} mapData={sharedMapData.map} project={{name:sharedMapData.projectName||""}}
-            isNew={false} theme={theme} readOnly={true} palette={palette}
-            onBack={()=>{setSharedMapData(null);setScreen("landing");if(typeof window!=="undefined")window.history.replaceState("","",window.location.pathname);}}
-            onProfile={()=>{}}
-            onToggleTheme={toggleTheme}
-            onShellGlobalNav={()=>{}}
-            aiChatMsgs={aiChatMsgs}
-            aiChatSetMsgs={setAiChatMsgs}
-          />
-        )}
-        {screen==="dashboard"&&user&&(
-          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
-            <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
-            <EmailVerifyBanner user={user}/>
-            <DashboardPage
-              user={user} theme={theme}
-              onToggleTheme={toggleTheme}
-              onProfile={()=>setShowProfile(true)}
-              onLogout={onLogout}
-              onChangeTier={()=>setShowTiers(true)}
-              onShellNav={handleGlobalNav}
-              onOpenProject={onSelectProject}
-              onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
-              aiChatMsgs={aiChatMsgs}
-              aiChatSetMsgs={setAiChatMsgs}
-            />
-            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
-          </div>
-        )}
-        {screen==="insights"&&user&&(
-          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
-            <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
-            <EmailVerifyBanner user={user}/>
-            <InsightsPage
-              user={user} theme={theme}
-              onToggleTheme={toggleTheme}
-              onProfile={()=>setShowProfile(true)}
-              onLogout={onLogout}
-              onChangeTier={()=>setShowTiers(true)}
-              onShellNav={handleGlobalNav}
-              onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
-            />
-            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
-          </div>
-        )}
-        {screen==="ai"&&user&&(
-          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
-            <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
-            <EmailVerifyBanner user={user}/>
-            <AiAdvisorPage
-              user={user} theme={theme}
-              onToggleTheme={toggleTheme}
-              onProfile={()=>setShowProfile(true)}
-              onLogout={onLogout}
-              onChangeTier={()=>setShowTiers(true)}
-              onShellNav={handleGlobalNav}
-              onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
-              aiChatMsgs={aiChatMsgs}
-              aiChatSetMsgs={setAiChatMsgs}
-            />
-            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
-          </div>
-        )}
-        {screen==="projects"&&user&&(
-          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
-            <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
-            <EmailVerifyBanner user={user}/>
-            <ProjectsPage
-              user={user} theme={theme}
-              onSelectProject={onSelectProject}
-              onOpenMap={onOpenMap}
-              onLogout={onLogout}
-              onChangeTier={(t:string)=>onChangeTier(t)}
-              onProfile={()=>setShowProfile(true)}
-              onToggleTheme={toggleTheme}
-              aiChatMsgs={aiChatMsgs}
-              aiChatSetMsgs={setAiChatMsgs}
-              onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
-              onOpenContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);setScreen("contentPlanProject");}}
-              onGoToDashboard={()=>setScreen("dashboard")}
-              onGoToAi={()=>setScreen("ai")}
-              onGoToInsights={()=>setScreen("insights")}
-            />
-            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
-          </div>
-        )}
-        {screen==="contentPlanHub"&&user&&(
-          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
-            <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
-            <EmailVerifyBanner user={user}/>
-            <ContentPlanHubPage
-              user={user}
-              theme={theme}
-              onBackToStrategy={()=>setScreen("projects")}
-              onOpenProject={(p:any,maps:any[])=>{setCpProject(p);setCpMaps(Array.isArray(maps)?maps:[]);setScreen("contentPlanProject");}}
-              onLogout={onLogout}
-              onProfile={()=>setShowProfile(true)}
-              onToggleTheme={toggleTheme}
-              onUpgrade={()=>setShowProfile(true)}
-              aiChatMsgs={aiChatMsgs}
-              aiChatSetMsgs={setAiChatMsgs}
-              onSelectProject={onSelectProject}
-              onOpenMap={onOpenMap}
-            />
-            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
-          </div>
-        )}
-        {screen==="contentPlanProject"&&user&&cpProject&&(
-          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
-            <TrialBanner user={user} onUpgrade={()=>setShowProfile(true)}/>
-            <EmailVerifyBanner user={user}/>
-            <ContentPlanProjectPage
-              user={user}
-              project={cpProject}
-              maps={cpMaps}
-              theme={theme}
-              onBackToHub={()=>{setCpProject(null);setCpMaps([]);setScreen("contentPlanHub");}}
-              onOpenStrategyProject={()=>{setProject(cpProject);setCpProject(null);setCpMaps([]);setScreen("project");}}
-              onLogout={onLogout}
-              onProfile={()=>setShowProfile(true)}
-              onToggleTheme={toggleTheme}
-              onChangeTier={onChangeTier}
-              onUpgrade={()=>setShowProfile(true)}
-              aiChatMsgs={aiChatMsgs}
-              aiChatSetMsgs={setAiChatMsgs}
-              onSelectProject={onSelectProject}
-              onOpenMap={onOpenMap}
-              onSwitchContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);}}
-            />
-            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={(u:any)=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
-          </div>
-        )}
-        {screen==="project"&&user&&project&&(
-          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
-            <ProjectDetail
-              user={user} project={project} theme={theme}
-              onBack={()=>setScreen("projects")}
-              onOpenMap={onOpenMap}
-              onProfile={()=>setShowProfile(true)}
-              onToggleTheme={toggleTheme}
-              onChangeTier={onChangeTier}
-              onUpgrade={()=>setShowProfile(true)}
-              onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
-              onOpenContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);setScreen("contentPlanProject");}}
-              aiChatMsgs={aiChatMsgs}
-              aiChatSetMsgs={setAiChatMsgs}
-            />
-            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={u=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
-          </div>
-        )}
-        {screen==="map"&&user&&mapData&&project&&(
-          <div className="screen-enter" style={{height:"100%",display:"flex",flexDirection:"column",flex:1}}>
+          <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
             <MapEditor
-              user={user} mapData={mapData} project={project}
-              isNew={mapIsNew} theme={theme} readOnly={mapReadOnly} palette={palette}
-              onBack={()=>setScreen("project")}
-              onProfile={()=>setShowProfile(true)}
+              user={null} mapData={sharedMapData.map} project={{name:sharedMapData.projectName||""}}
+              isNew={false} theme={theme} readOnly={true} palette={palette}
+              onBack={()=>{setSharedMapData(null);setScreen("landing");if(typeof window!=="undefined")window.history.replaceState("","",window.location.pathname);}}
+              onProfile={()=>{}}
               onToggleTheme={toggleTheme}
-              onOpenContentPlanHub={()=>setScreen("contentPlanHub")}
-              onOpenContentPlanProject={async()=>{
-                if(!project?.id)return;
-                try{
-                  const ms=await getMaps(project.id);
-                  setCpProject(project);
-                  setCpMaps(Array.isArray(ms)?ms:[]);
-                  setScreen("contentPlanProject");
-                }catch{}
-              }}
-              onShellGlobalNav={(nav)=>{
-                if(nav==="dashboard"){setMapData(null);setProject(null);setScreen("dashboard");return;}
-                if(nav==="projects"){setMapData(null);setProject(null);setScreen("projects");return;}
-                if(nav==="contentPlan")setScreen("contentPlanHub");
-              }}
+              onShellGlobalNav={()=>{}}
               aiChatMsgs={aiChatMsgs}
               aiChatSetMsgs={setAiChatMsgs}
-              focusNodeId={mapFocusNodeId}
             />
-            {showProfile&&<ProfileModal user={user} theme={theme} palette={palette} onPaletteChange={changePalette} onClose={()=>setShowProfile(false)} onUpdate={u=>setUser(u)} onChangeTier={onChangeTier} onLogout={onLogout} onToggleTheme={toggleTheme}/>}
-          </div>
+          </React.Suspense>
+        )}
+        {screen==="dashboard"&&user&&shellCommon&&(
+          <AuthenticatedAppShell {...shellCommon}>
+            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+              <DashboardPage
+                user={user} theme={theme}
+                onToggleTheme={toggleTheme}
+                onProfile={()=>setShowProfile(true)}
+                onLogout={onLogout}
+                onChangeTier={()=>setShowTiers(true)}
+                onShellNav={handleGlobalNav}
+                onOpenProject={onSelectProject}
+                onOpenMap={onOpenMap}
+                onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
+                aiChatMsgs={aiChatMsgs}
+                aiChatSetMsgs={setAiChatMsgs}
+              />
+            </React.Suspense>
+          </AuthenticatedAppShell>
+        )}
+        {screen==="insights"&&user&&shellCommon&&(
+          <AuthenticatedAppShell {...shellCommon}>
+            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+              <InsightsPage
+                user={user} theme={theme}
+                onToggleTheme={toggleTheme}
+                onProfile={()=>setShowProfile(true)}
+                onLogout={onLogout}
+                onChangeTier={()=>setShowTiers(true)}
+                onShellNav={handleGlobalNav}
+                onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
+              />
+            </React.Suspense>
+          </AuthenticatedAppShell>
+        )}
+        {screen==="ai"&&user&&shellCommon&&(
+          <AuthenticatedAppShell {...shellCommon}>
+            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+              <AiAdvisorPage
+                user={user} theme={theme}
+                onToggleTheme={toggleTheme}
+                onProfile={()=>setShowProfile(true)}
+                onLogout={onLogout}
+                onChangeTier={()=>setShowTiers(true)}
+                onShellNav={handleGlobalNav}
+                onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
+                aiChatMsgs={aiChatMsgs}
+                aiChatSetMsgs={setAiChatMsgs}
+              />
+            </React.Suspense>
+          </AuthenticatedAppShell>
+        )}
+        {screen==="projects"&&user&&shellCommon&&(
+          <AuthenticatedAppShell {...shellCommon}>
+            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+              <ProjectsPageLazy
+                user={user} theme={theme}
+                onSelectProject={onSelectProject}
+                onOpenMap={onOpenMap}
+                onLogout={onLogout}
+                onChangeTier={(tier:string)=>onChangeTier(tier)}
+                onProfile={()=>setShowProfile(true)}
+                onToggleTheme={toggleTheme}
+                aiChatMsgs={aiChatMsgs}
+                aiChatSetMsgs={setAiChatMsgs}
+                onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
+                onOpenContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);navigateTo("contentPlanProject",{clearProject:false,clearMap:true,clearCp:false});}}
+                onGoToDashboard={()=>navigateTo("dashboard")}
+                onGoToAi={()=>navigateTo("ai")}
+                onGoToInsights={()=>navigateTo("insights")}
+              />
+            </React.Suspense>
+          </AuthenticatedAppShell>
+        )}
+        {screen==="contentPlanHub"&&user&&shellCommon&&(
+          <AuthenticatedAppShell {...shellCommon}>
+            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+              <ContentPlanHubPageLazy
+                user={user}
+                theme={theme}
+                onBackToStrategy={()=>navigateTo("projects")}
+                onOpenProject={(p:any,maps:any[])=>{setCpProject(p);setCpMaps(Array.isArray(maps)?maps:[]);navigateTo("contentPlanProject",{clearProject:false,clearMap:true,clearCp:false});}}
+                onLogout={onLogout}
+                onProfile={()=>setShowProfile(true)}
+                onToggleTheme={toggleTheme}
+                onUpgrade={()=>setShowProfile(true)}
+                aiChatMsgs={aiChatMsgs}
+                aiChatSetMsgs={setAiChatMsgs}
+                onSelectProject={onSelectProject}
+                onOpenMap={onOpenMap}
+              />
+            </React.Suspense>
+          </AuthenticatedAppShell>
+        )}
+        {screen==="contentPlanProject"&&user&&cpProject&&shellCommon&&(
+          <AuthenticatedAppShell {...shellCommon}>
+            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+              <ContentPlanProjectPageLazy
+                user={user}
+                project={cpProject}
+                maps={cpMaps}
+                theme={theme}
+                onBackToHub={()=>{setCpProject(null);setCpMaps([]);navigateTo("contentPlanHub");}}
+                onOpenStrategyProject={()=>{setProject(cpProject);setCpProject(null);setCpMaps([]);navigateTo("project",{clearProject:false,clearMap:true,clearCp:true});}}
+                onLogout={onLogout}
+                onProfile={()=>setShowProfile(true)}
+                onToggleTheme={toggleTheme}
+                onChangeTier={onChangeTier}
+                onUpgrade={()=>setShowProfile(true)}
+                aiChatMsgs={aiChatMsgs}
+                aiChatSetMsgs={setAiChatMsgs}
+                onSelectProject={onSelectProject}
+                onOpenMap={onOpenMap}
+                onSwitchContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);}}
+              />
+            </React.Suspense>
+          </AuthenticatedAppShell>
+        )}
+        {screen==="project"&&user&&project&&shellCommon&&(
+          <AuthenticatedAppShell {...shellCommon}>
+            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+              <ProjectDetailLazy
+                user={user} project={project} theme={theme}
+                onBack={()=>navigateTo("projects")}
+                onOpenMap={onOpenMap}
+                onProfile={()=>setShowProfile(true)}
+                onToggleTheme={toggleTheme}
+                onChangeTier={onChangeTier}
+                onUpgrade={()=>setShowProfile(true)}
+                onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
+                onOpenContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);navigateTo("contentPlanProject",{clearProject:false,clearMap:true,clearCp:false});}}
+                aiChatMsgs={aiChatMsgs}
+                aiChatSetMsgs={setAiChatMsgs}
+              />
+            </React.Suspense>
+          </AuthenticatedAppShell>
+        )}
+        {screen==="map"&&user&&mapData&&project&&shellCommon&&(
+          <AuthenticatedAppShell {...shellCommon}>
+            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+              <MapEditor
+                user={user} mapData={mapData} project={project}
+                isNew={mapIsNew} theme={theme} readOnly={mapReadOnly} palette={palette}
+                onBack={()=>setScreen("project")}
+                onProfile={()=>setShowProfile(true)}
+                onToggleTheme={toggleTheme}
+                onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
+                onOpenContentPlanProject={async()=>{
+                  if(!project?.id)return;
+                  try{
+                    const ms=await getMaps(project.id);
+                    setCpProject(project);
+                    setCpMaps(Array.isArray(ms)?ms:[]);
+                    navigateTo("contentPlanProject",{clearProject:false,clearMap:true,clearCp:false});
+                  }catch{}
+                }}
+                onShellGlobalNav={handleGlobalNav}
+                aiChatMsgs={aiChatMsgs}
+                aiChatSetMsgs={setAiChatMsgs}
+                focusNodeId={mapFocusNodeId}
+              />
+            </React.Suspense>
+          </AuthenticatedAppShell>
         )}
       {verifiedToast&&(
         <div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",zIndex:9999,padding:"12px 22px",borderRadius:12,background:"rgba(16,185,129,.15)",border:"1px solid rgba(16,185,129,.4)",color:"#34d399",fontSize:14,fontWeight:700,boxShadow:"0 8px 32px rgba(0,0,0,.4)",animation:"slideUp .3s ease",backdropFilter:"blur(12px)"}}>
@@ -753,6 +824,7 @@ export default function App(){
       )}
       {resetToken&&<ResetPasswordModal token={resetToken} theme={theme} onClose={()=>setResetToken(null)}/>}
       {(screen==="landing"||screen==="legal"||screen==="notFound")&&<CookieConsent/>}
+        </>}
       </>
       </div>
     </LangCtx.Provider>

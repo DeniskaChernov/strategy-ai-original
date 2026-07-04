@@ -1,6 +1,6 @@
 // Strategy AI — Service Worker (PWA)
 // v9: network-first for all JS bundles (app.js + code-split chunks)
-const CACHE = 'strategy-ai-v9';
+const CACHE = 'strategy-ai-v10';
 
 function isApiOrSocket(u) {
   return u.href.includes('/api/') || u.pathname.includes('socket');
@@ -13,6 +13,7 @@ function isNetworkFirstAsset(url) {
     p.startsWith('/chunk-') ||
     p === '/' ||
     p === '/index.html' ||
+    p === '/env-config.js' ||
     p === '/global.css' ||
     p === '/landing.css' ||
     p === '/strategy-shell.css' ||

@@ -33,6 +33,12 @@ const MODEL_BY_TIER = {
 router.post('/chat', requireAuth, async (req, res, next) => {
   try {
     const email = req.user.email;
+    if (req.user.email_verified === false && process.env.REQUIRE_EMAIL_VERIFIED_FOR_AI === 'true') {
+      return res.status(403).json({
+        error: 'Подтвердите email для использования AI.',
+        code: 'EMAIL_NOT_VERIFIED',
+      });
+    }
     const tier = req.user.tier || 'free';
     const monthKey = new Date().toISOString().slice(0, 7);
     const limit = AI_LIMITS[tier] ?? 0;

@@ -42,6 +42,13 @@ export function NodeCard({
         e.stopPropagation();
         onContextMenu(e.clientX, e.clientY, node);
       }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick(node, { shiftKey: e.shiftKey });
+        }
+      }}
       role="button"
       tabIndex={0}
       aria-label={title}

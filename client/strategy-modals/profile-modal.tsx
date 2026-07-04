@@ -247,8 +247,8 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
                   </div>
                 </div>
                 {API_BASE&&(
-                  <div style={{padding:"12px 16px",borderRadius:11,background:"var(--surface2)",border:"1px solid var(--border)",marginBottom:20,fontSize:12,color:"var(--text4)"}}>
-                    🔜 {t("google_login_coming","Вход через Google будет доступен в следующем обновлении.")}
+                  <div style={{padding:"12px 16px",borderRadius:11,background:"var(--surface2)",border:"1px solid var(--border)",marginBottom:20,fontSize:12,color:"var(--text4)"}} role="note">
+                    {t("oauth_roadmap","OAuth (Google) запланирован в roadmap — пока доступен вход по email.")}
                   </div>
                 )}
                 <div style={{fontSize:15,fontWeight:800,color:"var(--text)",marginBottom:4}}>{t("change_password","Изменить пароль")}</div>

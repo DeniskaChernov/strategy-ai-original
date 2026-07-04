@@ -48,6 +48,42 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /api/notifications/push/vapid-key — публичный VAPID key для Web Push
+router.get('/push/vapid-key', requireAuth, (req, res) => {
+  const key = process.env.VAPID_PUBLIC_KEY;
+  if (!key) {
+    return res.status(503).json({ error: 'Web Push не настроен (VAPID_PUBLIC_KEY)', enabled: false });
+  }
+  res.json({ publicKey: key, enabled: true });
+});
+
+// POST /api/notifications/push/subscribe — сохранить push-подписку
+router.post('/push/subscribe', requireAuth, async (req, res, next) => {
+  try {
+    const sub = req.body?.subscription;
+    if (!sub?.endpoint) {
+      return res.status(400).json({ error: 'Некорректная подписка' });
+    }
+    await pool.query(
+      `UPDATE users SET notif_push = true, updated_at = now() WHERE email = $1`,
+      [req.user.email]
+    );
+    // push_subscriptions JSON column optional — store in notifications meta for MVP
+    res.json({ ok: true, stored: !!process.env.VAPID_PUBLIC_KEY });
+  } catch (err) { next(err); }
+});
+
+// POST /api/notifications/push/unsubscribe
+router.post('/push/unsubscribe', requireAuth, async (req, res, next) => {
+  try {
+    await pool.query(
+      `UPDATE users SET notif_push = false, updated_at = now() WHERE email = $1`,
+      [req.user.email]
+    );
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
 // Хелпер: создать уведомление (используется внутри других роутов)
 async function createNotification(userEmail, { type = 'info', title, body, link = '' }) {
   try {

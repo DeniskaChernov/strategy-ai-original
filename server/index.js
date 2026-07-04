@@ -54,6 +54,8 @@ app.use(cors(corsOptions));
 
 // ── WebSocket (Socket.IO) ──────────────────────────────────────────────────────
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('./middleware/auth');
+const { getProjectAccess } = require('./lib/projectAccess');
 const io = new SocketIO(server, {
   cors: corsOptions,
   pingTimeout: 60000,
@@ -64,8 +66,7 @@ io.use((socket, next) => {
   try {
     const token = socket.handshake.auth?.token || socket.handshake.query?.token;
     if (!token) return next(new Error('Unauthorized: no token'));
-    const secret = process.env.JWT_SECRET || 'strategy-ai-secret-change-in-production';
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, JWT_SECRET);
     socket.data.userEmail = decoded.email;
     socket.data.userId = decoded.id;
     next();
@@ -75,6 +76,14 @@ io.use((socket, next) => {
 });
 
 // Комнаты: map:{mapId} — все редакторы одной карты (доступ только при членстве в проекте)
+function rejectViewerMutation(socket, eventName) {
+  if (socket.data?.projectRole === 'viewer') {
+    socket.emit('mutation-denied', { event: eventName, message: 'Наблюдатель не может изменять карту' });
+    return true;
+  }
+  return false;
+}
+
 io.on('connection', (socket) => {
   socket.on('join-map', async ({ mapId, userName }) => {
     const userEmail = socket.data.userEmail;
@@ -84,22 +93,16 @@ io.on('connection', (socket) => {
     }
     try {
       const { rows } = await pool.query(
-        `SELECT p.owner_email, p.members
-         FROM maps m
-         INNER JOIN projects p ON p.id = m.project_id
-         WHERE m.id = $1`,
+        'SELECT project_id FROM maps WHERE id = $1',
         [mapId]
       );
       if (!rows[0]) {
         socket.emit('join-error', { message: 'Карта не найдена' });
         return;
       }
-      const p = rows[0];
-      const members = p.members || [];
-      const isMember =
-        p.owner_email === userEmail ||
-        members.some(m => m && m.email === userEmail);
-      if (!isMember) {
+      const projectId = rows[0].project_id;
+      const { role } = await getProjectAccess(projectId, userEmail);
+      if (!role) {
         socket.emit('join-error', { message: 'Нет доступа к этой карте' });
         return;
       }
@@ -107,8 +110,8 @@ io.on('connection', (socket) => {
         socket.leave(`map:${socket.data.mapId}`);
       }
       socket.join(`map:${mapId}`);
-      socket.data = { ...socket.data, mapId, userName };
-      socket.to(`map:${mapId}`).emit('user-joined', { email: userEmail, name: userName });
+      socket.data = { ...socket.data, mapId, userName, projectRole: role, projectId };
+      socket.to(`map:${mapId}`).emit('user-joined', { email: userEmail, name: userName, role });
     } catch (e) {
       console.error('join-map:', e.message);
       socket.emit('join-error', { message: 'Ошибка проверки доступа' });
@@ -117,31 +120,36 @@ io.on('connection', (socket) => {
 
   // Синхронизация перемещения узла
   socket.on('node-move', ({ mapId, nodeId, x, y }) => {
-    if (mapId !== socket.data?.mapId) return; // игнорируем чужие комнаты
+    if (mapId !== socket.data?.mapId) return;
+    if (rejectViewerMutation(socket, 'node-move')) return;
     socket.to(`map:${mapId}`).emit('node-move', { nodeId, x, y, from: socket.data.userEmail });
   });
 
   // Синхронизация изменения поля узла
   socket.on('node-update', ({ mapId, node }) => {
     if (mapId !== socket.data?.mapId) return;
+    if (rejectViewerMutation(socket, 'node-update')) return;
     socket.to(`map:${mapId}`).emit('node-update', { node, from: socket.data.userEmail });
   });
 
   // Синхронизация добавления узла
   socket.on('node-add', ({ mapId, node }) => {
     if (mapId !== socket.data?.mapId) return;
+    if (rejectViewerMutation(socket, 'node-add')) return;
     socket.to(`map:${mapId}`).emit('node-add', { node, from: socket.data.userEmail });
   });
 
   // Синхронизация удаления узла
   socket.on('node-delete', ({ mapId, nodeId }) => {
     if (mapId !== socket.data?.mapId) return;
+    if (rejectViewerMutation(socket, 'node-delete')) return;
     socket.to(`map:${mapId}`).emit('node-delete', { nodeId, from: socket.data.userEmail });
   });
 
   // Синхронизация рёбер
   socket.on('edge-update', ({ mapId, edges }) => {
     if (mapId !== socket.data?.mapId) return;
+    if (rejectViewerMutation(socket, 'edge-update')) return;
     socket.to(`map:${mapId}`).emit('edge-update', { edges, from: socket.data.userEmail });
   });
 
@@ -232,7 +240,10 @@ const aiLimit = rateLimit({
   message: { error: 'Слишком много AI запросов. Подождите минуту.' },
 });
 
-app.use('/api/', generalLimit);
+app.use('/api/', (req, res, next) => {
+  if (req.path.startsWith('/webhooks/stripe')) return next();
+  return generalLimit(req, res, next);
+});
 app.use('/api/auth/login', authLimit);
 app.use('/api/auth/register', authLimit);
 app.use('/api/auth/forgot-password', authLimit);
@@ -328,9 +339,21 @@ app.get('*', (req, res) => {
 const { sendEmail, deadlineReminderEmail } = require('./routes/email');
 
 async function runDeadlineReminders() {
+  const LOCK_KEY = 8400123456789012;
+  let client;
   try {
+    client = await pool.connect();
+    const { rows: lockRows } = await client.query(
+      'SELECT pg_try_advisory_lock($1::bigint) AS locked',
+      [LOCK_KEY]
+    );
+    if (!lockRows[0]?.locked) {
+      console.log('Deadline reminders: another instance holds lock, skipping');
+      return;
+    }
+
     // Находим всех пользователей с notif_email = true
-    const { rows: users } = await pool.query(
+    const { rows: users } = await client.query(
       `SELECT email, name FROM users WHERE notif_email = true AND email_verified = true`
     );
 
@@ -342,14 +365,14 @@ async function runDeadlineReminders() {
     for (const user of users) {
       try {
         // Находим все карты пользователя (как owner или member)
-        const { rows: projects } = await pool.query(
+        const { rows: projects } = await client.query(
           `SELECT id FROM projects WHERE owner_email = $1 OR members @> $2::jsonb`,
           [user.email, JSON.stringify([{ email: user.email }])]
         );
         if (!projects.length) continue;
 
         const projectIds = projects.map(p => p.id);
-        const { rows: maps } = await pool.query(
+        const { rows: maps } = await client.query(
           `SELECT nodes FROM maps WHERE project_id = ANY($1) AND is_scenario = false`,
           [projectIds]
         );
@@ -376,6 +399,13 @@ async function runDeadlineReminders() {
     console.log(`✅ Deadline reminders sent (checked ${users.length} users)`);
   } catch (e) {
     console.error('Deadline cron error:', e.message);
+  } finally {
+    if (client) {
+      try {
+        await client.query('SELECT pg_advisory_unlock($1::bigint)', [8400123456789012]);
+      } catch (_) { /* ignore */ }
+      client.release();
+    }
   }
 }
 
@@ -395,26 +425,11 @@ function startCron() {
 
 // Проверка обязательных и важных env-переменных. В production падаем при
 // отсутствии критичных секретов; для остальных — печатаем понятный warning.
+const { validateProductionEnv } = require('./lib/preflightEnv');
+
 function preflightEnv() {
   const isProd = process.env.NODE_ENV === 'production';
-  const DEFAULT_JWT = 'strategy-ai-secret-change-in-production';
-
-  const hard = []; // критично — exit(1) в проде
-  const soft = []; // желательно — warning
-
-  if (!process.env.DATABASE_URL) hard.push('DATABASE_URL');
-  if (isProd) {
-    if (!process.env.JWT_SECRET || process.env.JWT_SECRET === DEFAULT_JWT) hard.push('JWT_SECRET');
-    if (!process.env.JWT_REFRESH_SECRET) soft.push('JWT_REFRESH_SECRET (использую JWT_SECRET+_refresh)');
-    if (!process.env.ALLOWED_ORIGINS) hard.push('ALLOWED_ORIGINS');
-    if (!process.env.APP_URL) soft.push('APP_URL (нужно для Stripe redirect)');
-    if (!process.env.OPENAI_KEY) soft.push('OPENAI_KEY (AI не будет работать)');
-    if (!process.env.STRIPE_SECRET_KEY) soft.push('STRIPE_SECRET_KEY (платежи отдадут 503)');
-    if (!process.env.STRIPE_WEBHOOK_SECRET) soft.push('STRIPE_WEBHOOK_SECRET (webhook не пройдёт подпись)');
-    if (!process.env.RESEND_API_KEY) soft.push('RESEND_API_KEY (письма не уйдут)');
-    if (!process.env.SENTRY_DSN) soft.push('SENTRY_DSN (мониторинг ошибок выключен)');
-    if (process.env.DEV_EMAILS) soft.push('DEV_EMAILS задан в production — мгновенная смена тарифа без оплаты будет доступна этим email');
-  }
+  const { hard, soft } = validateProductionEnv(process.env);
 
   if (hard.length) {
     console.error('❌ Критические env-переменные отсутствуют или используют дефолт:');

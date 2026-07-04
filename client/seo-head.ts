@@ -6,6 +6,9 @@ export type AppSeoScreen =
   | "landing"
   | "legal"
   | "notFound"
+  | "dashboard"
+  | "insights"
+  | "ai"
   | "projects"
   | "project"
   | "map"
@@ -88,6 +91,21 @@ export function applySeoForAppScreen(
       path = "/";
       title = defaultTitle;
       desc = defaultDesc;
+      break;
+    case "dashboard":
+      path = "/app";
+      title = "Strategy AI — Дашборд";
+      desc = "Обзор проектов, прогресса и быстрые действия в Strategy AI.";
+      break;
+    case "insights":
+      path = "/app";
+      title = "Strategy AI — Инсайты";
+      desc = "Аналитика портфеля стратегий: прогресс, риски и дедлайны.";
+      break;
+    case "ai":
+      path = "/app";
+      title = "Strategy AI — AI-советник";
+      desc = "Стратегический AI-чат с контекстом ваших проектов и карт.";
       break;
     case "projects":
     case "project":

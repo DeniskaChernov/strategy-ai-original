@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { API_BASE, getProjects } from "../api";
+import { API_BASE, apiFetch, getProjects } from "../api";
 import { getMapsByProject } from "../lib/maps-api";
 import { useLang } from "../lang-context";
 import { useIsMobile } from "../hooks/use-is-mobile";
@@ -13,7 +13,9 @@ import { NotifBell } from "../components/notif-bell";
 import { NotificationsCenterModal, AiHubModal } from "../strategy-modals/notifications-ai-hub-modals";
 import { AiPanel } from "../map-editor/ai-panel";
 import { WeeklyBriefingModal } from "../strategy-modals/weekly-briefing-modal";
+import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { FloatingAiAssistant } from "../floating-ai-assistant";
+import { GlobalSearchOverlay } from "../components/global-search-overlay";
 
 type ProjLite = { id: string; name: string; owner?: string; updatedAt?: number; updated_at?: number };
 
@@ -41,6 +43,7 @@ export function DashboardPage({
   onChangeTier,
   onShellNav,
   onOpenProject,
+  onOpenMap,
   onOpenContentPlanHub,
   aiChatMsgs,
   aiChatSetMsgs,
@@ -53,6 +56,7 @@ export function DashboardPage({
   onChangeTier?: () => void;
   onShellNav: (nav: StrategyShellNav) => void;
   onOpenProject?: (project: any) => void;
+  onOpenMap?: (map: any, project: any, isNew?: boolean, readOnly?: boolean, focusNodeId?: string | null) => void;
   onOpenContentPlanHub?: (() => void) | null;
   aiChatMsgs?: any[];
   aiChatSetMsgs?: (m: any[]) => void;
@@ -68,6 +72,10 @@ export function DashboardPage({
   const [showNotifs, setShowNotifs] = useState(false);
   const [showAIHub, setShowAIHub] = useState(false);
   const [showBriefing, setShowBriefing] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [search, setSearch] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const { notifs, setNotifs, notifUnread, setNotifUnread, notifLoading, loadNotifications } = useNotifications(showNotifs, user?.email);
 
   const trialDays = trialDaysRemaining(user);
@@ -88,6 +96,33 @@ export function DashboardPage({
 
   useEffect(() => { document.title = t("dash_doc_title", "Strategy AI — Обзор"); }, [t]);
 
+  useEffect(() => {
+    if (!API_BASE) { setSearchResults([]); return; }
+    const q = (search || "").trim();
+    if (q.length < 2) { setSearchResults([]); setSearching(false); return; }
+    setSearching(true);
+    const tm = setTimeout(async () => {
+      try {
+        const d = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
+        setSearchResults(Array.isArray(d?.results) ? d.results : []);
+      } catch { setSearchResults([]); }
+      setSearching(false);
+    }, 250);
+    return () => clearTimeout(tm);
+  }, [search]);
+
+  function openSearchResult(r: any) {
+    try {
+      const proj = projects.find((p: any) => p.id === r.projectId) || { id: r.projectId, name: r.subtitle || "Project" };
+      if (r.type === "map" && onOpenMap) onOpenMap({ id: r.id }, proj, false, false);
+      else if (r.type === "node" && onOpenMap) onOpenMap({ id: r.mapId }, proj, false, false, r.id);
+      else if (onOpenProject) onOpenProject(proj);
+      setSearchResults([]);
+      setSearch("");
+      setShowSearch(false);
+    } catch { /* — */ }
+  }
+
   const allMaps = useMemo(() => Object.values(mapsByProj).flatMap((a) => (Array.isArray(a) ? a : [])), [mapsByProj]);
   const allNodes = useMemo(() => allMaps.flatMap((m: any) => m?.nodes || []), [allMaps]);
 
@@ -107,6 +142,19 @@ export function DashboardPage({
       : 0;
     return t("shell_briefing_health", "Здоровье стратегии · {n}%").replace("{n}", String(health));
   }, [loading, stats, t]);
+
+  useEffect(() => {
+    if (loading || !user?.email || allNodes.length === 0) return;
+    try {
+      const d = new Date();
+      const weekKey = `${d.getFullYear()}-W${Math.ceil(((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7)}`;
+      const lsKey = `sa_weekly_briefing_${user.email}`;
+      if (localStorage.getItem(lsKey) !== weekKey) {
+        localStorage.setItem(lsKey, weekKey);
+        setShowBriefing(true);
+      }
+    } catch { /* ignore */ }
+  }, [loading, user?.email, allNodes.length]);
 
   const goals = useMemo(() => {
     const rank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -135,13 +183,10 @@ export function DashboardPage({
 
   const shellUi = !!user && !isMobile;
 
+  const openGlobalSearch = useCallback(() => setShowSearch(true), []);
+
   const openNewProject = useCallback(() => {
     try { sessionStorage.setItem("sa_open_new_project", "1"); } catch { /* — */ }
-    onShellNav("projects");
-  }, [onShellNav]);
-
-  const openGlobalSearch = useCallback(() => {
-    try { sessionStorage.setItem("sa_focus_search", "1"); } catch { /* — */ }
     onShellNav("projects");
   }, [onShellNav]);
 
@@ -226,6 +271,19 @@ export function DashboardPage({
 
   const body = (
     <>
+      {showSearch && (
+        <GlobalSearchOverlay
+          open={showSearch}
+          onClose={() => setShowSearch(false)}
+          search={search}
+          onSearchChange={setSearch}
+          searching={searching}
+          searchResults={searchResults}
+          onSelectResult={openSearchResult}
+          t={t}
+          variant={shellUi ? "desktop" : "mobile"}
+        />
+      )}
       {shellUi ? (
         <WorkspaceTopBar
           title={t("shell_dashboard", "Дашборд")}
@@ -251,7 +309,7 @@ export function DashboardPage({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
             <button type="button" className="btn-g" onClick={openNewProject} style={{ height: 32, fontSize: 11.5, fontWeight: 800 }}>+ {t("project_short", "Проект")}</button>
-            <button onClick={onToggleTheme} style={{ padding: "5px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text3)", cursor: "pointer", fontSize: 13 }}>{theme === "dark" ? "☀️" : "🌙"}</button>
+            <ThemeTogglePill theme={theme} onToggle={onToggleTheme} ariaLabel={t("toggle_theme_tip", "Сменить тему оформления")} />
             {API_BASE && <NotifBell unread={notifUnread} onClick={() => setShowNotifs(true)} className="btn-ic" />}
             <button type="button" className="btn-g" onClick={onProfile} style={{ height: 32, padding: "0 12px" }}>{(user?.name || user?.email || "?")[0].toUpperCase()}</button>
           </div>
@@ -274,13 +332,22 @@ export function DashboardPage({
             )}
           </div>
 
-          <div className="dash-grid">
+          <div className="r4">
             {KPI_CARDS.map((k, i) => (
-              <div key={i} className="dash-card glow-card" onClick={k.onClick} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") k.onClick(); }}>
-                <div style={{ fontSize: 20, marginBottom: 6 }} aria-hidden>{k.icon}</div>
-                <div className="dc-val" style={{ color: k.color }}>{k.value}</div>
-                <div className="dc-lbl">{k.label}</div>
-                <div className={`dc-trend ${k.trendCls}`}>{k.trend}</div>
+              <div
+                key={i}
+                className="kpi-card card"
+                onClick={k.onClick}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") k.onClick(); }}
+                style={{ cursor: "pointer" }}
+              >
+                <div className="kglow" style={{ opacity: 0.4 }} aria-hidden />
+                <div style={{ fontSize: 22, marginBottom: 6 }} aria-hidden>{k.icon}</div>
+                <div className="kval" style={{ color: k.color }}>{k.value}</div>
+                <div className="klbl">{k.label}</div>
+                <div className={`ksub ${k.trendCls}`}>{k.trend}</div>
               </div>
             ))}
           </div>
@@ -288,22 +355,25 @@ export function DashboardPage({
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div>
               <div className="slbl">{t("dash_recent_activity", "Последняя активность")}</div>
-              <div className="card">
+              <div className="card" style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                 {loading ? (
-                  <div className="act-text" style={{ color: "var(--t3)" }}>{t("loading_short", "Загрузка…")}</div>
+                  <div style={{ padding: "10px 16px", color: "var(--t3)", fontSize: 12.5 }}>{t("loading_short", "Загрузка…")}</div>
                 ) : recent.length === 0 ? (
-                  <div className="act-text" style={{ color: "var(--t3)" }}>{t("dash_no_activity", "Пока нет активности — создайте карту.")}</div>
+                  <div style={{ padding: "10px 16px", color: "var(--t3)", fontSize: 12.5 }}>{t("dash_no_activity", "Пока нет активности — создайте карту.")}</div>
                 ) : (
                   recent.map((r, i) => {
                     const st = ACTIVITY_STYLES[i % ACTIVITY_STYLES.length];
                     return (
-                      <div key={i} className="activity-item">
-                        <div className="act-icon" style={{ background: st.bg }} aria-hidden>{st.ic}</div>
-                        <div className="act-text">
+                      <div
+                        key={i}
+                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderBottom: ".5px solid var(--b0)" }}
+                      >
+                        <div style={{ width: 28, height: 28, borderRadius: 8, background: st.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }} aria-hidden>{st.ic}</div>
+                        <div style={{ flex: 1, fontSize: 12, color: "var(--t2)" }}>
                           <strong>{r.name}</strong>{" "}
                           {t("dash_act_map_updated_plain", "обновлена · {n} узлов").replace("{n}", String(r.nodes))}
                         </div>
-                        <div className="act-time">{relTime(r.at)}</div>
+                        <div style={{ fontSize: 10, color: "var(--t3)", flexShrink: 0 }}>{relTime(r.at)}</div>
                       </div>
                     );
                   })

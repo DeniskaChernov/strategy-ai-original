@@ -9,6 +9,7 @@ import { getSTATUS } from "../lib/strategy-labels";
 import { StrategyShellSidebar, StrategyShellBg, type StrategyShellNav } from "../../strategy-shell-sidebar";
 import { AppTopBar } from "../components/app-top-bar";
 import { NotifBell } from "../components/notif-bell";
+import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { NotificationsCenterModal } from "../strategy-modals/notifications-ai-hub-modals";
 import { AiPanel } from "../map-editor/ai-panel";
 
@@ -135,7 +136,7 @@ export function AiAdvisorPage({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
             {API_BASE && <NotifBell unread={notifUnread} onClick={() => setShowNotifs(true)} className="btn-ic" />}
-            <button onClick={onToggleTheme} style={{ padding: "5px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text3)", cursor: "pointer", fontSize: 13 }}>{theme === "dark" ? "☀️" : "🌙"}</button>
+            <ThemeTogglePill theme={theme} onToggle={onToggleTheme} />
           </div>
         </div>
       )}

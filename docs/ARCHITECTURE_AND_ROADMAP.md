@@ -42,7 +42,7 @@ SaaS для стратегического планирования:
 
 **Корневые модули вне `client/`:**
 
-- `strategy-ai-full.tsx` — оркестратор SPA (~2100+ строк, основной техдолг).
+- `strategy-ai-full.tsx` — оркестратор SPA (~768 строк): навигация, auth, lazy-экраны.
 - `strategy-shell-sidebar.tsx` — боковая навигация workspace.
 - `reference-landing.tsx` — маркетинговый лендинг (lazy import).
 
@@ -66,12 +66,14 @@ SaaS для стратегического планирования:
 
 ### CI (`npm run ci`)
 
-`build` → `tsc --noEmit` → `scripts/verify-build-artifacts.js`
+`build` → `tsc --noEmit` → `vitest run` → `scripts/verify-build-artifacts.js`
+
+Опционально: `npm run test:strict-lib` (strict TypeScript для `client/lib/*`), `npm run test:e2e` (Playwright smoke).
 
 ### Service Worker (`public/sw.js`) — только кэш-логика
 
-- Версия кэша: `strategy-ai-v9`.
-- **Network-first:** `app.js`, `chunk-*`, CSS, `/`, `index.html` — чтобы после деплоя не отдавать устаревший бандл.
+- Версия кэша: `strategy-ai-v10`.
+- **Network-first:** `app.js`, `chunk-*`, `env-config.js`, CSS, `/`, `index.html`.
 - **Cache-first:** прочие GET (кроме `/api/` и socket).
 - Install: иконки, manifest (не прекэширует JS/CSS на install).
 

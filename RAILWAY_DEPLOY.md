@@ -50,16 +50,22 @@ railway up
 |---|---|
 | `DATABASE_URL` | Автоматически из PostgreSQL |
 | `NODE_ENV` | `production` |
-| `JWT_SECRET` | Случайная строка 64 символа |
-| `ALLOWED_ORIGINS` | URL твоего фронтенда |
-| `APP_URL` | URL твоего фронтенда |
-| `ANTHROPIC_KEY` | Ключ с [console.anthropic.com](https://console.anthropic.com) |
+| `JWT_SECRET` | Случайная строка 64+ символов (`node -e "require('crypto').randomBytes(64).toString('hex')""`) |
+| `JWT_REFRESH_SECRET` | Отдельная случайная строка (не `JWT_SECRET + '_refresh'`) |
+| `ALLOWED_ORIGINS` | URL фронтенда через запятую |
+| `APP_URL` | URL приложения (Stripe redirect, письма) |
+| `PUBLIC_SITE_URL` | Canonical URL для SEO (опционально, рекомендуется) |
+| `OPENAI_KEY` | Ключ с [platform.openai.com](https://platform.openai.com/api-keys) |
 | `STRIPE_SECRET_KEY` | `sk_live_...` из Stripe Dashboard |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` из Stripe Webhooks |
 | `STRIPE_PRICE_STARTER` | `price_...` из Stripe Products |
 | `STRIPE_PRICE_PRO` | `price_...` из Stripe Products |
 | `STRIPE_PRICE_TEAM` | `price_...` из Stripe Products |
 | `STRIPE_PRICE_ENTERPRISE` | `price_...` из Stripe Products |
+| `RESEND_API_KEY` | (опционально) для email |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | (опционально) Web Push |
+
+Полный список: `server/.env.example`, `RAILWAY_DEPLOY.md`.
 
 ---
 
@@ -123,7 +129,7 @@ curl -X POST https://your-backend.railway.app/api/auth/register \
    ├── /api/payments/*    — Stripe Checkout
    ├── /api/webhooks/*    — Stripe Events
    ├── /api/shares/*      — публичные ссылки
-   └── /api/ai/*          — прокси Anthropic + лимиты
+   └── /api/ai/*          — прокси OpenAI + лимиты
         ↓
 [Railway: PostgreSQL]
    ├── users              — пользователи + тарифы

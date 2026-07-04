@@ -13,7 +13,7 @@ const TIER_LIMITS = {
 };
 
 // Доступность фич по тарифу
-const CONTENT_PLAN_TIERS = new Set(['pro', 'team', 'enterprise']);
+const CONTENT_PLAN_TIERS = require('../lib/tierFlags').CONTENT_PLAN_TIERS;
 
 // GET /api/projects — все проекты пользователя (owner + member)
 router.get('/', requireAuth, async (req, res, next) => {

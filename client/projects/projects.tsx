@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
+﻿import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from "react";
 import { NW, NH, fmt, sleep, uid, snap } from "../lib/util";
 import {
   API_BASE,
@@ -67,8 +67,12 @@ import { OfflineBanner } from "../components/offline-banner";
 import { CustomSelect } from "../components/custom-select";
 import { Toast } from "../components/toast";
 import { NotifBell } from "../components/notif-bell";
+import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { MapTour } from "../components/map-tour";
-import { AppTopBar } from "../components/app-top-bar";
+import { WorkspaceTopBar } from "../components/workspace-top-bar";
+import { ReferenceProjectCard, projectVisual, memberAvatarStyle } from "../components/reference-project-card";
+import { NewProjectModal } from "../strategy-modals/new-project-modal";
+import { GlobalSearchOverlay } from "../components/global-search-overlay";
 import { SimulationModal } from "../strategy-modals/simulation-modal";
 import { PillGroup } from "../components/pill-group";
 import { MapConflictModal } from "../strategy-modals/map-conflict-modal";
@@ -214,10 +218,14 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
     }catch{}
   }
 
-  async function createProject(){
-    if(!newName.trim())return;
+  async function createProject(fromModal?: { name: string; description?: string; icon?: string; color?: string }){
+    const projectName=(fromModal?.name??newName).trim();
+    if(!projectName)return;
     if(projects.filter(p=>p.owner===user.email).length>=tier.projects){setToast({msg:t("project_limit","Лимит проектов"),type:"error"});setTimeout(()=>setToast(null),3000);return;}
-    const p={id:uid(),name:newName.trim(),owner:user.email,members:[{email:user.email,role:"owner"}],createdAt:Date.now()};
+    const p: any={id:uid(),name:projectName,owner:user.email,members:[{email:user.email,role:"owner"}],createdAt:Date.now()};
+    if(fromModal?.description)p.description=fromModal.description;
+    if(fromModal?.icon)p.icon=fromModal.icon;
+    if(fromModal?.color)p.color=fromModal.color;
     try{
       const saved=await saveProject(p);
       const finalP=saved||p;
@@ -272,6 +280,52 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
   }
   const shellUi=!isMobile;
   const scenarioBadgeCount=allMapsForAI.filter((m:any)=>m.isScenario).length;
+  const openGlobalSearch=useCallback(()=>setShowMobileSearch(true),[]);
+  useEffect(()=>{
+    if(!shellUi)return;
+    const onKey=(e:KeyboardEvent)=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openGlobalSearch();}};
+    window.addEventListener("keydown",onKey);
+    return()=>window.removeEventListener("keydown",onKey);
+  },[shellUi,openGlobalSearch]);
+
+  function renderReferenceProjectCard(p: ProjectLite, i: number){
+    const pm=maps[p.id]||[];
+    const myRole=p.owner===user.email?"owner":p.members?.find(m=>m.email===user.email)?.role||"owner";
+    const roleLabel=shellUi?myRole:(ROLES[myRole]?.label||myRole);
+    const vis=projectVisual(p.id,(p as any).icon,(p as any).color);
+    const mapsCount=pm.filter(m=>!m.isScenario).length;
+    const scenCount=pm.filter(m=>m.isScenario).length;
+    const allNodes=pm.flatMap(m=>m.nodes||[]);
+    const stepsCount=allNodes.length;
+    const membersList=p.members?.length?p.members:[{email:p.owner,role:"owner"}];
+    const pct=stepsCount?Math.round(allNodes.reduce((s,n)=>s+(Number(n.progress)||0),0)/stepsCount):0;
+    const editedTs=toMs((p as any).updatedAt||(p as any).updated_at||p.createdAt||p.created_at);
+    const editedLabel=editedTs?(()=>{const diff=Date.now()-editedTs;const d=Math.floor(diff/864e5);if(d<=0)return t("edited_today_ref","Edited today");if(d===1)return t("edited_yesterday_ref","Edited yesterday");return t("edited_on_ref","Edited {d}").replace("{d}",new Date(editedTs).toLocaleDateString(lang==="en"?"en-US":lang==="uz"?"uz-UZ":"ru",{day:"numeric",month:"short"}));})():"—";
+    const memberAvatars=membersList.map((mem:any,mi:number)=>memberAvatarStyle(mem.email||String(mi),mi));
+    return(
+      <ReferenceProjectCard
+        key={p.id}
+        name={p.name}
+        roleLabel={roleLabel}
+        desc={(p as any).description||""}
+        iconEmoji={vis.emoji}
+        iconColor={vis.color}
+        maps={mapsCount}
+        scenarios={scenCount}
+        steps={stepsCount}
+        members={membersList.length}
+        progress={pct}
+        editedLabel={editedLabel}
+        memberAvatars={memberAvatars}
+        mapsLabel={t("maps_cap","Maps")}
+        scenariosLabel={t("scenarios_cap","Scenarios")}
+        stepsLabel={t("steps_cap","Steps")}
+        membersLabel={t("members_cap","Members")}
+        progressLabel={t("overall_progress","Overall progress")}
+        onClick={()=>onSelectProject(p)}
+      />
+    );
+  }
 
   const _projMain=(
     <>
@@ -299,7 +353,7 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
               🔍
             </button>
           )}
-          <button onClick={onToggleTheme} style={{padding:"5px 10px",borderRadius:8,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text3)",cursor:"pointer",fontSize:13}}>{theme==="dark"?"☀️":"🌙"}</button>
+          <ThemeTogglePill theme={theme} onToggle={onToggleTheme} />
           <button type="button" className="btn-interactive" onClick={()=>setShowAIHub(true)} title={t("ai_hub_title","✦ AI (единый чат)")} style={{padding:"6px 12px",borderRadius:10,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text3)",cursor:"pointer",fontSize:12,fontWeight:800,display:"inline-flex",alignItems:"center",gap:6}}>
             <span aria-hidden>✦</span>{t("ai_hub_btn_short","AI-чат")}
           </button>
@@ -312,60 +366,66 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
         </div>
       </div>
       )}
-      {isMobile&&showMobileSearch&&(
-        <div id="search-overlay" className="open" style={{position:"fixed",inset:0,zIndex:420,padding:0,background:"var(--modal-overlay-bg,rgba(0,0,0,.72))",backdropFilter:"blur(10px)",display:"flex",alignItems:"stretch",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)setShowMobileSearch(false);}}>
-          <div role="dialog" aria-modal="true" aria-label={t("search_projects_hint","Поиск по проектам и картам…")} style={{width:"100%",maxWidth:"100%",height:"100%",background:"var(--bg)",display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
-            <div style={{padding:"12px 14px",display:"flex",alignItems:"center",gap:8,borderBottom:"1px solid var(--border)",background:"var(--surface)"}}>
-              <input autoFocus value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("search_projects_hint","Поиск по проектам и картам…")} className="input-smooth" style={{flex:1,padding:"11px 14px",fontSize:14,background:"var(--input-bg)",border:"1px solid var(--input-border)",borderRadius:12,color:"var(--text)",outline:"none",fontFamily:"inherit"}}/>
-              <button type="button" className="btn-g" onClick={()=>setShowMobileSearch(false)} style={{height:36,padding:"0 12px",fontSize:12.5}}>{t("close","Закрыть")}</button>
-            </div>
-            <div style={{flex:1,overflow:"auto",padding:"10px 12px 16px",background:"var(--bg)"}}>
-              {API_BASE&&((search||"").trim().length>=2)?(
-                searching&&searchResults.length===0?(
-                  <div style={{padding:"10px 6px",fontSize:13,color:"var(--text5)"}}>{t("loading_short","Загрузка…")}</div>
-                ):searchResults.length===0?(
-                  <div style={{padding:"10px 6px",fontSize:13,color:"var(--text5)"}}>{t("search_empty","Ничего не найдено")}</div>
-                ):(
-                  <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                    {searchResults.slice(0,30).map((r:any)=>(
-                      <button key={`${r.type}:${r.id}`} className="btn-interactive" onClick={()=>openSearchResult(r)} style={{textAlign:"left",padding:"11px 12px",borderRadius:12,border:"1px solid var(--border)",background:"var(--surface)",cursor:"pointer",display:"flex",gap:10,alignItems:"flex-start"}}>
-                        <div style={{width:26,height:26,borderRadius:9,background:"var(--surface2)",border:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0,color:"var(--text4)"}}>
-                          {r.type==="map"?"M":"N"}
-                        </div>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:13,fontWeight:900,color:"var(--text)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.title||t("untitled","Без названия")}</div>
-                          <div style={{fontSize:12.5,color:"var(--text5)",marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.subtitle||""}</div>
-                          {r.highlight&&<div style={{fontSize:12.5,color:"var(--text4)",marginTop:6,lineHeight:1.4,opacity:.95}}>{String(r.highlight)}</div>}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )
-              ):(
-                <div style={{padding:"10px 6px",fontSize:13,color:"var(--text5)"}}>{t("search_type_more","Введите минимум 2 символа")}</div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {shellUi&&(
-        <AppTopBar
-          title={t("your_projects","Мои проекты")}
-          subtitle={`${myCount}${!Number.isFinite(tier.projects)?"":" / "+tier.projects} · ${tier.label}`}
-          flowHint={t("workspace_flow_hint_projects","Проект → карта → сценарии, таймлайн и AI — одна логика работы.")}
-          rightContent={
-            <>
-              {onOpenContentPlanHub&&<MainWorkspaceNav mode="strategy" onStrategy={()=>{}} onContentPlan={onOpenContentPlanHub} t={t} isMobile={false}/>}
-              <button type="button" className="btn-g" onClick={()=>setShowAIHub(true)} title={t("ai_hub_title","✦ AI (единый чат)")} style={{height:32,fontSize:11.5,padding:"0 12px",display:"inline-flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
-                <span aria-hidden>✦</span>{t("ai_hub_btn_short","AI-чат")}
-              </button>
-              {API_BASE&&<NotifBell unread={notifUnread} onClick={()=>setShowNotifs(true)} className="btn-ic"/>}
-            </>
-          }
+      {showMobileSearch&&(
+        <GlobalSearchOverlay
+          open={showMobileSearch}
+          onClose={()=>setShowMobileSearch(false)}
+          search={search}
+          onSearchChange={setSearch}
+          searching={searching}
+          searchResults={searchResults}
+          onSelectResult={openSearchResult}
+          t={t}
+          variant={shellUi?"desktop":"mobile"}
         />
       )}
-      <div className={shellUi?"scr":undefined} style={{flex:1,overflowY:shellUi?undefined:"auto",padding:shellUi?0:isMobile?16:24,paddingBottom:isMobile?96:undefined,position:"relative",zIndex:5,minHeight:0}}>
-        <div style={{maxWidth:shellUi?"min(1440px,100%)":960,width:"100%",margin:"0 auto"}}>
+      {shellUi&&(
+        <WorkspaceTopBar
+          title={t("shell_projects","Projects")}
+          subtitle={t("projects_subtitle","Your strategic workspace")}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          searchPlaceholder={t("dash_search_ph","Search… (⌘K)")}
+          onSearchClick={openGlobalSearch}
+          notifUnread={notifUnread}
+          onNotifs={()=>setShowNotifs(true)}
+          showNotifs={!!API_BASE}
+          onSettings={onProfile}
+          onNewProject={atLimit?undefined:()=>setCreating(true)}
+          newProjectLabel={t("new_project","New project")}
+        />
+      )}
+      <div className={shellUi?"scr":undefined} style={{flex:1,overflowY:"auto",padding:shellUi?undefined:isMobile?16:24,paddingBottom:isMobile?96:undefined,position:"relative",zIndex:5,minHeight:0}}>
+        {shellUi?(
+          <>
+            {creating&&<NewProjectModal t={t} onClose={()=>{setCreating(false);setNewName("");}} onCreate={(data)=>createProject(data)}/>}
+            {loadErr?(
+              <div style={{padding:"32px 24px",textAlign:"center"}}>
+                <div style={{fontSize:15,color:"var(--t3)",marginBottom:12}}>{loadErr}</div>
+                <button type="button" className="btn-p" onClick={loadProjects}>{t("retry","Retry")}</button>
+              </div>
+            ):loading?(
+              <>
+                <div className="slbl">{t("all_projects","All projects")}</div>
+                <div className="proj-grid">{[1,2,3,4].map(i=>(<div key={i} className="proj-card" style={{pointerEvents:"none",minHeight:180}}><div className="sa-skel" style={{height:120,borderRadius:12}}/></div>))}</div>
+              </>
+            ):(
+              <>
+                <div className="slbl">{t("all_projects","All projects")} <span style={{color:"var(--acc)",fontWeight:700}}>{filtered.length}</span></div>
+                <div className="proj-grid">
+                  {filtered.map((p,i)=>renderReferenceProjectCard(p,i))}
+                  {!atLimit&&(
+                    <div className="proj-card new-card" onClick={()=>setCreating(true)} onKeyDown={(e)=>{if(e.key==="Enter"||e.key===" ")setCreating(true);}} role="button" tabIndex={0}>
+                      <div className="proj-new-icon">+</div>
+                      <div className="proj-new-lbl">{t("new_project","New project")}</div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </>
+        ):(
+        <div style={{maxWidth:960,width:"100%",margin:"0 auto"}}>
           {isMobile&&onOpenContentPlanHub&&(
             <div style={{marginBottom:18}}>
               <MainWorkspaceNav mode="strategy" onStrategy={()=>{}} onContentPlan={onOpenContentPlanHub} t={t} isMobile={true}/>
@@ -457,7 +517,7 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
           {creating&&(
             <div style={{padding:"16px 18px",borderRadius:14,background:"var(--surface)",border:"1px solid var(--border2)",marginBottom:16,display:"flex",gap:10,alignItems:"center",animation:"slideUp .2s ease"}}>
               <input autoFocus value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")createProject();if(e.key==="Escape"){setCreating(false);setNewName("");}}} placeholder={t("new_project_name_ph","Название проекта…")} style={{flex:1,padding:"9px 13px",fontSize:13.5,background:"var(--input-bg)",border:"1px solid var(--input-border)",borderRadius:10,color:"var(--text)",outline:"none",fontFamily:"inherit"}}/>
-              <button onClick={createProject} disabled={!newName.trim()} style={{padding:"9px 20px",borderRadius:10,border:"none",background:"var(--gradient-accent)",color:"var(--accent-on-bg)",cursor:newName.trim()?"pointer":"not-allowed",fontSize:13,fontWeight:700,opacity:newName.trim()?1:.5}}>{t("create_map_btn","Создать")}</button>
+              <button onClick={()=>createProject()} disabled={!newName.trim()} style={{padding:"9px 20px",borderRadius:10,border:"none",background:"var(--gradient-accent)",color:"var(--accent-on-bg)",cursor:newName.trim()?"pointer":"not-allowed",fontSize:13,fontWeight:700,opacity:newName.trim()?1:.5}}>{t("create_map_btn","Создать")}</button>
               <button onClick={()=>{setCreating(false);setNewName("");}} style={{padding:"9px 14px",borderRadius:10,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text3)",cursor:"pointer",fontSize:13}}>{t("cancel","Отмена")}</button>
             </div>
           )}
@@ -595,6 +655,7 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
             </div>
           )}
         </div>
+        )}
       </div>
       {isMobile&&(
         <div role="tablist" aria-label={t("workspace_nav_aria","Разделы приложения")} style={{position:"fixed",left:12,right:12,bottom:10,zIndex:330,display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:8,padding:8,borderRadius:16,background:"color-mix(in srgb,var(--surface) 92%, transparent)",backdropFilter:"blur(14px)",border:"1px solid var(--border)",boxShadow:"0 10px 28px rgba(0,0,0,.28)"}}>

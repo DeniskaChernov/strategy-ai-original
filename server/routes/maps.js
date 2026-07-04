@@ -5,6 +5,7 @@ const { createNotification } = require('./notifications');
 const { TIERS } = require('./tiers');
 const { getProjectAccess } = require('../lib/projectAccess');
 const { validateMapBody } = require('../lib/mapPayload');
+const { isMapOverLimit } = require('../lib/mapLimits');
 
 // GET /api/projects/:projectId/maps
 router.get('/:projectId/maps', requireAuth, async (req, res, next) => {
@@ -111,7 +112,8 @@ router.get('/:projectId/maps/:mapId', requireAuth, async (req, res, next) => {
       [req.params.mapId, req.params.projectId]
     );
     if (!rows[0]) return res.status(404).json({ error: 'Карта не найдена' });
-    res.json({ map: rows[0], role });
+    const readOnly = await isMapOverLimit(req.user.email, req.user.tier, req.params.mapId);
+    res.json({ map: rows[0], role, readOnly: readOnly || role === 'viewer' });
   } catch (err) { next(err); }
 });
 
@@ -121,6 +123,13 @@ router.put('/:projectId/maps/:mapId', requireAuth, async (req, res, next) => {
     const { project, role } = await getProjectAccess(req.params.projectId, req.user.email);
     if (!project) return res.status(404).json({ error: 'Проект не найден' });
     if (!role || role === 'viewer') return res.status(403).json({ error: 'Нет прав для сохранения' });
+
+    if (await isMapOverLimit(req.user.email, req.user.tier, req.params.mapId)) {
+      return res.status(403).json({
+        error: 'Карта доступна только для чтения: превышен лимит карт для вашего тарифа. Улучшите тариф или удалите лишние карты.',
+        code: 'MAP_READ_ONLY',
+      });
+    }
 
     const { name, nodes, edges, ctx, is_scenario } = req.body;
     const vPut = validateMapBody({ name, ctx, nodes, edges });

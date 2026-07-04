@@ -34,6 +34,9 @@ export function CustomSelect({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        role="combobox"
         style={{
           display: "inline-flex",
           alignItems: "center",
@@ -60,6 +63,8 @@ export function CustomSelect({
       {open && (
         <div
           className="glass-panel"
+          role="listbox"
+          aria-label="Options"
           style={{
             position: "absolute",
             top: "calc(100% + 4px)",
@@ -79,6 +84,8 @@ export function CustomSelect({
             <button
               key={o.value}
               type="button"
+              role="option"
+              aria-selected={o.value === value}
               onClick={() => {
                 onChange(o.value);
                 setOpen(false);

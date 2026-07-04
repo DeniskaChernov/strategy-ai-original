@@ -145,6 +145,7 @@ function readIndex() {
 function resolveSite(req) {
   const envSite = process.env.PUBLIC_SITE_URL;
   if (envSite && /^https?:\/\//i.test(envSite)) return envSite.replace(/\/+$/, '');
+  if (process.env.NODE_ENV === 'production') return DEFAULT_SITE;
   const host = req && req.get && req.get('host');
   const proto = req && req.protocol ? req.protocol : 'https';
   if (host) return `${proto}://${host}`.replace(/\/+$/, '');
