@@ -26,8 +26,8 @@
 | 26 | Vitest | 5 notif tests | ✅ |
 | 27 | E2E | strategy-shell.css on `/app` | ✅ spec |
 | 28 | Security checklist | `docs/SECURITY_CHECKLIST.md` | ✅ draft |
-| 29 | TypeScript | `tsc --noEmit` | pending |
-| 30 | CI | `npm run ci` | pending |
+| 29 | TypeScript | `tsc --noEmit` | ✅ |
+| 30 | CI | `npm run ci` | ✅ 17 tests |
 
 ## Backlog
 
