@@ -71,6 +71,7 @@ import { Toast } from "../components/toast";
 import { NotifBell } from "../components/notif-bell";
 import { MapTour } from "../components/map-tour";
 import { AppTopBar } from "../components/app-top-bar";
+import { WorkspaceTopBar } from "../components/workspace-top-bar";
 import { SimulationModal } from "../strategy-modals/simulation-modal";
 import { PillGroup } from "../components/pill-group";
 import { MapConflictModal } from "../strategy-modals/map-conflict-modal";
@@ -918,37 +919,21 @@ ${ctx}
         </div>
       )}
       {shellUi&&(
-        <AppTopBar
-          title={mapData?.name||t("shell_strategy_map","Карта стратегии")}
+        <WorkspaceTopBar
+          title={mapData?.name||t("shell_strategy_map","Strategy Map")}
           subtitle={project?.name||""}
-          flowHint={t("workspace_flow_hint_map","Шаги и связи — контекст для сценариев, Gantt и AI.")}
-          leftAddon={
-            <button
-              type="button"
-              className={"sa-shell-burger"+(sidebarCollapsed?" on":"")}
-              onClick={()=>setSidebarCollapsed(c=>!c)}
-              title={sidebarCollapsed?t("shell_show_sidebar","Показать панель"):t("shell_hide_sidebar","Скрыть панель")}
-              aria-label={sidebarCollapsed?t("shell_show_sidebar","Показать панель"):t("shell_hide_sidebar","Скрыть панель")}
-              aria-pressed={sidebarCollapsed}
-            >
-              <svg viewBox="0 0 16 16" fill="none" aria-hidden>
-                <path d="M2.5 4h11M2.5 8h11M2.5 12h11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-              </svg>
-            </button>
-          }
-          rightContent={
-            <>
-              {API_BASE&&<NotifBell unread={notifUnread} onClick={()=>setShowNotifs(true)}/>}
-              {!readOnly&&(
-                <div role="status" aria-live="polite" aria-relevant="text" style={{display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:600,color:saveState==="saving"?"#f09428":saveState==="error"?"#f04458":"#12c482"}}>
-                  {saveState==="saving"?<><span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⟳</span> {t("saving","Сохраняю")}</>:saveState==="error"?<>✗ {t("save_error","Ошибка")}</>:<>✓ {t("saved_short","Сохранено")}</>}
-                </div>
-              )}
-              {!readOnly&&user&&(
-                <button type="button" className="btn-ic" onClick={onProfile} title={t("profile_title","Профиль")} aria-label={t("profile_title","Профиль")}>{(user?.name||user?.email||"U")[0].toUpperCase()}</button>
-              )}
-            </>
-          }
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          onBack={onBack}
+          searchPlaceholder={t("dash_search_ph","Search… (⌘K)")}
+          showSearch={false}
+          notifUnread={notifUnread}
+          onNotifs={()=>setShowNotifs(true)}
+          showNotifs={!!API_BASE}
+          onSettings={onProfile}
+          newProjectLabel={t("step_short","Step")}
+          primaryCta={!readOnly?{label:"+ "+t("step_short","Step"),onClick:()=>addNode()}:undefined}
+          saveIndicator={readOnly?null:saveState==="saving"?t("saving","Saving…"):saveState==="error"?t("save_error","Error"):t("saved_short","Saved ✓")}
         />
       )}
       {!shellUi&&(<>
@@ -1164,7 +1149,7 @@ ${ctx}
       {/* canvas — в оболочке макета: .sa-screen-map + .sa-canvas-wrap (точки через :: при grid) */}
       <div className="sa-screen-map screen on" style={{flex:1,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative"}}>
       <div
-        className={"sa-canvas-wrap"+(bgMode!=="grid"?" sa-canvas-no-dots":"")}
+        className={"sa-canvas-wrap map-canvas-wrap"+(bgMode!=="grid"?" sa-canvas-no-dots":"")}
         style={{
           flex:1,
           position:"relative",
@@ -1296,6 +1281,7 @@ ${ctx}
         {toasts.map(toast=><Toast key={toast.id} msg={toast.msg} type={toast.type} onClose={()=>setToasts(ts=>ts.filter(x=>x.id!==toast.id))}/>)}
         {selNode&&(
           <RichEditorPanel
+            referenceShell={shellUi}
             node={selNode}
             aiPanelOpen={showAI}
             isMobile={isMobile}
@@ -1457,6 +1443,8 @@ ${ctx}
           showContentPlan={!!onOpenContentPlanHub}
           onContentPlan={onOpenContentPlanHub||undefined}
           showTrialBanner={(user?.tier||"free")==="free"}
+          onWeeklyBriefing={()=>setShowBriefing(true)}
+          briefingHint={t("shell_briefing_sub","Strategy health")}
           onLogoClick={() => onShellGlobalNav?.("dashboard")}
           layoutMode="reference"
           showProjectNav={true}

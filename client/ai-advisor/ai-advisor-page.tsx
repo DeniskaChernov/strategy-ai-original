@@ -56,6 +56,7 @@ export function AiAdvisorPage({
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [showNotifs, setShowNotifs] = useState(false);
+  const [aiQuickAsk, setAiQuickAsk] = useState<string | null>(null);
   const { notifs, setNotifs, notifUnread, setNotifUnread, notifLoading, loadNotifications } = useNotifications(showNotifs, user?.email);
 
   useEffect(() => {
@@ -105,24 +106,57 @@ export function AiAdvisorPage({
     </div>
   );
 
+  const quickPortfolio = [
+    t("ai_q_gaps", "📊 Analyze my strategy for gaps"),
+    t("ai_q_risks", "⚠️ What are my top risks?"),
+    t("ai_q_prioritize", "🎯 Prioritize Q2 initiatives"),
+    t("ai_q_kpis", "📈 What KPIs should I track?"),
+  ];
+
   const chat = (
     <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: shellUi ? "row" : "column", overflow: "hidden" }}>
-      <div className="chat-area" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", maxWidth: shellUi ? undefined : "min(1040px,100%)", width: "100%", margin: shellUi ? undefined : "0 auto", padding: shellUi ? 0 : "0 12px 16px", borderRight: shellUi ? ".5px solid var(--b1)" : undefined }}>
-        <div className="sa-ai-chat-shell sa-page-reveal sa-pr-d2" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-          <AiPanel embedded={true} isMobile={isMobile} nodes={allNodes.slice(0, 240)} edges={allEdges.slice(0, 280)} ctx={ctx} tier={user?.tier || "free"} projectName={t("all_projects", "Все проекты")} mapName="" userName={user?.name || user?.email || ""} msgs={aiChatMsgs || []} onMsgsChange={aiChatSetMsgs || (() => {})} onAddNode={() => {}} onClose={() => {}} externalMsgs={[]} onClearExternal={() => {}} onError={() => {}} statusMap={STATUS} />
-        </div>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", maxWidth: shellUi ? undefined : "min(1040px,100%)", width: "100%", margin: shellUi ? undefined : "0 auto", padding: shellUi ? 0 : "0 12px 16px", borderRight: shellUi ? ".5px solid var(--b1)" : undefined, minWidth: 0 }}>
+        {shellUi ? (
+          <AiPanel
+            referenceShell={true}
+            embedded={true}
+            isMobile={isMobile}
+            nodes={allNodes.slice(0, 240)}
+            edges={allEdges.slice(0, 280)}
+            ctx={ctx}
+            tier={user?.tier || "free"}
+            projectName={t("all_projects", "All projects")}
+            mapName=""
+            userName={user?.name || user?.email || ""}
+            msgs={aiChatMsgs || []}
+            onMsgsChange={aiChatSetMsgs || (() => {})}
+            onAddNode={() => {}}
+            onClose={() => {}}
+            externalMsgs={[]}
+            onClearExternal={() => {}}
+            onError={() => {}}
+            statusMap={STATUS}
+            promptToSend={aiQuickAsk}
+            onPromptSent={() => setAiQuickAsk(null)}
+          />
+        ) : (
+          <div className="sa-ai-chat-shell sa-page-reveal sa-pr-d2" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+            <AiPanel embedded={true} isMobile={isMobile} nodes={allNodes.slice(0, 240)} edges={allEdges.slice(0, 280)} ctx={ctx} tier={user?.tier || "free"} projectName={t("all_projects", "Все проекты")} mapName="" userName={user?.name || user?.email || ""} msgs={aiChatMsgs || []} onMsgsChange={aiChatSetMsgs || (() => {})} onAddNode={() => {}} onClose={() => {}} externalMsgs={[]} onClearExternal={() => {}} onError={() => {}} statusMap={STATUS} />
+          </div>
+        )}
       </div>
       {shellUi && (
         <div className="ai-sidebar">
-          <div className="ais-head">{t("ai_portfolio_context", "Portfolio context")}</div>
+          <div className="ais-head">{t("ai_quick_questions", "Quick questions")}</div>
           <div className="ais-body">
             <div style={{ fontSize: 11.5, color: "var(--t2)", lineHeight: 1.6, background: "var(--card)", border: ".5px solid var(--b1)", borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
               <div style={{ fontWeight: 600, color: "var(--t1)", marginBottom: 6 }}>{t("all_projects", "All projects")}</div>
               <div>📁 {projects.length} {t("shell_projects", "projects")}</div>
               <div>◈ {allNodes.length} {t("steps_label", "nodes")}</div>
             </div>
-            <button type="button" className="qa-btn" onClick={() => {}}>{t("ai_qa_risks", "⚠️ Main portfolio risks")}</button>
-            <button type="button" className="qa-btn" onClick={() => {}}>{t("ai_qa_accelerate", "🚀 Accelerate progress")}</button>
+            {quickPortfolio.map((q) => (
+              <button key={q} type="button" className="qa-btn" onClick={() => setAiQuickAsk(q.replace(/^[^\s]+\s/, ""))}>{q}</button>
+            ))}
           </div>
         </div>
       )}
@@ -156,7 +190,8 @@ export function AiAdvisorPage({
           </div>
         </div>
       )}
-      <div className={shellUi ? "sa-screen-ai scr" : undefined} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: shellUi ? 0 : 12 }}>{ctxStrip}{chat}</div>
+      {ctxStrip}
+      <div className={shellUi ? "sa-screen-ai scr" : undefined} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: shellUi ? 0 : 12 }}>{chat}</div>
     </>
   );
 
@@ -211,6 +246,8 @@ export function AiAdvisorPage({
           showContentPlan={!!onOpenContentPlanHub}
           onContentPlan={onOpenContentPlanHub ? () => onOpenContentPlanHub() : undefined}
           showTrialBanner={(user?.tier || "free") === "free"}
+          onWeeklyBriefing={() => setAiQuickAsk(t("ai_q_gaps", "Analyze my strategy for gaps"))}
+          briefingHint={t("shell_briefing_sub", "Strategy health")}
           onLogoClick={() => onShellNav("dashboard")}
           layoutMode="reference"
           t={t}

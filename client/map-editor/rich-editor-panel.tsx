@@ -9,7 +9,7 @@ import { CustomSelect } from "../components/custom-select";
 
 // Map editor: step side panel
 // ── RichEditorPanel ── (aiPanelOpen: сдвигает влево, чтобы не перекрывать AI; isMobile: полноэкранная панель)
-export function RichEditorPanel({node,ctx,readOnly,userName,onUpdate,onDelete,onClose,allNodes=[],allEdges=[],onScrollTo,onConnect,onError,onNotify,aiPanelOpen,isMobile,statusMap,etypeMap}){
+export function RichEditorPanel({node,ctx,readOnly,userName,onUpdate,onDelete,onClose,allNodes=[],allEdges=[],onScrollTo,onConnect,onError,onNotify,aiPanelOpen,isMobile,referenceShell=false,statusMap,etypeMap}){
   const{t,lang}=useLang();
   const STATUS=statusMap||getSTATUS(t);
   const PRIORITY=getPRIORITY(t);
@@ -134,18 +134,31 @@ export function RichEditorPanel({node,ctx,readOnly,userName,onUpdate,onDelete,on
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
 
-  const panelRight=isMobile?0:aiPanelOpen?360:0;
-  const panelWidth=isMobile?"100%":aiPanelOpen?320:340;
-  const panelStyle: React.CSSProperties=isMobile?{position:"fixed",left:0,right:0,top:0,bottom:0,width:"100%",maxWidth:480,marginLeft:"auto",borderLeft:"1px solid var(--border)",display:"flex",flexDirection:"column",zIndex:50,boxShadow:"-16px 0 48px rgba(0,0,0,.3)",borderRadius:0}:{position:"absolute",right:panelRight,top:0,bottom:0,width:panelWidth,borderLeft:"1px solid var(--border)",display:"flex",flexDirection:"column",zIndex:40,boxShadow:"-16px 0 48px rgba(0,0,0,.2)",borderRadius:"16px 0 0 0"};
+  const refShell=referenceShell&&!isMobile;
+  const panelRight=isMobile?0:refShell?0:(aiPanelOpen?360:0);
+  const panelWidth=isMobile?"100%":refShell?300:(aiPanelOpen?320:340);
+  const panelStyle: React.CSSProperties=isMobile?{position:"fixed",left:0,right:0,top:0,bottom:0,width:"100%",maxWidth:480,marginLeft:"auto",borderLeft:"1px solid var(--border)",display:"flex",flexDirection:"column",zIndex:50,boxShadow:"-16px 0 48px rgba(0,0,0,.3)",borderRadius:0}:refShell?{position:"absolute",top:16,right:16,bottom:16,width:300,display:"flex",flexDirection:"column",zIndex:10}:{position:"absolute",right:panelRight,top:0,bottom:0,width:panelWidth,borderLeft:"1px solid var(--border)",display:"flex",flexDirection:"column",zIndex:40,boxShadow:"-16px 0 48px rgba(0,0,0,.2)",borderRadius:"16px 0 0 0"};
+  const panelClass=refShell?`node-panel open${exiting?" panel-slide-out":""}`:`glass-panel panel-slide ${exiting?"panel-slide-out":""}`.trim();
   return(
     <div ref={panelRef} role="dialog" aria-modal="false" aria-label={t("editor_panel","Редактор шага")}
-         className={`glass-panel panel-slide ${exiting?"panel-slide-out":""}`.trim()} style={panelStyle}>
-      <div style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",borderBottom:"1px solid var(--glass-border-accent,var(--border))",flexShrink:0,background:"rgba(255,255,255,.02)",backdropFilter:"blur(12px)"}}>
+         className={panelClass} style={panelStyle}>
+      <div className={refShell?"np-head":undefined} style={refShell?undefined:{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",borderBottom:"1px solid var(--glass-border-accent,var(--border))",flexShrink:0,background:"rgba(255,255,255,.02)",backdropFilter:"blur(12px)"}}>
+        {refShell?(
+          <>
+            <div className="np-type">{(STATUS[node.status]?.label||node.status||"Step").slice(0,12)}</div>
+            <input className="np-title-input" value={node.title||""} onChange={e=>!readOnly&&onUpdate({title:e.target.value})} placeholder={t("title","Node title…")} readOnly={readOnly}/>
+            <div className="np-close" onClick={handleClose} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")handleClose();}} aria-label={t("close","Close")}>×</div>
+          </>
+        ):(
+          <>
         <div style={{width:10,height:10,borderRadius:3,background:STATUS[node.status]?.c||"var(--accent-1)",flexShrink:0}}/>
         <div style={{flex:1,fontSize:14,fontWeight:800,color:"var(--text)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{node.title||t("untitled","Без названия")}</div>
         {onScrollTo&&<IconButton size={36} onClick={()=>onScrollTo(node)} title={t("find_on_map","Найти на карте")} aria-label={t("find_on_map","Найти на карте")} style={{borderRadius:10}}>↗</IconButton>}
         <IconButton size={36} danger onClick={handleClose} title={t("close","Закрыть")} aria-label={t("close","Закрыть")} style={{borderRadius:10,fontSize:16}}>×</IconButton>
+          </>
+        )}
       </div>
+      {!refShell&&(
       <div className="tabs" role="tablist" style={{margin:"10px 14px 6px",overflowX:"auto",flexShrink:0}}>
         {tabs.map(item=>{
           const k=item[0],lbl=item[1];
@@ -153,9 +166,11 @@ export function RichEditorPanel({node,ctx,readOnly,userName,onUpdate,onDelete,on
           return <button key={k} role="tab" aria-selected={isActive} className={"tab"+(isActive?" on":"")} onClick={()=>setTab(k)} style={{flex:1,whiteSpace:"nowrap",fontSize:12}}>{lbl}</button>;
         })}
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"14px 16px"}}>
-        {tab==="info"&&(
-          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+      )}
+      <div className={refShell?"np-body":undefined} style={refShell?undefined:{flex:1,overflowY:"auto",padding:"14px 16px"}}>
+        {(refShell||tab==="info")&&(
+          <div style={{display:"flex",flexDirection:"column",gap:refShell?12:14}}>
+            {!refShell&&(
             <div>
               <div style={{fontSize:12,fontWeight:600,color:"var(--text4)",marginBottom:6,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 {t("title","Название")}
@@ -163,9 +178,10 @@ export function RichEditorPanel({node,ctx,readOnly,userName,onUpdate,onDelete,on
               </div>
               <textarea value={node.title||""} onChange={e=>!readOnly&&onUpdate({title:e.target.value})} rows={1} style={{...iSTextarea,minHeight:44,maxHeight:80}} readOnly={readOnly} placeholder={t("title","Название шага")}/>
             </div>
-            <div>
-              <div style={{fontSize:12,fontWeight:600,color:"var(--text4)",marginBottom:6}}>{t("why_label","Зачем?")} <span style={{fontSize:11,color:"var(--text5)",fontWeight:400}}>(описание)</span></div>
-              <textarea value={node.reason||""} onChange={e=>!readOnly&&onUpdate({reason:e.target.value})} placeholder={t("why_placeholder","Зачем этот шаг, какой результат нужен")} rows={2} style={{...iSTextarea,minHeight:56}} readOnly={readOnly}/>
+            )}
+            <div className={refShell?"np-section":undefined}>
+              <div className={refShell?"np-lbl":undefined} style={refShell?undefined:{fontSize:12,fontWeight:600,color:"var(--text4)",marginBottom:6}}>{refShell?t("why_label","Description"):t("why_label","Зачем?")} {!refShell&&<span style={{fontSize:11,color:"var(--text5)",fontWeight:400}}>(описание)</span>}</div>
+              <textarea className={refShell?"np-textarea":undefined} value={node.reason||""} onChange={e=>!readOnly&&onUpdate({reason:e.target.value})} placeholder={t("why_placeholder","What does this node represent?")} rows={refShell?3:2} style={refShell?undefined:{...iSTextarea,minHeight:56}} readOnly={readOnly}/>
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:600,color:"var(--accent-2)",marginBottom:6}}>{t("action_label","Что сделать")} <span style={{fontSize:11,color:"var(--text5)",fontWeight:400}}>(конкретное действие)</span></div>
@@ -221,7 +237,7 @@ export function RichEditorPanel({node,ctx,readOnly,userName,onUpdate,onDelete,on
             )}
           </div>
         )}
-        {tab==="comments"&&(
+        {!refShell&&tab==="comments"&&(
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {comments.length===0&&<div style={{padding:"20px",textAlign:"center",color:"var(--text5)",fontSize:13,border:"1px dashed var(--border2)",borderRadius:8}}>{t("no_comments2","Нет комментариев.")}<br/><span style={{fontSize:13}}>{t("use_ai_comment","Используйте @AI чтобы задать вопрос AI.")}</span></div>}
             {comments.map(c=>(
@@ -244,7 +260,7 @@ export function RichEditorPanel({node,ctx,readOnly,userName,onUpdate,onDelete,on
             )}
           </div>
         )}
-        {tab==="connections"&&(
+        {!refShell&&tab==="connections"&&(
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {(()=>{
               const allE=allEdges.filter(e=>(e.source||e.from)===node.id||(e.target||e.to)===node.id);
@@ -281,7 +297,7 @@ export function RichEditorPanel({node,ctx,readOnly,userName,onUpdate,onDelete,on
             })()}
           </div>
         )}
-        {tab==="history"&&(
+        {!refShell&&tab==="history"&&(
           <div style={{display:"flex",flexDirection:"column",gap:7}}>
             {history.length===0&&<div style={{padding:"20px",textAlign:"center",color:"var(--text5)",fontSize:13,border:"1px dashed var(--border2)",borderRadius:8}}>{t("history_empty2","История изменений пуста.")}</div>}
             {[...history].reverse().map(h=>(

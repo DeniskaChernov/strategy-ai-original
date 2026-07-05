@@ -20,6 +20,7 @@ import { makeTfn } from "./client/i18n/makeTfn";
 import { StrategyShellBg, type StrategyShellNav } from "./strategy-shell-sidebar";
 import type { AppScreen } from "./client/app-screen";
 import { AuthenticatedAppShell } from "./client/components/authenticated-app-shell";
+import { MapRouteLoadingShell } from "./client/components/map-route-loading-shell";
 import { SplashLoaderScreen } from "./client/splash-loader";
 import { parseMarketingPath } from "./client/spa-path";
 import { applySeoForAppScreen } from "./client/seo-head";
@@ -40,6 +41,9 @@ const ReferenceLandingView = React.lazy(() =>
 const MapEditor = React.lazy(() =>
   import("./client/map-editor/map-editor").then((m) => ({ default: m.MapEditor }))
 );
+function prefetchMapEditorChunk() {
+  void import("./client/map-editor/map-editor");
+}
 const DashboardPage = React.lazy(() =>
   import("./client/dashboard/dashboard-page").then((m) => ({ default: m.DashboardPage }))
 );
@@ -563,11 +567,13 @@ export default function App(){
   }
 
   function onSelectProject(p){
+    prefetchMapEditorChunk();
     setProject(p);setScreen("project");
     try{localStorage.setItem("sa_last_project",JSON.stringify({id:p.id,name:p.name}));localStorage.removeItem("sa_last_map");}catch{}
   }
 
   async function onOpenMap(map,proj,isNew,readOnlyMap=false,focusNodeId:string|null=null){
+    prefetchMapEditorChunk();
     setProject(proj);
     const fresh=await getMaps(proj.id);
     const m=fresh.find(x=>x.id===map.id)||map;
@@ -860,7 +866,20 @@ export default function App(){
         )}
         {screen==="map"&&user&&mapData&&project&&shellCommon&&(
           <AuthenticatedAppShell {...shellCommon}>
-            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+            <React.Suspense fallback={
+              <MapRouteLoadingShell
+                user={user}
+                theme={theme}
+                text={t("loading","Загрузка…")}
+                lang={lang}
+                onLang={changeLang}
+                onShellNav={handleGlobalNav}
+                onProfile={openSettings}
+                onLogout={onLogout}
+                onToggleTheme={toggleTheme}
+                t={t}
+              />
+            }>
               <MapEditor
                 user={user} mapData={mapData} project={project}
                 isNew={mapIsNew} theme={theme} readOnly={mapReadOnly} palette={palette}

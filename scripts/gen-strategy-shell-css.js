@@ -58,6 +58,15 @@ const appOverrides = `
 /* Insight cards: tone via CSS variable (React sets --ins-tone) */
 .sa-strategy-ui .insight-card{border-left:3px solid var(--ins-tone,transparent)}
 
+/* Project tabs: reset native button chrome (reference uses .proj-tab underline) */
+.proj-tabs-bar .proj-tab{
+  border:none;background:transparent;font-family:inherit;margin:0;padding:11px 14px;
+  appearance:none;-webkit-appearance:none;cursor:pointer;color:var(--t2);
+  border-bottom:2px solid transparent;border-radius:0;box-shadow:none;outline:none;
+}
+.proj-tabs-bar .proj-tab.on{color:var(--acc);border-bottom-color:var(--acc);font-weight:600}
+.sa-strategy-ui.lt .proj-tabs-bar .proj-tab.on{color:#5526d6;border-bottom-color:#5526d6}
+
 /* CRM — в палитре акцента, без цианового «неона» */
 .sa-strategy-ui .crm-sync{margin:0 12px 12px;background:rgba(104,54,245,.08);border:.5px solid rgba(104,54,245,.22);box-shadow:none}
 .sa-strategy-ui .crm-sync:hover{background:rgba(104,54,245,.12)}

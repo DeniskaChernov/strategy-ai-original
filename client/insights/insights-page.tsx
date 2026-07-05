@@ -224,8 +224,8 @@ export function InsightsPage({
             </div>
           </div>
 
-          <div className="sa-page-reveal sa-pr-d2 sa-panel" style={{ overflowX: "auto" }}>
-            <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 14 }}>{t("ins_all_nodes", "Все узлы — здоровье")}</div>
+          <div className="card" style={{ overflowX: "auto" }}>
+            <div className="slbl">{t("ins_all_nodes", "All nodes — health")}</div>
             {loading ? <div style={{ fontSize: 13, color: "var(--text5)" }}>{t("loading_short", "Загрузка…")}</div> : allNodes.length === 0 ? <div style={{ fontSize: 13, color: "var(--text5)" }}>{t("ins_no_data", "Нет данных — добавьте узлы на карте.")}</div> : (
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
                 <thead>
@@ -304,6 +304,8 @@ export function InsightsPage({
           showContentPlan={!!onOpenContentPlanHub}
           onContentPlan={onOpenContentPlanHub ? () => onOpenContentPlanHub() : undefined}
           showTrialBanner={(user?.tier || "free") === "free"}
+          onWeeklyBriefing={() => onShellNav("ai")}
+          briefingHint={t("shell_briefing_sub", "Strategy health")}
           onLogoClick={() => onShellNav("dashboard")}
           layoutMode="reference"
           t={t}

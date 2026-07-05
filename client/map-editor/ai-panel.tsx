@@ -5,7 +5,7 @@ import { AI_TIER } from "../lib/ai-prompts";
 import { getSTATUS, getPRIORITY } from "../lib/strategy-labels";
 import { callAI } from "../lib/call-ai";
 
-export function AiPanel({nodes,edges,ctx,tier,onAddNode,onClose,externalMsgs=[],onClearExternal,projectName="",mapName="",userName="",msgs:msgsProp,onMsgsChange,onError,isMobile,embedded=false,statusMap}){
+export function AiPanel({nodes,edges,ctx,tier,onAddNode,onClose,externalMsgs=[],onClearExternal,projectName="",mapName="",userName="",msgs:msgsProp,onMsgsChange,onError,isMobile,embedded=false,referenceShell=false,promptToSend=null,onPromptSent,statusMap}:{nodes:any;edges:any;ctx:any;tier:any;onAddNode:any;onClose:any;externalMsgs?:any[];onClearExternal:any;projectName?:string;mapName?:string;userName?:string;msgs:any;onMsgsChange:any;onError?:any;isMobile?:boolean;embedded?:boolean;referenceShell?:boolean;promptToSend?:string|null;onPromptSent?:()=>void;statusMap?:any}){
   const{t}=useLang();
   const STATUS=statusMap||getSTATUS(t);
   const PRIORITY=getPRIORITY(t);
@@ -21,6 +21,7 @@ export function AiPanel({nodes,edges,ctx,tier,onAddNode,onClose,externalMsgs=[],
   const handleClose=()=>{if(exiting)return;setExiting(true);setTimeout(()=>onClose(),320);};
   const endRef=useRef(null);
   const inpRef=useRef<HTMLInputElement>(null);
+  const taRef=useRef<HTMLTextAreaElement>(null);
   const initRef=useRef(false);
   useLayoutEffect(()=>{
     const pending=consumePendingAiPrompt();
@@ -123,11 +124,56 @@ export function AiPanel({nodes,edges,ctx,tier,onAddNode,onClose,externalMsgs=[],
       onError?.(msg);
     }
     setLoad(false);
+    taRef.current?.focus();
     inpRef.current?.focus();
   }
 
+  useEffect(()=>{
+    if(!promptToSend?.trim())return;
+    send(promptToSend.trim());
+    onPromptSent?.();
+  },[promptToSend]);
+
+  if(referenceShell){
+    return(
+      <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,height:"100%",overflow:"hidden"}}>
+        <div ref={scrollRef} className="chat-area">
+          {msgs.filter(m=>m.role!=="sys").map((m,i)=>(
+            <div key={i} className={`msg ${m.role}`}>
+              {m.role==="ai"&&<div className="msg-av" style={{background:"rgba(18,196,130,.15)",color:"#12c482"}}>AI</div>}
+              {m.role==="user"&&<div className="msg-av" style={{background:"rgba(104,54,245,.15)",color:"var(--acc)"}}>{(userName||"?")[0].toUpperCase()}</div>}
+              <div className="msg-body">{m.text}</div>
+            </div>
+          ))}
+          {load&&(
+            <div className="msg ai">
+              <div className="msg-av" style={{background:"rgba(18,196,130,.15)",color:"#12c482"}}>AI</div>
+              <div className="msg-body"><div className="typing"><span/><span/><span/></div></div>
+            </div>
+          )}
+          <div ref={endRef}/>
+        </div>
+        <div className="chat-inp-row">
+          <textarea
+            ref={taRef}
+            className="chat-inp"
+            value={inp}
+            onChange={e=>setInp(e.target.value)}
+            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}}
+            placeholder={aiFreeTier?t("ai_free_placeholder","Available on Starter+"):t("ask_placeholder","Ask about your strategy, goals, risks…")}
+            rows={1}
+            disabled={aiFreeTier}
+          />
+          <button type="button" className="chat-send" onClick={()=>send()} disabled={aiFreeTier||!inp.trim()||load} aria-label={t("send","Send")}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M1 7l12-6-6 12-1.5-5L1 7z" fill="white"/></svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const aiPanelStyle: React.CSSProperties=embedded
-    ? {position:"relative",width:"100%",height:isMobile?560:680,display:"flex",flexDirection:"column",zIndex:1,borderRadius:18,overflow:"hidden"}
+    ? {position:"relative",width:"100%",height:referenceShell?"100%":(isMobile?560:680),display:"flex",flexDirection:"column",zIndex:1,borderRadius:referenceShell?0:18,overflow:"hidden"}
     : (isMobile
         ? {position:"fixed",left:0,right:0,top:0,bottom:0,width:"100%",maxWidth:480,marginLeft:"auto",borderLeft:"1px solid var(--border)",display:"flex",flexDirection:"column",zIndex:50,boxShadow:"-16px 0 48px rgba(0,0,0,.3)",borderRadius:0}
         : {position:"absolute",right:0,top:0,bottom:0,width:360,borderLeft:"1px solid var(--border)",display:"flex",flexDirection:"column",zIndex:45,boxShadow:"-16px 0 48px rgba(0,0,0,.2)",borderRadius:"16px 0 0 0"});

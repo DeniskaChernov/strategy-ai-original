@@ -722,6 +722,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
   const[delProjConfirm,setDelProjConfirm]=useState(false);
   const[showNotifs,setShowNotifs]=useState(false);
   const{notifs,setNotifs,notifUnread,setNotifUnread,notifLoading,loadNotifications}=useNotifications(showNotifs,user?.email);
+  const[projAiAsk,setProjAiAsk]=useState<string|null>(null);
   const creatingRef=useRef(false);
 
   const handleNotifLink = useMemo(
@@ -845,7 +846,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
   }
   const roleReadable=(ROLES[myRole]?.label||myRole).toUpperCase();
   const detailSidebarNav:StrategyShellNav=
-    tab==="scenarios"?"scenarios":tab==="team"?"team":tab==="maps"?"map":"projects";
+    tab==="content"?"contentPlan":tab==="scenarios"?"scenarios":tab==="team"?"team":tab==="maps"?"map":"projects";
   const recentActs=[...maps].filter(m=>(m as any).updatedAt||(m as any).updated_at).map(m=>({name:m.name||t("untitled","Без названия"),at:(m as any).updatedAt||(m as any).updated_at,n:(m.nodes||[]).length})).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
 
   function handleDetailShellNav(nav:StrategyShellNav){
@@ -919,7 +920,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
       {shellUi?(
         <WorkspaceTopBar
           title={proj.name||t("project_short","Проект")}
-          subtitle={`${myRole} · ${regularMaps.length} ${t("maps_cap","Maps")} · ${totalNodes} ${t("steps_cap","Steps")}`}
+          subtitle={`${roleReadable} · ${regularMaps.length} ${t("maps_cap","Maps")} · ${totalNodes} ${t("steps_cap","Steps")}`}
           theme={theme}
           onToggleTheme={onToggleTheme}
           onBack={onBack}
@@ -1003,17 +1004,22 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           ["ai",isMobile?"✦":"✦ "+t("project_ai_tab","AI"),null,false],
           ["team",isMobile?`👥 (${(proj.members||[]).length})`:`👥 ${t("pd_tab_team","Команда")} (${(proj.members||[]).length})`,null,false],
           ["settings","⚙ "+t("settings_title","Настройки"),null,false],
-        ] as const)).map(([k,lbl,count,pro])=>(
-          <button key={k} type="button" role="tab" aria-selected={tab===k} className={"proj-tab"+(tab===k?" on":"")} onClick={()=>setTab(k as typeof tab)}>
+        ] as const)).map(([k,lbl,count,pro])=>{
+          const TabTag=shellUi?"div":"button";
+          const tabProps=shellUi
+            ? {role:"tab" as const, tabIndex:0, onKeyDown:(e:React.KeyboardEvent)=>{if(e.key==="Enter"||e.key===" ")setTab(k as typeof tab);}}
+            : {type:"button" as const};
+          return(
+          <TabTag key={k} {...tabProps} aria-selected={tab===k} className={"proj-tab"+(tab===k?" on":"")} onClick={()=>setTab(k as typeof tab)}>
             {lbl}
             {count!=null&&count>0?<span className="proj-tab-badge">{count}</span>:null}
             {pro?<span style={{fontSize:8,background:"rgba(240,148,40,.15)",color:"rgba(240,148,40,.9)",borderRadius:4,padding:"1px 5px",fontWeight:700}}>PRO</span>:null}
-          </button>
-        ))}
+          </TabTag>
+        );})}
       </div>
 
       <div className={shellUi?"scr":undefined} style={{flex:1,overflowY:"auto",minHeight:0}}>
-      <div className="sa-page-reveal sa-pr-d3" style={{maxWidth:shellUi?"min(1000px,100%)":1000,margin:"0 auto",padding:isMobile?"24px 20px":"36px 32px",flex:1}}>
+      <div style={{maxWidth:shellUi?undefined:"min(1000px,100%)",margin:shellUi?undefined:"0 auto",padding:shellUi?"16px 18px 24px":isMobile?"24px 20px":"36px 32px",flex:1}}>
         {/* Overview Tab */}
         {tab==="overview"&&(
           <div>
@@ -1255,19 +1261,19 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           shellUi?(
             <div style={{display:"flex",flex:1,overflow:"hidden",flexDirection:"row",minHeight:480,margin:"0 -32px -36px"}}>
               <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",borderRight:".5px solid var(--b1)",minWidth:0}}>
-                <div className="chat-area" style={{flex:1,minHeight:0}}>
-                  <AiPanel embedded={true} isMobile={isMobile} nodes={allNodes} edges={allEdges} ctx={projCtx||""} tier={user?.tier||"free"} projectName={proj?.name||""} mapName={t("project_scope","Проект")} userName={user?.name||user?.email||""} msgs={aiChatMsgs||[]} onMsgsChange={aiChatSetMsgs||(()=>{})} onAddNode={()=>{}} onClose={()=>{}} externalMsgs={[]} onClearExternal={()=>{}} onError={(msg)=>setToast({msg,type:"error"})} statusMap={getSTATUS(t)}/>
-                </div>
+                <AiPanel referenceShell={true} embedded={true} isMobile={isMobile} nodes={allNodes} edges={allEdges} ctx={projCtx||""} tier={user?.tier||"free"} projectName={proj?.name||""} mapName={t("project_scope","Проект")} userName={user?.name||user?.email||""} msgs={aiChatMsgs||[]} onMsgsChange={aiChatSetMsgs||(()=>{})} onAddNode={()=>{}} onClose={()=>{}} externalMsgs={[]} onClearExternal={()=>{}} onError={(msg)=>setToast({msg,type:"error"})} statusMap={getSTATUS(t)} promptToSend={projAiAsk} onPromptSent={()=>setProjAiAsk(null)}/>
               </div>
               <div className="ai-sidebar">
-                <div className="ais-head">{t("project_ai_context","Project context")}</div>
+                <div className="ais-head">{t("ai_quick_questions","Quick questions")}</div>
                 <div className="ais-body">
-                  <div style={{fontSize:11.5,color:"var(--t2)",lineHeight:1.6,background:"var(--card)",border:".5px solid var(--b1)",borderRadius:10,padding:"10px 12px"}}>
+                  <div style={{fontSize:11.5,color:"var(--t2)",lineHeight:1.6,background:"var(--card)",border:".5px solid var(--b1)",borderRadius:10,padding:"10px 12px",marginBottom:10}}>
                     <div style={{fontWeight:600,color:"var(--t1)",marginBottom:6}}>{proj.name}</div>
                     <div>📊 {totalNodes} {t("steps_label","steps")} · {avgProgress}%</div>
                     <div>🗺️ {regularMaps.length} {t("maps_cap","maps")} · {scenarios.length} {t("pd_tab_scenarios","scenarios")}</div>
-                    <div>👥 {(proj.members||[]).length||1} {t("members","members")}</div>
                   </div>
+                  <button type="button" className="qa-btn" onClick={()=>setProjAiAsk(t("ai_proj_risks_q","What are the main risks in this project?"))}>{t("ai_proj_risks","⚠️ Main project risks")}</button>
+                  <button type="button" className="qa-btn" onClick={()=>setProjAiAsk(t("ai_proj_accel_q","How can we accelerate progress on this project?"))}>{t("ai_proj_accel","🚀 Accelerate progress")}</button>
+                  <button type="button" className="qa-btn" onClick={()=>setProjAiAsk(t("ai_proj_board_q","Summarize current project status for a board update"))}>{t("ai_proj_board","📋 Board update summary")}</button>
                 </div>
               </div>
             </div>
@@ -1500,6 +1506,8 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           showContentPlan={!!onOpenContentPlanHub||!!onOpenContentPlanProject}
           onContentPlan={onOpenContentPlanProject?()=>setTab("content"):onOpenContentPlanHub?()=>onOpenContentPlanHub():undefined}
           showTrialBanner={(user?.tier||"free")==="free"}
+          onWeeklyBriefing={()=>{if(regularMaps[0])onOpenMap(regularMaps[0],proj,false,myRole==="viewer");else setToast({msg:t("shell_open_map_hint","Create a map first."),type:"info"});setTimeout(()=>setToast(null),3200);}}
+          briefingHint={t("shell_briefing_sub","Strategy health")}
           onLogoClick={onBack}
           layoutMode="reference"
           showProjectNav={true}
