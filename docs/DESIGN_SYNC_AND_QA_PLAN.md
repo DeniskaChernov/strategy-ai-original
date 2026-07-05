@@ -32,8 +32,8 @@
 | 11 | **Insights:** `WorkspaceTopBar`, `.r4` KPI, insight-cards | `insights-page.tsx` | parity с `#s-insights` | [x] |
 | 12 | **AI Advisor:** `sa-screen-ai`, `chat-area`, sidebar | `ai-advisor-page.tsx` | layout = reference | [x] |
 | 13 | **Map editor:** `map-filter-bar` + `map-toolbar` (не 2-row inline toolbar) | `map-editor.tsx` | canvas = `map-canvas-wrap` | [x] |
-| 14 | **Content plan hub/project:** `StrategyShellSidebar` + `WorkspaceTopBar` | `content-plan-pages.tsx` | hub ✅; project page mobile legacy | [~] |
-| 15 | **Settings screen:** `settings-layout` / `settings-nav` | profile + orchestrator | desktop wider modal `settingsShell` | [~] |
+| 14 | **Content plan hub/project:** `StrategyShellSidebar` + `WorkspaceTopBar` | `content-plan-pages.tsx` | hub + project shell | [x] |
+| 15 | **Settings screen:** `settings-layout` / `settings-nav` | `settings-page.tsx` + route | desktop page | [x] |
 
 ---
 
@@ -49,7 +49,7 @@
 | 21 | Viewer: read-only на карте + shares API + Socket.IO | e2e/manual | [—] |
 | 22 | Offline / без `API_BASE`: search affordance скрыт или stub | topbar без ложного ⌘K | [x] |
 | 23 | AI `onAddNode` wired там, где UI обещает действие | map editor ✅; portfolio no-op | [~] |
-| 24 | Notifications deep links (`open=map/project/contentplan`) | `notif-deep-link.ts` | [x] |
+| 24 | Notifications deep links (`open=map/project/contentplan`) | dashboard, insights, ai, cp, projects | [x] |
 | 25 | Weekly briefing auto-trigger + sidebar CTA | не дублировать на projects shell | [x] |
 
 ---
@@ -59,7 +59,7 @@
 | # | Шаг | Проверка | Статус |
 |---|-----|----------|--------|
 | 26 | Vitest: shell nav, tier limits, map utils | `npm test` | [x] |
-| 27 | Playwright smoke: login → projects → open project | `npm run test:e2e` | [—] |
+| 27 | Playwright smoke: landing + `/app` + health | `npm run test:e2e` | [~] |
 | 28 | a11y: keyboard на `.proj-card`, `.ni`, modals | tab/enter/escape | [—] |
 | 29 | Theme `dk`/`lt` на всех shell-экранах | без смешения `global.css` токенов | [~] |
 | 30 | Lazy routes + chunk load после deploy | SW network-first | [—] |

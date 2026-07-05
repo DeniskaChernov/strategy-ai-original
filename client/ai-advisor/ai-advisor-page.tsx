@@ -12,6 +12,7 @@ import { NotifBell } from "../components/notif-bell";
 import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { NotificationsCenterModal } from "../strategy-modals/notifications-ai-hub-modals";
 import { AiPanel } from "../map-editor/ai-panel";
+import { followNotificationLink } from "../lib/notif-deep-link";
 
 export function AiAdvisorPage({
   user,
@@ -22,6 +23,9 @@ export function AiAdvisorPage({
   onChangeTier,
   onShellNav,
   onOpenContentPlanHub,
+  onOpenProject,
+  onOpenMap,
+  onOpenContentPlanProject,
   aiChatMsgs,
   aiChatSetMsgs,
 }: {
@@ -33,6 +37,9 @@ export function AiAdvisorPage({
   onChangeTier?: () => void;
   onShellNav: (nav: StrategyShellNav) => void;
   onOpenContentPlanHub?: (() => void) | null;
+  onOpenProject?: (p: any) => void;
+  onOpenMap?: (map: any, project: any, isNew?: boolean, readOnly?: boolean, focusNodeId?: string | null) => void;
+  onOpenContentPlanProject?: (p: any, maps: any[]) => void;
   aiChatMsgs?: any[];
   aiChatSetMsgs?: (m: any[]) => void;
 }) {
@@ -42,6 +49,7 @@ export function AiAdvisorPage({
   const STATUS = getSTATUS(t);
 
   const [projects, setProjects] = useState<any[]>([]);
+  const [mapsByProj, setMapsByProj] = useState<Record<string, any[]>>({});
   const [allNodes, setAllNodes] = useState<any[]>([]);
   const [allEdges, setAllEdges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +68,8 @@ export function AiAdvisorPage({
         if (!alive) return;
         setProjects(list);
         const byProj = await getMapsByProject(list.map((p: any) => p.id));
+        if (!alive) return;
+        setMapsByProj(byProj || {});
         const ns: any[] = []; const es: any[] = [];
         for (const ms of Object.values(byProj)) {
           for (const mm of (ms || [])) { (mm.nodes || []).forEach((n: any) => ns.push(n)); (mm.edges || []).forEach((e: any) => es.push(e)); }
@@ -168,7 +178,16 @@ export function AiAdvisorPage({
       loadNotifications={loadNotifications}
       showItemMeta={false}
       deleteGlyph="×"
-      onFollowLink={async (n: any) => { if (n.link) window.location.href = n.link; }}
+      onFollowLink={async (n: any) => {
+        if (!n.link) return;
+        setShowNotifs(false);
+        const ok = await followNotificationLink(n.link, {
+          onContentPlan: (pid) => { const p = projects.find((x: any) => x.id === pid); if (p && onOpenContentPlanProject) onOpenContentPlanProject(p, mapsByProj[pid] || []); else if (onOpenContentPlanHub) onOpenContentPlanHub(); },
+          onProject: (pid) => { const p = projects.find((x: any) => x.id === pid); if (p && onOpenProject) onOpenProject(p); },
+          onMap: (pid, mid, nid) => { const p = projects.find((x: any) => x.id === pid); if (p && onOpenMap) onOpenMap({ id: mid }, p, false, false, nid); },
+        });
+        if (!ok) window.location.href = n.link;
+      }}
     />
   ) : null;
 

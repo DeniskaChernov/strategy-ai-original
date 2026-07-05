@@ -12,6 +12,7 @@ import { WorkspaceTopBar } from "../components/workspace-top-bar";
 import { NotifBell } from "../components/notif-bell";
 import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { NotificationsCenterModal } from "../strategy-modals/notifications-ai-hub-modals";
+import { followNotificationLink } from "../lib/notif-deep-link";
 import { FloatingAiAssistant } from "../floating-ai-assistant";
 
 export function InsightsPage({
@@ -23,6 +24,9 @@ export function InsightsPage({
   onChangeTier,
   onShellNav,
   onOpenContentPlanHub,
+  onOpenProject,
+  onOpenMap,
+  onOpenContentPlanProject,
 }: {
   user: any;
   theme: string;
@@ -32,6 +36,9 @@ export function InsightsPage({
   onChangeTier?: () => void;
   onShellNav: (nav: StrategyShellNav) => void;
   onOpenContentPlanHub?: (() => void) | null;
+  onOpenProject?: (p: any) => void;
+  onOpenMap?: (map: any, project: any, isNew?: boolean, readOnly?: boolean, focusNodeId?: string | null) => void;
+  onOpenContentPlanProject?: (p: any, maps: any[]) => void;
 }) {
   const { t, lang, setLang } = useLang();
   const isMobile = useIsMobile();
@@ -260,7 +267,16 @@ export function InsightsPage({
       </div>
 
       {showNotifs && (
-        <NotificationsCenterModal open={showNotifs} onClose={() => setShowNotifs(false)} isMobile={isMobile} zIndex={260} notifs={notifs} setNotifs={setNotifs} notifUnread={notifUnread} setNotifUnread={setNotifUnread} notifLoading={notifLoading} lang={lang} t={t} loadNotifications={loadNotifications} showItemMeta={false} deleteGlyph="×" onFollowLink={async (n: any) => { if (n.link) window.location.href = n.link; }} />
+        <NotificationsCenterModal open={showNotifs} onClose={() => setShowNotifs(false)} isMobile={isMobile} zIndex={260} notifs={notifs} setNotifs={setNotifs} notifUnread={notifUnread} setNotifUnread={setNotifUnread} notifLoading={notifLoading} lang={lang} t={t} loadNotifications={loadNotifications} showItemMeta={false} deleteGlyph="×" onFollowLink={async (n: any) => {
+          if (!n.link) return;
+          setShowNotifs(false);
+          const ok = await followNotificationLink(n.link, {
+            onContentPlan: (pid) => { const p = projects.find((x: any) => x.id === pid); if (p && onOpenContentPlanProject) onOpenContentPlanProject(p, mapsByProj[pid] || []); else if (onOpenContentPlanHub) onOpenContentPlanHub(); },
+            onProject: (pid) => { const p = projects.find((x: any) => x.id === pid); if (p && onOpenProject) onOpenProject(p); },
+            onMap: (pid, mid, nid) => { const p = projects.find((x: any) => x.id === pid); if (p && onOpenMap) onOpenMap({ id: mid }, p, false, false, nid); },
+          });
+          if (!ok) window.location.href = n.link;
+        }} />
       )}
       <FloatingAiAssistant t={t} variant="app" onOpenFullChat={() => onShellNav("ai")} />
     </>

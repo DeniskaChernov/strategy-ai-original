@@ -14,7 +14,8 @@ export type AppSeoScreen =
   | "map"
   | "sharedMap"
   | "contentPlanHub"
-  | "contentPlanProject";
+  | "contentPlanProject"
+  | "settings";
 
 function baseUrl(): string {
   try {
@@ -106,6 +107,11 @@ export function applySeoForAppScreen(
       path = "/app";
       title = "Strategy AI — AI-советник";
       desc = "Стратегический AI-чат с контекстом ваших проектов и карт.";
+      break;
+    case "settings":
+      path = "/app";
+      title = "Strategy AI — Настройки";
+      desc = "Профиль, безопасность, тариф и параметры рабочего пространства.";
       break;
     case "projects":
     case "project":

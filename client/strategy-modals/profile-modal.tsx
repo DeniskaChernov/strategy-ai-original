@@ -11,7 +11,7 @@ import { TIER_ORDER, TIER_MKT, TIER_FEAT_KEY, ALL_FEATURES } from "../lib/tier-m
 import { getTierPrice } from "../lib/strategy-labels";
 import { fmt } from "../lib/util";
 
-export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme="dark",onToggleTheme,palette="indigo",onPaletteChange,settingsShell=false}){
+export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme="dark",onToggleTheme,palette="indigo",onPaletteChange,settingsShell=false,pageMode=false}){
   const{t,lang,setLang}=useLang();
   const tier=TIERS[user.tier]||TIERS.free;
   const isMobile=useIsMobile();
@@ -157,41 +157,31 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
     ["tier",<IconCard/>,t("billing_title","Тариф")],
   ];
 
-  return(
-    <div data-theme={theme} className={closing?"modal-backdrop modal-backdrop-out":"modal-backdrop"} style={{position:"fixed",inset:0,background:"var(--modal-overlay-bg,rgba(0,0,0,.75))",display:"flex",alignItems:isMobile?"flex-end":"center",justifyContent:"center",zIndex:200,backdropFilter:"blur(16px)"}} onClick={e=>{if(e.target===e.currentTarget&&!buyPhase&&!showDeleteConfirm)handleClose();}}>
-<div role="dialog" aria-modal="true" aria-labelledby="sa-pf-title" className={`glass-panel glass-panel-lg ${settingsShell?"settings-layout":""} ${closing?"modal-content-out":isMobile?"":"modal-content-pop"}`} style={{position:"relative",width:isMobile?"100%":settingsShell?"min(96vw,1040px)":"min(96vw,980px)",height:isMobile?"90vh":settingsShell?720:680,minHeight:520,borderRadius:20,display:"flex",flexDirection:"column",animation:isMobile&&!closing?"slideUp .3s cubic-bezier(0.22,1,0.36,1)":"none",overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
-        <SheetSwipeHandle enabled={isMobile&&!buyPhase&&!showDeleteConfirm} onClose={handleClose} />
+  const useSettingsLayout=settingsShell||pageMode;
+  const tabNav=useSettingsLayout?(
+    <div className="settings-nav" role="tablist" aria-label={t("settings_title","Настройки")}>
+      <div className="slbl" style={{padding:"0 7px 8px"}}>{t("settings_title","Настройки")}</div>
+      {TABS.map(([k,_icon,label])=>(
+        <div key={k as string} role="tab" aria-selected={tab===k} className={"sni"+(tab===k?" on":"")} onClick={()=>{setTab(k as string);setMsg(null);}} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){setTab(k as string);setMsg(null);}}} tabIndex={0}>{label}</div>
+      ))}
+      <div className="sni" style={{marginTop:"auto"}} onClick={onLogout} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onLogout();}} role="button" tabIndex={0}>{t("logout","Выйти")}</div>
+    </div>
+  ):(
+    <div className="sa-profile-tabs" role="tablist" aria-label={t("profile_title","Профиль")} style={{display:"flex",gap:4,padding:"8px 20px 0",flexShrink:0,borderBottom:"1px solid var(--border)",background:"var(--bg2)"}}>
+      {TABS.map(([k,icon,label])=>(
+        <button key={k as string} type="button" role="tab" aria-selected={tab===k} className={"sa-profile-tab"+(tab===k?" on":"")} onClick={()=>{setTab(k as string);setMsg(null);}} style={{padding:"10px 14px",border:"none",background:tab===k?"var(--accent-soft)":"transparent",color:tab===k?"var(--text)":"var(--text4)",fontSize:13.5,fontWeight:tab===k?700:500,cursor:"pointer",borderBottom:tab===k?`2px solid ${tier.color}`:"2px solid transparent",borderRadius:"10px 10px 0 0",transition:"all .15s",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
+          <span style={{display:"inline-flex",alignItems:"center"}} aria-hidden="true">{icon}</span>{label}
+        </button>
+      ))}
+      <div style={{flex:1}}/>
+      <button type="button" className="sa-pf-logout" onClick={onLogout}>
+        <span aria-hidden="true">⎋</span> {t("logout","Выйти")}
+      </button>
+    </div>
+  );
 
-        {/* Header */}
-        <div className="sa-profile-header" style={{display:"flex",alignItems:"center",gap:14,padding:"18px 24px",flexShrink:0,borderBottom:"1px solid var(--border)",background:"var(--surface)",position:"relative",overflow:"hidden"}}>
-          <div style={{width:44,height:44,borderRadius:"50%",background:"var(--gradient-accent)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:"var(--accent-on-bg)",boxShadow:"0 6px 18px var(--accent-glow)"}}>{(user.name||user.email||"?")[0].toUpperCase()}</div>
-          <div style={{flex:1,minWidth:0}}>
-            <div id="sa-pf-title" style={{fontSize:16,fontWeight:800,color:"var(--text)"}}>{user.name||t("user_word","Пользователь")}</div>
-            <div style={{fontSize:13,color:"var(--text4)",marginTop:1}}>{user.email}</div>
-            {user.bio&&<div style={{fontSize:13,color:"var(--text5)",marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:320}}>{user.bio}</div>}
-          </div>
-          <div className="glass-card" style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px",borderRadius:12,border:"1px solid var(--glass-border-accent,var(--border))",background:"var(--surface)"}}>
-            <span style={{fontSize:13}}>{tier.badge}</span>
-            <span style={{fontSize:13,fontWeight:800,color:"var(--text)"}}>{tier.label}</span>
-          </div>
-          <button type="button" className="sa-pf-close" aria-label={t("close","Закрыть")} onClick={handleClose}>×</button>
-        </div>
-
-        {/* Tab bar */}
-        <div className="sa-profile-tabs" role="tablist" aria-label={t("profile_title","Профиль")} style={{display:"flex",gap:4,padding:"8px 20px 0",flexShrink:0,borderBottom:"1px solid var(--border)",background:"var(--bg2)"}}>
-          {TABS.map(([k,icon,label])=>(
-            <button key={k as string} type="button" role="tab" aria-selected={tab===k} className={"sa-profile-tab"+(tab===k?" on":"")} onClick={()=>{setTab(k as string);setMsg(null);}} style={{padding:"10px 14px",border:"none",background:tab===k?"var(--accent-soft)":"transparent",color:tab===k?"var(--text)":"var(--text4)",fontSize:13.5,fontWeight:tab===k?700:500,cursor:"pointer",borderBottom:tab===k?`2px solid ${tier.color}`:"2px solid transparent",borderRadius:"10px 10px 0 0",transition:"all .15s",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}>
-              <span style={{display:"inline-flex",alignItems:"center"}} aria-hidden="true">{icon}</span>{label}
-            </button>
-          ))}
-          <div style={{flex:1}}/>
-          <button type="button" className="sa-pf-logout" onClick={onLogout}>
-            <span aria-hidden="true">⎋</span> {t("logout","Выйти")}
-          </button>
-        </div>
-
-        {/* Content — фиксированная высота для всех вкладок */}
-        <div style={{flex:1,minHeight:380,overflow:"hidden",display:"flex"}}>
+  const tabPanels=(
+        <div className={useSettingsLayout?"settings-body":undefined} style={{flex:1,minHeight:380,overflow:"hidden",display:"flex"}}>
           {tab==="profile"&&(
             <div className="tab-content" style={{flex:1,overflowY:"auto",padding:isMobile?"20px 16px":"28px 32px",minHeight:380}}>
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?24:28,maxWidth:680}}>
@@ -589,6 +579,54 @@ export function ProfileModal({user,onClose,onUpdate,onLogout,onChangeTier,theme=
             </div>
           )}
         </div>
+  );
+
+  const dialogInner=(
+    <>
+      {!pageMode&&(
+        <>
+        <SheetSwipeHandle enabled={isMobile&&!buyPhase&&!showDeleteConfirm} onClose={handleClose} />
+        <div className="sa-profile-header" style={{display:"flex",alignItems:"center",gap:14,padding:"18px 24px",flexShrink:0,borderBottom:"1px solid var(--border)",background:"var(--surface)",position:"relative",overflow:"hidden"}}>
+          <div style={{width:44,height:44,borderRadius:"50%",background:"var(--gradient-accent)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:"var(--accent-on-bg)",boxShadow:"0 6px 18px var(--accent-glow)"}}>{(user.name||user.email||"?")[0].toUpperCase()}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div id="sa-pf-title" style={{fontSize:16,fontWeight:800,color:"var(--text)"}}>{user.name||t("user_word","Пользователь")}</div>
+            <div style={{fontSize:13,color:"var(--text4)",marginTop:1}}>{user.email}</div>
+            {user.bio&&<div style={{fontSize:13,color:"var(--text5)",marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:320}}>{user.bio}</div>}
+          </div>
+          <div className="glass-card" style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px",borderRadius:12,border:"1px solid var(--glass-border-accent,var(--border))",background:"var(--surface)"}}>
+            <span style={{fontSize:13}}>{tier.badge}</span>
+            <span style={{fontSize:13,fontWeight:800,color:"var(--text)"}}>{tier.label}</span>
+          </div>
+          <button type="button" className="sa-pf-close" aria-label={t("close","Закрыть")} onClick={handleClose}>×</button>
+        </div>
+        </>
+      )}
+      {useSettingsLayout?(
+        <div className="settings-layout" style={{flex:1,minHeight:0,overflow:"hidden"}}>
+          {tabNav}
+          {tabPanels}
+        </div>
+      ):(
+        <>
+          {tabNav}
+          {tabPanels}
+        </>
+      )}
+    </>
+  );
+
+  if(pageMode){
+    return(
+      <div data-theme={theme} className="sa-settings-page" style={{flex:1,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden",background:"var(--bg)"}}>
+        {dialogInner}
+      </div>
+    );
+  }
+
+  return(
+    <div data-theme={theme} className={closing?"modal-backdrop modal-backdrop-out":"modal-backdrop"} style={{position:"fixed",inset:0,background:"var(--modal-overlay-bg,rgba(0,0,0,.75))",display:"flex",alignItems:isMobile?"flex-end":"center",justifyContent:"center",zIndex:200,backdropFilter:"blur(16px)"}} onClick={e=>{if(e.target===e.currentTarget&&!buyPhase&&!showDeleteConfirm)handleClose();}}>
+      <div role="dialog" aria-modal="true" aria-labelledby="sa-pf-title" className={`glass-panel glass-panel-lg ${closing?"modal-content-out":isMobile?"":"modal-content-pop"}`} style={{position:"relative",width:isMobile?"100%":"min(96vw,980px)",height:isMobile?"90vh":680,minHeight:520,borderRadius:20,display:"flex",flexDirection:"column",animation:isMobile&&!closing?"slideUp .3s cubic-bezier(0.22,1,0.36,1)":"none",overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
+        {dialogInner}
       </div>
     </div>
   );

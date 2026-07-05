@@ -10,7 +10,7 @@ export async function followNotificationLink(
   handlers: NotifNavHandlers
 ): Promise<boolean> {
   try {
-    const u = new URL(link, window.location.origin);
+    const u = new URL(link, typeof window !== "undefined" ? window.location.origin : "http://localhost");
     const open = (u.searchParams.get("open") || "").toLowerCase();
     const projectId = u.searchParams.get("projectId") || "";
     const mapId = u.searchParams.get("mapId") || "";

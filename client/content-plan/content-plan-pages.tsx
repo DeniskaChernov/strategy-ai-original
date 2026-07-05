@@ -200,9 +200,10 @@ export function ContentPlanHubPage({user,theme,onBackToStrategy,onOpenProject,on
 }
 
 // ── Контент-план одного проекта (полноэкранно, как карта) ──
-export function ContentPlanProjectPage({user,project,maps,theme,onBackToHub,onOpenStrategyProject,onLogout,onChangeTier,onUpgrade,onProfile,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onSelectProject,onOpenMap,onSwitchContentPlanProject}){
-  const{t,lang}=useLang();
+export function ContentPlanProjectPage({user,project,maps,theme,onBackToHub,onOpenStrategyProject,onLogout,onChangeTier,onUpgrade,onProfile,onToggleTheme,aiChatMsgs,aiChatSetMsgs,onSelectProject,onOpenMap,onSwitchContentPlanProject,onShellNav}:{user:any;project:any;maps:any[];theme:string;onBackToHub:()=>void;onOpenStrategyProject:()=>void;onLogout:()=>void;onChangeTier?:(tier:string)=>void;onUpgrade?:()=>void;onProfile:()=>void;onToggleTheme:()=>void;aiChatMsgs?:any[];aiChatSetMsgs?:(m:any[])=>void;onSelectProject?:(p:any)=>void;onOpenMap?:(map:any,project:any,isNew?:boolean,readOnly?:boolean,focusNodeId?:string|null)=>void;onSwitchContentPlanProject?:(p:any,maps:any[])=>void;onShellNav?:(nav:StrategyShellNav)=>void;}){
+  const{t,lang,setLang}=useLang();
   const isMobile=useIsMobile();
+  const shellUi=!!user&&!isMobile;
   const tier=TIERS[user?.tier||"free"]||TIERS.free;
   const[showAIHub,setShowAIHub]=useState(false);
   const[showNotifs,setShowNotifs]=useState(false);
@@ -216,48 +217,19 @@ export function ContentPlanProjectPage({user,project,maps,theme,onBackToHub,onOp
   const aiEdges=(maps||[]).flatMap((m:any)=>m.edges||[]).slice(0,260);
   const aiCtx=`Контент-план проекта «${project?.name||"Проект"}». Карты: ${(maps||[]).length}. Шагов стратегии в контексте: ${aiNodes.length}.`;
 
-  return(
-    <div className={"sa-strategy-ui "+(theme==="dark"?"dk":"lt")} data-theme={theme} style={{width:"100%",maxWidth:"100%",boxSizing:"border-box",height:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden",position:"relative"}}>
-      <StrategyShellBg/>
-      <div style={{flex:1,minHeight:0,minWidth:0,display:"flex",flexDirection:"column",position:"relative",zIndex:1,overflow:"hidden"}}>
-      <div className="sa-app-topbar">
-        <div className="atb-cluster" style={{minWidth:0,flex:isMobile?"1 1 100%":undefined}}>
-          <button type="button" className="sa-back-ic" onClick={onBackToHub} title={t("cp_back_hub_tip","К списку проектов в контент-плане")} aria-label={t("cp_back_hub","Все проекты")}>←</button>
-          <div style={{minWidth:0,maxWidth:isMobile?"calc(100% - 48px)":"280px"}}>
-            <div className="tb-title" style={{fontSize:isMobile?14:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>✍️ {project?.name||t("untitled","Проект")}</div>
-            <div className="tb-sub">{t("cp_project_sub","Контент-план и календарь")}</div>
-          </div>
-        </div>
-        {!isMobile&&(
-          <div style={{flex:"1 1 200px",display:"flex",justifyContent:"center",minWidth:0}}>
-            <MainWorkspaceNav mode="contentPlan" onStrategy={onOpenStrategyProject} onContentPlan={()=>{}} t={t} isMobile={false}/>
-          </div>
-        )}
-        <div className="atb-cluster" style={{marginLeft:isMobile?0:"auto"}}>
-          <button type="button" className="btn-g" onClick={onOpenStrategyProject} title={t("cp_open_strategy_tip","Картами и шагами в проекте")} style={{height:32,fontSize:11.5,padding:"0 12px",display:"inline-flex",alignItems:"center",gap:6,color:"var(--acc)"}}>
-            <span aria-hidden>🗺</span>{isMobile?"":t("cp_open_strategy","Карты проекта")}
-          </button>
-          <div className="tpill" onClick={onToggleTheme} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onToggleTheme();}} aria-label={t("toggle_theme_tip","Сменить тему оформления")}>
-            <div className={`tpi${theme==="dark"?" on":""}`}>☽</div>
-            <div className={`tpi${theme==="light"?" on":""}`}>☀</div>
-          </div>
-          <button type="button" className="btn-g" onClick={()=>setShowAIHub(true)} title={t("ai_hub_title","✦ AI (единый чат)")} style={{height:32,fontSize:11.5,padding:"0 12px",display:"inline-flex",alignItems:"center",gap:6}}>
-            <span aria-hidden>✦</span>{!isMobile&&t("ai_hub_btn_short","AI-чат")}
-          </button>
-          {API_BASE&&<NotifBell unread={notifUnread} onClick={()=>setShowNotifs(true)} className="btn-ic"/>}
-          <button type="button" className="btn-g" onClick={onProfile} style={{height:32,padding:"0 12px",gap:8,display:"inline-flex",alignItems:"center",maxWidth:isMobile?40:200}}>
-            <span style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,var(--acc),var(--acc2))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#fff",flexShrink:0}}>{(user.name||user.email||"?")[0].toUpperCase()}</span>
-            {!isMobile&&<><span style={{fontSize:12,fontWeight:600,color:"var(--t1)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name||user.email?.split("@")[0]||"?"}</span><span style={{fontSize:10,fontWeight:700,color:"var(--t3)",textTransform:"uppercase"}}>{tier.label}</span></>}
-          </button>
-          <button type="button" className="btn-g" onClick={onLogout} style={{height:32,fontSize:11.5,color:"var(--red)"}}>{t("logout","Выйти")}</button>
-        </div>
-      </div>
-      {isMobile&&(
-        <div style={{padding:"8px 14px",borderBottom:".5px solid var(--b1)",background:"var(--top)",display:"flex",justifyContent:"center"}}>
-          <MainWorkspaceNav mode="contentPlan" onStrategy={onOpenStrategyProject} onContentPlan={()=>{}} t={t} isMobile={true}/>
-        </div>
-      )}
-      <div className="sa-page-reveal" style={{flex:1,overflow:"auto",padding:isMobile?"12px 14px":"18px 22px"}}>
+  async function handleNotifLink(n:any){
+    if(!n.link)return;
+    setShowNotifs(false);
+    const ok=await followNotificationLink(n.link,{
+      onContentPlan:(projectId)=>{if(projectId===project?.id)return;const p=allProjects.find((x:any)=>x.id===projectId);if(p&&onSwitchContentPlanProject){getMaps(p.id).then(ms=>onSwitchContentPlanProject(p,Array.isArray(ms)?ms:[]));}},
+      onProject:(projectId)=>{const p=allProjects.find((x:any)=>x.id===projectId);if(p&&onSelectProject)onSelectProject(p);},
+      onMap:(projectId,mapId,nodeId)=>{const p=allProjects.find((x:any)=>x.id===projectId);if(p&&onOpenMap)onOpenMap({id:mapId},p,false,false,nodeId);},
+    });
+    if(!ok)window.location.href=n.link;
+  }
+
+  const projectScroll=(
+    <div className={shellUi?"scr":undefined} style={{flex:1,overflowY:"auto",padding:shellUi?"18px 22px 32px":isMobile?"12px 14px":"18px 22px",minHeight:0}}>
         {!tier.contentPlan?(
           <div className="sa-ref-panel sa-ref-panel--lift sa-page-reveal sa-pr-d1" style={{textAlign:"center",padding:"40px 28px",maxWidth:440,margin:"0 auto",borderStyle:"dashed"}}>
             <div style={{fontSize:40,marginBottom:12,animation:"float 3s ease-in-out infinite"}}>🔒</div>
@@ -271,60 +243,59 @@ export function ContentPlanProjectPage({user,project,maps,theme,onBackToHub,onOp
         ):(
           <div className="sa-page-reveal sa-pr-d1"><ContentPlanTab projectId={project.id} projectName={project.name||""} maps={maps} user={user} theme={theme} lang={lang} t={t} onChangeTier={onChangeTier}/></div>
         )}
+    </div>
+  );
+
+  const projectBody=(
+    <>
+      {shellUi?(
+        <WorkspaceTopBar title={`✍️ ${project?.name||t("untitled","Проект")}`} subtitle={t("cp_project_sub","Контент-план и календарь")} theme={theme} onToggleTheme={onToggleTheme} onBack={onBackToHub} searchPlaceholder={t("dash_search_ph","Search… (⌘K)")} showSearch={false} notifUnread={notifUnread} onNotifs={()=>setShowNotifs(true)} showNotifs={!!API_BASE} onSettings={onProfile} primaryCta={{label:`🗺 ${t("cp_open_strategy","Карты проекта")}`,onClick:onOpenStrategyProject}} newProjectLabel={t("new_project","New project")}/>
+      ):(
+        <>
+          <div className="sa-app-topbar">
+            <div className="atb-cluster" style={{minWidth:0,flex:isMobile?"1 1 100%":undefined}}>
+              <button type="button" className="sa-back-ic" onClick={onBackToHub} aria-label={t("cp_back_hub","Все проекты")}>←</button>
+              <div style={{minWidth:0,maxWidth:isMobile?"calc(100% - 48px)":"280px"}}>
+                <div className="tb-title" style={{fontSize:isMobile?14:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>✍️ {project?.name||t("untitled","Проект")}</div>
+                <div className="tb-sub">{t("cp_project_sub","Контент-план и календарь")}</div>
+              </div>
+            </div>
+            {!isMobile&&(<div style={{flex:"1 1 200px",display:"flex",justifyContent:"center",minWidth:0}}><MainWorkspaceNav mode="contentPlan" onStrategy={onOpenStrategyProject} onContentPlan={()=>{}} t={t} isMobile={false}/></div>)}
+            <div className="atb-cluster" style={{marginLeft:isMobile?0:"auto"}}>
+              <button type="button" className="btn-g" onClick={onOpenStrategyProject} style={{height:32,fontSize:11.5,padding:"0 12px",color:"var(--acc)"}}><span aria-hidden>🗺</span>{isMobile?"":t("cp_open_strategy","Карты проекта")}</button>
+              <div className="tpill" onClick={onToggleTheme} role="button" tabIndex={0} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onToggleTheme();}}><div className={`tpi${theme==="dark"?" on":""}`}>☽</div><div className={`tpi${theme==="light"?" on":""}`}>☀</div></div>
+              <button type="button" className="btn-g" onClick={()=>setShowAIHub(true)} style={{height:32,fontSize:11.5,padding:"0 12px"}}><span aria-hidden>✦</span>{!isMobile&&t("ai_hub_btn_short","AI-чат")}</button>
+              {API_BASE&&<NotifBell unread={notifUnread} onClick={()=>setShowNotifs(true)} className="btn-ic"/>}
+              <button type="button" className="btn-g" onClick={onProfile} style={{height:32,padding:"0 12px"}}>{(user.name||user.email||"?")[0].toUpperCase()}</button>
+              <button type="button" className="btn-g" onClick={onLogout} style={{height:32,fontSize:11.5,color:"var(--red)"}}>{t("logout","Выйти")}</button>
+            </div>
+          </div>
+          {isMobile&&(<div style={{padding:"8px 14px",borderBottom:".5px solid var(--b1)",display:"flex",justifyContent:"center"}}><MainWorkspaceNav mode="contentPlan" onStrategy={onOpenStrategyProject} onContentPlan={()=>{}} t={t} isMobile={true}/></div>)}
+        </>
+      )}
+      {projectScroll}
+      {showNotifs&&onSelectProject&&onOpenMap&&(<NotificationsCenterModal open={showNotifs} onClose={()=>setShowNotifs(false)} isMobile={isMobile} zIndex={220} notifs={notifs} setNotifs={setNotifs} notifUnread={notifUnread} setNotifUnread={setNotifUnread} notifLoading={notifLoading} lang={lang} t={t} loadNotifications={loadNotifications} onFollowLink={handleNotifLink}/>)}
+      {showAIHub&&(<AiHubModal open={showAIHub} onClose={()=>setShowAIHub(false)} isMobile={isMobile} t={t} hint={t("ai_hub_hint_cp_project","Контекст — карты и шаги текущего проекта в режиме контент-плана.")}><AiPanel embedded={true} isMobile={isMobile} nodes={aiNodes} edges={aiEdges} ctx={aiCtx} tier={user?.tier||"free"} projectName={project?.name||""} mapName={t("cp_doc_suffix","Контент-план")} userName={user?.name||user?.email||""} msgs={aiChatMsgs||[]} onMsgsChange={aiChatSetMsgs||(()=>{})} onAddNode={()=>{}} onClose={()=>{}} externalMsgs={[]} onClearExternal={()=>{}} onError={()=>{}} statusMap={getSTATUS(t)}/></AiHubModal>)}
+      <FloatingAiAssistant t={t} variant="app" onOpenFullChat={()=>setShowAIHub(true)}/>
+    </>
+  );
+
+  if(shellUi){
+    return(
+      <div className={"sa-strategy-ui sa-v-app "+(theme==="dark"?"dk":"lt")} data-theme={theme} style={{width:"100%",height:"100%",minHeight:"100vh",maxHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden"}}>
+        <StrategyShellBg/>
+        <div className="sa-app" style={{flex:1,minHeight:0,minWidth:0,display:"flex",overflow:"hidden",position:"relative",zIndex:1}}>
+          <StrategyShellSidebar theme={theme} onToggleTheme={onToggleTheme} activeNav="contentPlan" onNavigate={(nav)=>{if(nav==="contentPlan")return;onShellNav?onShellNav(nav):onBackToHub();}} tierLabel={tier.label} tierColor={tier.color} onTierClick={onUpgrade||onProfile} lang={lang} onLang={code=>setLang(code)} userName={user.name||""} userEmail={user.email||""} projectCount={1} onUserCard={onProfile} onLogout={onLogout} showContentPlan={true} onContentPlan={()=>{}} showTrialBanner={(user?.tier||"free")==="free"} onLogoClick={()=>onShellNav?.("dashboard")} t={t}/>
+          <div className="sa-main" style={{flex:1,minWidth:0,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden"}}>{projectBody}</div>
+        </div>
       </div>
+    );
+  }
 
-      {showNotifs&&onSelectProject&&onOpenMap&&(
-        <NotificationsCenterModal
-          open={showNotifs}
-          onClose={()=>setShowNotifs(false)}
-          isMobile={isMobile}
-          zIndex={220}
-          notifs={notifs}
-          setNotifs={setNotifs}
-          notifUnread={notifUnread}
-          setNotifUnread={setNotifUnread}
-          notifLoading={notifLoading}
-          lang={lang}
-          t={t}
-          loadNotifications={loadNotifications}
-          onFollowLink={async(n:any)=>{
-            if(!n.link)return;
-            try{
-              const u=new URL(n.link,window.location.origin);
-              const open=(u.searchParams.get("open")||"").toLowerCase();
-              const projectId=u.searchParams.get("projectId")||"";
-              const mapId=u.searchParams.get("mapId")||"";
-              const nodeId=u.searchParams.get("nodeId")||"";
-              if(open==="contentplan"&&projectId&&onSwitchContentPlanProject){
-                if(projectId===project?.id){setShowNotifs(false);return;}
-                const p=allProjects.find((x:any)=>x.id===projectId);
-                if(p){
-                  setShowNotifs(false);
-                  const ms=await getMaps(p.id);
-                  onSwitchContentPlanProject(p,Array.isArray(ms)?ms:[]);
-                  return;
-                }
-              }
-              if(open==="project"&&projectId){
-                const p=allProjects.find((x:any)=>x.id===projectId);
-                if(p){setShowNotifs(false);onSelectProject(p);return;}
-              }
-              if(open==="map"&&projectId&&mapId){
-                const p=allProjects.find((x:any)=>x.id===projectId);
-                if(p){setShowNotifs(false);onOpenMap({id:mapId},p,false,false,nodeId||null);return;}
-              }
-            }catch{}
-            window.location.href=n.link;
-          }}
-        />
-      )}
-
-      {showAIHub&&(
-        <AiHubModal open={showAIHub} onClose={()=>setShowAIHub(false)} isMobile={isMobile} t={t} hint={t("ai_hub_hint_cp_project","Контекст — карты и шаги текущего проекта в режиме контент-плана.")}>
-          <AiPanel embedded={true} isMobile={isMobile} nodes={aiNodes} edges={aiEdges} ctx={aiCtx} tier={user?.tier||"free"} projectName={project?.name||""} mapName={t("cp_doc_suffix","Контент-план")} userName={user?.name||user?.email||""} msgs={aiChatMsgs||[]} onMsgsChange={aiChatSetMsgs||(()=>{})} onAddNode={()=>{}} onClose={()=>{}} externalMsgs={[]} onClearExternal={()=>{}} onError={()=>{}} statusMap={getSTATUS(t)}/>
-        </AiHubModal>
-      )}
-      <FloatingAiAssistant t={t} variant="app" onOpenFullChat={() => setShowAIHub(true)} />
-    </div></div>
+  return(
+    <div className={"sa-strategy-ui "+(theme==="dark"?"dk":"lt")} data-theme={theme} style={{width:"100%",maxWidth:"100%",boxSizing:"border-box",height:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Inter',system-ui,sans-serif",overflow:"hidden",position:"relative"}}>
+      <StrategyShellBg/>
+      <div style={{flex:1,minHeight:0,minWidth:0,display:"flex",flexDirection:"column",position:"relative",zIndex:1,overflow:"hidden"}}>{projectBody}</div>
+    </div>
   );
 }

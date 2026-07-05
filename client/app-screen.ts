@@ -12,7 +12,8 @@ export type AppScreen =
   | "map"
   | "sharedMap"
   | "contentPlanHub"
-  | "contentPlanProject";
+  | "contentPlanProject"
+  | "settings";
 
 export const AUTHENTICATED_SCREENS: AppScreen[] = [
   "dashboard",
@@ -23,6 +24,7 @@ export const AUTHENTICATED_SCREENS: AppScreen[] = [
   "map",
   "contentPlanHub",
   "contentPlanProject",
+  "settings",
 ];
 
 export function isAuthenticatedScreen(screen: AppScreen): boolean {

@@ -61,6 +61,9 @@ const ContentPlanHubPageLazy = React.lazy(() =>
 const ContentPlanProjectPageLazy = React.lazy(() =>
   import("./client/content-plan/content-plan-pages").then((m) => ({ default: m.ContentPlanProjectPage }))
 );
+const SettingsPageLazy = React.lazy(() =>
+  import("./client/settings/settings-page").then((m) => ({ default: m.SettingsPage }))
+);
 
 function LazyScreenFallback({ theme, text }: { theme: string; text: string }) {
   return <SplashLoaderScreen theme={theme === "light" ? "light" : "dark"} text={text} />;
@@ -156,7 +159,7 @@ export default function App(){
   const t = makeTfn(lang);
 
   const navigateTo = useCallback((next: AppScreen, opts?: { clearProject?: boolean; clearMap?: boolean; clearCp?: boolean }) => {
-    const clearProject = opts?.clearProject !== false && ["dashboard", "insights", "ai", "projects", "contentPlanHub", "landing"].includes(next);
+    const clearProject = opts?.clearProject !== false && ["dashboard", "insights", "ai", "projects", "contentPlanHub", "settings", "landing"].includes(next);
     const clearMap = opts?.clearMap !== false && next !== "map" && next !== "sharedMap";
     const clearCp = opts?.clearCp !== false && next !== "contentPlanProject" && next !== "contentPlanHub";
     if (clearMap) {
@@ -437,7 +440,7 @@ export default function App(){
       else if(screen==="contentPlanProject"&&cpProject){setCpProject(null);setCpMaps([]);setScreen("contentPlanHub");}
       else if(screen==="contentPlanHub"){navigateTo("dashboard");}
       else if(screen==="projects"){navigateTo("dashboard");}
-      else if(screen==="insights"||screen==="ai"){navigateTo("dashboard");}
+      else if(screen==="insights"||screen==="ai"||screen==="settings"){navigateTo("dashboard");}
     };
     window.addEventListener("popstate",h);
     return()=>window.removeEventListener("popstate",h);
@@ -501,7 +504,7 @@ export default function App(){
     if(nav==="contentPlan"){navigateTo("contentPlanHub");return;}
     if(nav==="ai"){navigateTo("ai");return;}
     if(nav==="insights"){navigateTo("insights");return;}
-    if(nav==="settings"||nav==="team"){setShowProfile(true);return;}
+    if(nav==="settings"||nav==="team"){setShowProfile(false);navigateTo("settings");return;}
     if(nav==="map"){
       try{
         const sp=localStorage.getItem("sa_last_project");
@@ -523,12 +526,14 @@ export default function App(){
     navigateTo("projects");
   }
 
+  function openSettings(){setShowProfile(false);navigateTo("settings");}
+
   async function onChangeTier(t){
     if(!user)return;
     const updated=await patchUser(user.email,{tier:t});
     if(updated)setUser(updated);
     setShowTiers(false);
-    if(screen!=="projects"&&screen!=="project"&&screen!=="map"&&screen!=="contentPlanHub"&&screen!=="contentPlanProject")setScreen("projects");
+    if(screen!=="projects"&&screen!=="project"&&screen!=="map"&&screen!=="contentPlanHub"&&screen!=="contentPlanProject"&&screen!=="settings")setScreen("projects");
   }
 
   async function onLogout(){
@@ -677,7 +682,7 @@ export default function App(){
               <DashboardPage
                 user={user} theme={theme}
                 onToggleTheme={toggleTheme}
-                onProfile={()=>setShowProfile(true)}
+                onProfile={openSettings}
                 onLogout={onLogout}
                 onChangeTier={()=>setShowTiers(true)}
                 onShellNav={handleGlobalNav}
@@ -696,11 +701,14 @@ export default function App(){
               <InsightsPage
                 user={user} theme={theme}
                 onToggleTheme={toggleTheme}
-                onProfile={()=>setShowProfile(true)}
+                onProfile={openSettings}
                 onLogout={onLogout}
                 onChangeTier={()=>setShowTiers(true)}
                 onShellNav={handleGlobalNav}
                 onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
+                onOpenProject={onSelectProject}
+                onOpenMap={onOpenMap}
+                onOpenContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);navigateTo("contentPlanProject",{clearProject:false,clearMap:true,clearCp:false});}}
               />
             </React.Suspense>
           </AuthenticatedAppShell>
@@ -711,13 +719,34 @@ export default function App(){
               <AiAdvisorPage
                 user={user} theme={theme}
                 onToggleTheme={toggleTheme}
-                onProfile={()=>setShowProfile(true)}
+                onProfile={openSettings}
                 onLogout={onLogout}
                 onChangeTier={()=>setShowTiers(true)}
                 onShellNav={handleGlobalNav}
                 onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
+                onOpenProject={onSelectProject}
+                onOpenMap={onOpenMap}
+                onOpenContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);navigateTo("contentPlanProject",{clearProject:false,clearMap:true,clearCp:false});}}
                 aiChatMsgs={aiChatMsgs}
                 aiChatSetMsgs={setAiChatMsgs}
+              />
+            </React.Suspense>
+          </AuthenticatedAppShell>
+        )}
+        {screen==="settings"&&user&&shellCommon&&(
+          <AuthenticatedAppShell {...shellCommon}>
+            <React.Suspense fallback={<LazyScreenFallback theme={theme} text={t("loading","Загрузка…")}/>}>
+              <SettingsPageLazy
+                user={user}
+                theme={theme}
+                palette={palette}
+                onToggleTheme={toggleTheme}
+                onPaletteChange={changePalette}
+                onUpdateUser={(u:any)=>setUser(u)}
+                onChangeTier={onChangeTier}
+                onLogout={onLogout}
+                onShellNav={handleGlobalNav}
+                onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
               />
             </React.Suspense>
           </AuthenticatedAppShell>
@@ -731,7 +760,7 @@ export default function App(){
                 onOpenMap={onOpenMap}
                 onLogout={onLogout}
                 onChangeTier={(tier:string)=>onChangeTier(tier)}
-                onProfile={()=>setShowProfile(true)}
+                onProfile={openSettings}
                 onToggleTheme={toggleTheme}
                 aiChatMsgs={aiChatMsgs}
                 aiChatSetMsgs={setAiChatMsgs}
@@ -753,7 +782,7 @@ export default function App(){
                 onBackToStrategy={()=>navigateTo("projects")}
                 onOpenProject={(p:any,maps:any[])=>{setCpProject(p);setCpMaps(Array.isArray(maps)?maps:[]);navigateTo("contentPlanProject",{clearProject:false,clearMap:true,clearCp:false});}}
                 onLogout={onLogout}
-                onProfile={()=>setShowProfile(true)}
+                onProfile={openSettings}
                 onToggleTheme={toggleTheme}
                 onUpgrade={()=>setShowProfile(true)}
                 aiChatMsgs={aiChatMsgs}
@@ -776,7 +805,7 @@ export default function App(){
                 onBackToHub={()=>{setCpProject(null);setCpMaps([]);navigateTo("contentPlanHub");}}
                 onOpenStrategyProject={()=>{setProject(cpProject);setCpProject(null);setCpMaps([]);navigateTo("project",{clearProject:false,clearMap:true,clearCp:true});}}
                 onLogout={onLogout}
-                onProfile={()=>setShowProfile(true)}
+                onProfile={openSettings}
                 onToggleTheme={toggleTheme}
                 onChangeTier={onChangeTier}
                 onUpgrade={()=>setShowProfile(true)}
@@ -785,6 +814,7 @@ export default function App(){
                 onSelectProject={onSelectProject}
                 onOpenMap={onOpenMap}
                 onSwitchContentPlanProject={(p:any,m:any[])=>{setCpProject(p);setCpMaps(Array.isArray(m)?m:[]);}}
+                onShellNav={handleGlobalNav}
               />
             </React.Suspense>
           </AuthenticatedAppShell>
@@ -796,7 +826,7 @@ export default function App(){
                 user={user} project={project} theme={theme}
                 onBack={()=>navigateTo("projects")}
                 onOpenMap={onOpenMap}
-                onProfile={()=>setShowProfile(true)}
+                onProfile={openSettings}
                 onToggleTheme={toggleTheme}
                 onChangeTier={onChangeTier}
                 onUpgrade={()=>setShowProfile(true)}
@@ -817,7 +847,7 @@ export default function App(){
                 user={user} mapData={mapData} project={project}
                 isNew={mapIsNew} theme={theme} readOnly={mapReadOnly} palette={palette}
                 onBack={()=>setScreen("project")}
-                onProfile={()=>setShowProfile(true)}
+                onProfile={openSettings}
                 onToggleTheme={toggleTheme}
                 onOpenContentPlanHub={()=>navigateTo("contentPlanHub")}
                 onOpenContentPlanProject={async()=>{
