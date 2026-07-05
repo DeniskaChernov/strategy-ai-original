@@ -439,26 +439,24 @@ export function ContentPlanTab({projectId,projectName,maps,user,theme,lang,t,onC
           : viewMode==="tree"
           ? <ContentTree/>
           : (
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {filtered.map((it:any,i:number)=>(
-                <div key={it.id} className="glass-card list-item-in" style={{padding:"14px 18px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",animationDelay:`${i*0.04}s`}}>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:14,fontWeight:700,color:"var(--text)",marginBottom:4}}>{it.title||t("untitled","Без названия")}</div>
-                    <div style={{fontSize:12,color:"var(--text4)",display:"flex",gap:8,flexWrap:"wrap"}}>
-                      <span>{t(CONTENT_TYPES.find(x=>x.id===it.type)?.labelKey||"content_type_post",CONTENT_TYPES.find(x=>x.id===it.type)?.fb||"Пост")}</span>
-                      <span>·</span>
-                      <span>{t(CONTENT_CHANNELS.find(x=>x.id===it.channel)?.labelKey||"content_channel_blog",CONTENT_CHANNELS.find(x=>x.id===it.channel)?.fb||"Блог")}</span>
-                      {it.scheduledDate&&<><span>·</span><span>{it.scheduledDate}</span></>}
-                      {it.strategyStepTitle&&<><span>·</span><span style={{color:"var(--accent-1)"}}>↗ {it.strategyStepTitle}</span></>}
+            <div className="cp-kanban">
+              {CONTENT_STATUSES.map(st=>{
+                const colItems=filtered.filter((it:any)=>it.status===st.id);
+                return(
+                  <div key={st.id} className="cp-col">
+                    <div className="cp-col-head">
+                      <span className="cp-col-name">{t(st.labelKey||"",st.fb||st.id)}</span>
+                      <span className="cp-col-count">{colItems.length}</span>
                     </div>
+                    {colItems.map((it:any)=>(
+                      <div key={it.id} className="cp-card" role="button" tabIndex={0} onClick={()=>setEditId(it.id)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")setEditId(it.id);}}>
+                        <div style={{fontSize:13,fontWeight:600,color:"var(--t1)",marginBottom:4}}>{it.title||t("untitled","Untitled")}</div>
+                        <div style={{fontSize:11.5,color:"var(--t3)"}}>{t(CONTENT_TYPES.find((x:any)=>x.id===it.type)?.labelKey||"content_type_post",CONTENT_TYPES.find((x:any)=>x.id===it.type)?.fb||"Post")}</div>
+                      </div>
+                    ))}
                   </div>
-                  <div style={{padding:"4px 10px",borderRadius:8,background:it.status==="published"?"rgba(16,185,129,.12)":it.status==="scheduled"?"var(--accent-soft)":"var(--surface2)",border:`1px solid ${it.status==="published"?"rgba(16,185,129,.3)":it.status==="scheduled"?"var(--glass-border-accent,var(--border))":"var(--border)"}`,color:it.status==="published"?"#12c482":it.status==="scheduled"?"var(--accent-1)":"var(--text3)",fontSize:12,fontWeight:700}}>
-                    {t(CONTENT_STATUSES.find(x=>x.id===it.status)?.labelKey||"content_status_draft",CONTENT_STATUSES.find(x=>x.id===it.status)?.fb||"Черновик")}
-                  </div>
-                  <button type="button" onClick={()=>setEditId(it.id)} className="btn-interactive" title={t("edit","Редактировать")} aria-label={t("content_edit_item_aria","Редактировать: {title}").replace("{title}",(it.title||t("untitled","Без названия")).slice(0,80))} style={{padding:"6px 12px",borderRadius:8,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:12,fontWeight:700}}>✏️</button>
-                  <button type="button" onClick={()=>removeItem(it.id)} className="btn-interactive" title={t("delete","Удалить")} aria-label={t("content_delete_item_aria","Удалить из плана: {title}").replace("{title}",(it.title||"").slice(0,80))} style={{padding:"6px 12px",borderRadius:8,border:"1px solid rgba(239,68,68,.2)",background:"rgba(239,68,68,.06)",color:"var(--red)",cursor:"pointer",fontSize:12,fontWeight:800,display:"inline-flex",alignItems:"center",justifyContent:"center"}}><IconTrash/></button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )
       )}

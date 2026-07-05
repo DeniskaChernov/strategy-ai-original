@@ -1458,6 +1458,8 @@ ${ctx}
           onContentPlan={onOpenContentPlanHub||undefined}
           showTrialBanner={(user?.tier||"free")==="free"}
           onLogoClick={() => onShellGlobalNav?.("dashboard")}
+          layoutMode="reference"
+          showProjectNav={true}
           collapsed={sidebarCollapsed}
           t={t}
         />

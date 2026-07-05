@@ -78,3 +78,14 @@
 ---
 
 *Обновлять статусы после каждого прогона. Не редактировать `strategy-reference.html` вручную — только sync из эталона + `gen-strategy-shell-css.js`.*
+
+## Design parity P1–P5 (2026-07)
+
+Реализовано по [`docs/DESIGN_PARITY_MATRIX.md`](DESIGN_PARITY_MATRIX.md):
+
+- `layoutMode="reference"` на всех shell-экранах; dynamic `#project-nav` на project/map/content
+- ProjectDetail: tab **Overview** (default), `.po-grid`, `.map-list-item`, `.sc-grid`, `.team-list`, AI Hub split layout
+- Projects: `.proj-grid` desktop + mobile, fix CTA «++», `.save-ind` в topbar
+- `npm run sync:shell-css` в pipeline; visual checklist в `QA_PASSES.md`; Playwright shell markers
+
+**Остаётся для ручного QA:** mobile drawer shell (step 42), полный E2E login→project→overview, pixel-diff скриншоты.

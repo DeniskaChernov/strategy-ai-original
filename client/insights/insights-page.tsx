@@ -208,7 +208,7 @@ export function InsightsPage({
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {aiInsights.slice(0, 3).map((ins, i) => (
-                <div key={i} className="insight-card" style={{ borderLeft: `3px solid ${ins.tone}` }}>
+                <div key={i} className="insight-card" style={{ ["--ins-tone" as string]: ins.tone }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                     <span style={{ fontSize: 18 }} aria-hidden>{ins.icon}</span>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>{ins.title}</div>
@@ -305,6 +305,7 @@ export function InsightsPage({
           onContentPlan={onOpenContentPlanHub ? () => onOpenContentPlanHub() : undefined}
           showTrialBanner={(user?.tier || "free") === "free"}
           onLogoClick={() => onShellNav("dashboard")}
+          layoutMode="reference"
           t={t}
         />
         <div className="sa-main" style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>{body}</div>

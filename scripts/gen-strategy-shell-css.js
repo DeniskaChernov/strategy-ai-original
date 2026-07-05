@@ -55,6 +55,9 @@ const appOverrides = `
 /* Сайдбар: читаемее ширина */
 .sa-sb{width:236px;min-width:236px}
 
+/* Insight cards: tone via CSS variable (React sets --ins-tone) */
+.sa-strategy-ui .insight-card{border-left:3px solid var(--ins-tone,transparent)}
+
 /* CRM — в палитре акцента, без цианового «неона» */
 .sa-strategy-ui .crm-sync{margin:0 12px 12px;background:rgba(104,54,245,.08);border:.5px solid rgba(104,54,245,.22);box-shadow:none}
 .sa-strategy-ui .crm-sync:hover{background:rgba(104,54,245,.12)}

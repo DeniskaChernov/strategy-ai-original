@@ -71,6 +71,7 @@ import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { MapTour } from "../components/map-tour";
 import { WorkspaceTopBar } from "../components/workspace-top-bar";
 import { ReferenceProjectCard, projectVisual, memberAvatarStyle } from "../components/reference-project-card";
+import { ReferenceMapListItem } from "../components/reference-map-list-item";
 import { createNotifFollowHandler } from "../lib/notif-deep-link";
 import { NewProjectModal } from "../strategy-modals/new-project-modal";
 import { GlobalSearchOverlay } from "../components/global-search-overlay";
@@ -316,7 +317,7 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
   function renderReferenceProjectCard(p: ProjectLite, i: number){
     const pm=maps[p.id]||[];
     const myRole=p.owner===user.email?"owner":p.members?.find(m=>m.email===user.email)?.role||"owner";
-    const roleLabel=shellUi?myRole:(ROLES[myRole]?.label||myRole);
+    const roleLabel=shellUi?(ROLES[myRole]?.label||myRole).toUpperCase():(ROLES[myRole]?.label||myRole);
     const vis=projectVisual(p.id,(p as any).icon,(p as any).color);
     const mapsCount=pm.filter(m=>!m.isScenario).length;
     const scenCount=pm.filter(m=>m.isScenario).length;
@@ -437,27 +438,13 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
               </>
             ):(
               <>
-                <div className="slbl" style={{marginBottom:10}}>
-                  {t("all_projects","All projects")} <span style={{color:"var(--acc)",fontWeight:700}}>{filtered.length}</span>
-                </div>
-                <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap",alignItems:"center"}}>
-                  <select value={roleFilter} onChange={e=>setRoleFilter(e.target.value)} className="btn-g" style={{height:32,fontSize:12,padding:"0 10px",background:"var(--inp)",border:".5px solid var(--b1)",borderRadius:10,color:"var(--t1)"}}>
-                    <option value="all">{t("filter_all","All")}</option>
-                    <option value="owner">{t("filter_owner","Mine")}</option>
-                    <option value="member">{t("filter_member","Member")}</option>
-                  </select>
-                  <select value={sortMode} onChange={e=>setSortMode(e.target.value)} className="btn-g" style={{height:32,fontSize:12,padding:"0 10px",background:"var(--inp)",border:".5px solid var(--b1)",borderRadius:10,color:"var(--t1)"}}>
-                    <option value="recent">{t("sort_recent","Recent")}</option>
-                    <option value="oldest">{t("sort_oldest","Oldest")}</option>
-                    <option value="name">{t("sort_name","Name")}</option>
-                  </select>
-                </div>
+                <div className="slbl">{t("all_projects","All projects")}</div>
                 <div className="proj-grid">
                   {filtered.map((p,i)=>renderReferenceProjectCard(p,i))}
                   {!atLimit&&(
                     <div className="proj-card new-card" onClick={()=>setCreating(true)} onKeyDown={(e)=>{if(e.key==="Enter"||e.key===" ")setCreating(true);}} role="button" tabIndex={0}>
                       <div className="proj-new-icon">+</div>
-                      <div className="proj-new-lbl">{t("new_project","New project")}</div>
+                      <div className="proj-new-lbl">{t("new_project_card","New project")}</div>
                     </div>
                   )}
                 </div>
@@ -586,110 +573,12 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
               ))}
             </div>
           ):(
-            <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":`repeat(auto-fill,minmax(${shellUi?300:260}px,1fr))`,gap:isMobile?16:20}}>
-              {filtered.map((p,i)=>{
-                const pm=maps[p.id]||[];
-                const myRole=p.owner===user.email?"owner":p.members?.find(m=>m.email===user.email)?.role;
-                const roleLabel=ROLES[myRole]?.label||"";
-                const icon=((p.name||"P").trim()[0]||"P").toUpperCase();
-                const mapsCount=pm.filter(m=>!m.isScenario).length;
-                const scenCount=pm.filter(m=>m.isScenario).length;
-                const allNodes=pm.flatMap(m=>m.nodes||[]);
-                const stepsCount=allNodes.length;
-                const membersList=p.members?.length?p.members:[{email:p.owner,role:"owner"}];
-                const membersCount=membersList.length;
-                const pct=stepsCount?Math.round(allNodes.reduce((s,n)=>s+(Number(n.progress)||0),0)/stepsCount):0;
-                const editedTs=toMs((p as any).updatedAt||(p as any).updated_at||p.createdAt||p.created_at);
-                const editedLabel=editedTs?(()=>{const diff=Date.now()-editedTs;const d=Math.floor(diff/864e5);if(d<=0)return t("edited_today","Изменён сегодня");if(d===1)return t("edited_yesterday","Изменён вчера");return t("edited_on","Изменён {d}").replace("{d}",new Date(editedTs).toLocaleDateString(lang==="en"?"en-US":lang==="uz"?"uz-UZ":"ru",{day:"numeric",month:"short"}));})():"—";
-                const desc=(p as any).description||"";
-                const StatBox=({n,label}:{n:number;label:string})=>(
-                  <div className="sa-stat-chip">
-                    <div style={{fontSize:16,fontWeight:900,color:"var(--text)",lineHeight:1}}>{n}</div>
-                    <div style={{fontSize:9.5,fontWeight:800,letterSpacing:.5,textTransform:"uppercase",color:"var(--text5)",marginTop:3}}>{label}</div>
-                  </div>
-                );
-                return(
-                  <div key={p.id} onClick={()=>onSelectProject(p)} className="icard card-stagger card-interactive sa-card-pro sa-lift"
-                    style={{padding:"20px 20px 16px",borderRadius:20,cursor:"pointer",position:"relative",display:"flex",flexDirection:"column",gap:14,animationDelay:`${i*0.06}s`}}>
-                    <div style={{display:"flex",alignItems:"flex-start",gap:13}}>
-                      <div className="sa-proj-card-icon" style={{width:44,height:44,borderRadius:13,background:"linear-gradient(135deg,var(--accent-soft),transparent)",border:"1px solid var(--glass-border-accent,var(--border))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0,color:"var(--accent-1,var(--text2))",fontWeight:900}}>{icon}</div>
-                      <div style={{flex:1,minWidth:0}}>
-                        <div className="icard-title" style={{fontSize:15,fontWeight:800,color:"var(--text)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{p.name}</div>
-                        <div style={{fontSize:10,fontWeight:800,letterSpacing:.5,textTransform:"uppercase",color:"var(--text5)",marginTop:3}}>{roleLabel||t("role_owner","Владелец")}</div>
-                      </div>
-                      <div className="sa-proj-kebab" style={{position:"relative"}}>
-                        <button type="button" aria-haspopup="menu" aria-expanded={kebabId===p.id} aria-label={t("more_actions","Действия")} onClick={(e)=>{e.stopPropagation();setKebabId(kebabId===p.id?null:p.id);}} style={{width:28,height:28,borderRadius:8,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text3)",cursor:"pointer",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:16,lineHeight:1,padding:0}}>⋯</button>
-                        {kebabId===p.id&&(
-                          <div role="menu" onClick={e=>e.stopPropagation()} style={{position:"absolute",top:32,right:0,minWidth:180,padding:6,borderRadius:10,border:"1px solid var(--border)",background:"var(--surface)",boxShadow:"0 12px 32px rgba(0,0,0,.25)",zIndex:50,display:"flex",flexDirection:"column",gap:2}}>
-                            <button role="menuitem" onClick={()=>{setKebabId(null);onSelectProject(p);}} style={{textAlign:"left",padding:"8px 10px",borderRadius:8,border:"none",background:"transparent",color:"var(--text)",cursor:"pointer",fontSize:13}}>↗ {t("open","Открыть")}</button>
-                            {p.owner===user.email&&(
-                              <button role="menuitem" onClick={()=>{setKebabId(null);setRenameId(p.id);setRenameDraft(p.name||"");}} style={{textAlign:"left",padding:"8px 10px",borderRadius:8,border:"none",background:"transparent",color:"var(--text)",cursor:"pointer",fontSize:13}}>✎ {t("rename","Переименовать")}</button>
-                            )}
-                            <button role="menuitem" onClick={()=>{setKebabId(null);duplicateProject(p);}} style={{textAlign:"left",padding:"8px 10px",borderRadius:8,border:"none",background:"transparent",color:"var(--text)",cursor:"pointer",fontSize:13}}>⎘ {t("duplicate","Дублировать")}</button>
-                            {p.owner===user.email&&(
-                              <button type="button" role="menuitem" onClick={()=>{setKebabId(null);setDelId(p.id);}} style={{textAlign:"left",padding:"8px 10px",borderRadius:8,border:"none",background:"transparent",color:"var(--red)",cursor:"pointer",fontSize:13,display:"inline-flex",alignItems:"center",gap:8}}><IconTrash/> {t("delete","Удалить")}</button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {desc&&<div style={{fontSize:12.5,color:"var(--text3)",lineHeight:1.5,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{desc}</div>}
-                    <div style={{display:"flex",gap:7}}>
-                      <StatBox n={mapsCount} label={t("maps","карт")}/>
-                      <StatBox n={scenCount} label={t("scenarios_short","сцен.")}/>
-                      <StatBox n={stepsCount} label={t("steps_label","шагов")}/>
-                      <StatBox n={membersCount} label={t("members","уч.")}/>
-                    </div>
-                    <div>
-                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                        <span style={{fontSize:12,color:"var(--text5)"}}>{t("overall_progress","Общий прогресс")}</span>
-                        <span style={{fontSize:12,fontWeight:800,color:"var(--accent-1,#a78bfa)"}}>{pct}%</span>
-                      </div>
-                      <div className="sa-proj-progress" style={{height:6}}>
-                        <div className="sa-proj-progress__fill" style={{width:"100%",["--pp" as any]:(pct/100).toFixed(3)}}/>
-                      </div>
-                    </div>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:"auto"}}>
-                      <span style={{fontSize:11.5,color:"var(--text5)"}}>{editedLabel}</span>
-                      <div style={{display:"flex",alignItems:"center"}}>
-                        {membersList.slice(0,4).map((mem:any,mi:number)=>{
-                          const mInit=((mem.email||"?").trim()[0]||"?").toUpperCase();
-                          return<div key={mi} title={mem.email} style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,var(--acc,#a78bfa),var(--acc2,#7c5cff))",border:"1.5px solid var(--card)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9.5,fontWeight:800,color:"#fff",marginLeft:mi?-7:0,flexShrink:0}}>{mInit}</div>;
-                        })}
-                        {membersList.length>4&&<div style={{width:22,height:22,borderRadius:"50%",background:"var(--surface2)",border:"1.5px solid var(--card)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,color:"var(--text4)",marginLeft:-7}}>+{membersList.length-4}</div>}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              {!loading&&filtered.length>0&&!atLimit&&(
-                <button type="button" onClick={()=>setCreating(true)} className="card-stagger" style={{minHeight:200,borderRadius:18,background:"transparent",border:"1.5px dashed var(--border)",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,color:"var(--text4)",transition:"border-color .2s, color .2s"}} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--accent-1,#a78bfa)";(e.currentTarget as HTMLElement).style.color="var(--accent-1,#a78bfa)";}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--border)";(e.currentTarget as HTMLElement).style.color="var(--text4)";}}>
-                  <div style={{width:44,height:44,borderRadius:13,border:"1.5px solid currentColor",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,fontWeight:300,lineHeight:1}}>+</div>
-                  <div style={{fontSize:13.5,fontWeight:800}}>{t("new_project","Новый проект")}</div>
-                </button>
-              )}
-              {!filtered.length&&!loading&&(
-                <div className="card-stagger" style={{gridColumn:"1/-1",textAlign:"center",padding:"64px 24px",color:"var(--text4)",display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
-                  <div aria-hidden style={{width:88,height:88,borderRadius:26,background:"linear-gradient(135deg,var(--accent-soft),transparent 80%)",border:"1px solid var(--glass-border-accent,var(--border))",display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
-                    <span style={{position:"absolute",inset:"-30%",background:"radial-gradient(circle,var(--accent-glow),transparent 55%)",animation:"saEmptyPulse 3.6s ease-in-out infinite",pointerEvents:"none"}}/>
-                    <span style={{fontSize:36,lineHeight:1,zIndex:1,filter:"drop-shadow(0 2px 8px var(--accent-glow))"}}>✦</span>
-                  </div>
-                  <div style={{fontSize:16,fontWeight:800,color:"var(--text)",marginTop:4}}>{search.trim()?t("search_empty","Ничего не найдено"):t("no_projects","Нет проектов")}</div>
-                  <div style={{fontSize:13.5,maxWidth:340,lineHeight:1.5,color:"var(--text3)"}}>{search.trim()?t("search_try_other","Попробуйте другой запрос или очистите поиск."):t("click_new_project","Нажмите «+ Проект» чтобы начать")}</div>
-                  {!search.trim()&&!atLimit&&(
-                    <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
-                      <button onClick={()=>setCreating(true)} className="btn-smooth" style={{marginTop:8,padding:"11px 22px",borderRadius:12,border:"none",background:"var(--gradient-accent)",color:"var(--accent-on-bg)",cursor:"pointer",fontSize:14,fontWeight:700,boxShadow:"0 6px 20px var(--accent-glow)"}}>+ {t("new_project","Новый проект")}</button>
-                      <button onClick={()=>setShowAIHub(true)} className="btn-smooth" style={{marginTop:8,padding:"11px 22px",borderRadius:12,border:"1px solid var(--accent-1)",background:"var(--accent-soft)",color:"var(--accent-1)",cursor:"pointer",fontSize:14,fontWeight:700}}>✦ {t("ask_ai_to_help","Спросить AI с чего начать")}</button>
-                    </div>
-                  )}
-                  {!search.trim()&&projects.length===0&&(
-                    <div style={{marginTop:16,maxWidth:520,fontSize:13,color:"var(--text4)",lineHeight:1.6,textAlign:"left"}}>
-                      <div style={{fontWeight:800,color:"var(--text2)",marginBottom:8}}>{t("onboard_steps_title","Как начать за 3 шага:")}</div>
-                      <div>1. {t("onboard_step1","Создайте проект — это контейнер для карт и контент-плана.")}</div>
-                      <div>2. {t("onboard_step2","Откройте карту, добавьте узлы или примените шаблон.")}</div>
-                      <div>3. {t("onboard_step3","Запустите AI-чат — он подскажет следующий шаг.")}</div>
-                    </div>
-                  )}
+            <div className="proj-grid" style={{padding:isMobile?"0 0 24px":undefined}}>
+              {filtered.map((p,i)=>renderReferenceProjectCard(p,i))}
+              {!atLimit&&(
+                <div className="proj-card new-card" onClick={()=>setCreating(true)} onKeyDown={(e)=>{if(e.key==="Enter"||e.key===" ")setCreating(true);}} role="button" tabIndex={0}>
+                  <div className="proj-new-icon">+</div>
+                  <div className="proj-new-lbl">{t("new_project_card","New project")}</div>
                 </div>
               )}
             </div>
@@ -796,7 +685,10 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
           showContentPlan={!!onOpenContentPlanHub}
           onContentPlan={onOpenContentPlanHub?()=>onOpenContentPlanHub():undefined}
           showTrialBanner={(user?.tier||"free")==="free"}
+          onWeeklyBriefing={()=>{if(lastMapData)setShowBriefing(true);else setToast({msg:t("shell_open_map_hint","Создайте проект и откройте карту."),type:"info"});setTimeout(()=>setToast(null),3200);}}
+          briefingHint={t("shell_briefing_sub","Strategy health")}
           onLogoClick={() => { try { document.querySelector(".sa-main .scr")?.scrollTo({ top: 0, behavior: "smooth" }); } catch {} }}
+          layoutMode="reference"
           t={t}
         />
         <div className="sa-main" style={{flex:1,minWidth:0,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden"}}>{_projMain}</div>
@@ -817,7 +709,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
   const shellUi=!isMobile;
   const[maps,setMaps]=useState<MapLite[]>([]);
   const[loading,setLoading]=useState(true);
-  const[tab,setTab]=useState<"maps"|"scenarios"|"content"|"ai"|"team"|"settings">("maps");
+  const[tab,setTab]=useState<"overview"|"maps"|"scenarios"|"content"|"ai"|"team"|"settings">("overview");
   const[proj,setProj]=useState<ProjectLite>(project);
   const[newMember,setNewMember]=useState("");
   const[nmRole,setNmRole]=useState("editor");
@@ -938,8 +830,30 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
   const regularMaps=maps.filter(m=>!m.isScenario);
   const scenarios=maps.filter(m=>m.isScenario);
 
+  function calcMapProg(m:MapLite){
+    const ns=m.nodes||[];
+    return ns.length?Math.round(ns.reduce((s,n)=>s+(n.progress||0),0)/ns.length):0;
+  }
+  function fmtMapRel(m:MapLite){
+    const ts=toMs((m as any).updatedAt||(m as any).updated_at);
+    if(!ts)return "—";
+    const diff=Date.now()-ts;const h=Math.floor(diff/3.6e6);const d=Math.floor(h/24);
+    if(h<1)return t("just_now","только что");
+    if(h<24)return t("hours_ago","{n} ч. назад").replace("{n}",String(h));
+    if(d===1)return t("yesterday","вчера");
+    return new Date(ts).toLocaleDateString(lang==="en"?"en-US":lang==="uz"?"uz-UZ":"ru",{day:"2-digit",month:"short"});
+  }
+  const roleReadable=(ROLES[myRole]?.label||myRole).toUpperCase();
+  const detailSidebarNav:StrategyShellNav=
+    tab==="scenarios"?"scenarios":tab==="team"?"team":tab==="maps"?"map":"projects";
+  const recentActs=[...maps].filter(m=>(m as any).updatedAt||(m as any).updated_at).map(m=>({name:m.name||t("untitled","Без названия"),at:(m as any).updatedAt||(m as any).updated_at,n:(m.nodes||[]).length})).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
+
   function handleDetailShellNav(nav:StrategyShellNav){
     if(nav==="projects"){onBack();return;}
+    if(nav==="map"){if(regularMaps[0])onOpenMap(regularMaps[0],proj,false,myRole==="viewer");return;}
+    if(nav==="scenarios"){setTab("scenarios");return;}
+    if(nav==="team"){setTab("team");return;}
+    if(nav==="timeline"){if(regularMaps[0])onOpenMap(regularMaps[0],proj,false,myRole==="viewer");return;}
     onShellNav?.(nav);
   }
 
@@ -1016,7 +930,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           showNotifs={!!API_BASE}
           onSettings={onProfile}
           newProjectLabel={t("new_map","New map")}
-          primaryCta={canEdit?{label:"+ "+t("new_map","New map"),onClick:()=>createMap()}:undefined}
+          primaryCta={canEdit?{label:t("new_map","New map"),onClick:()=>createMap()}:undefined}
         />
       ):(
       <>
@@ -1073,32 +987,125 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
       )}
 
       <div className={"proj-tabs-bar"+(shellUi?"":" sa-proj-tabs sa-page-reveal sa-pr-d2")} role="tablist">
-        {([
-          ["maps",isMobile?`🗺 (${regularMaps.length})`:`🗺 ${t("pd_tab_maps","Карты")} (${regularMaps.length})`],
-          ["scenarios",isMobile?`⎇ (${scenarios.length})`:`⎇ ${t("pd_tab_scenarios","Сценарии")} (${scenarios.length})`],
-          ["content",isMobile?"✍️":"✍️ "+t("content_plan_tab","Контент-план")],
-          ["ai",isMobile?"✦":"✦ "+t("project_ai_tab","AI")],
-          ["team",isMobile?`👥 (${(proj.members||[]).length})`:`👥 ${t("pd_tab_team","Команда")} (${(proj.members||[]).length})`],
-          ["settings","⚙ "+t("settings_title","Настройки")],
-        ] as const).map(([k,lbl])=>(
-          <button key={k} type="button" role="tab" aria-selected={tab===k} className={tab===k?"on":""} onClick={()=>setTab(k as any)}>{lbl}</button>
+        {(shellUi?([
+          ["overview",`📊 ${t("pd_tab_overview","Overview")}`,null,false],
+          ["maps",`🗺️ ${t("pd_tab_maps","Maps")}`,regularMaps.length,false],
+          ["scenarios",`⚖️ ${t("pd_tab_scenarios","Scenarios")}`,scenarios.length,false],
+          ["content",`📝 ${t("content_plan_tab","Content Plan")}`,null,true],
+          ["ai",`🤖 ${t("project_ai_tab","AI Hub")}`,null,false],
+          ["team",`👥 ${t("pd_tab_team","Team")}`,(proj.members||[]).length,false],
+          ["settings",`⚙️ ${t("settings_title","Settings")}`,null,false],
+        ] as const):([
+          ["overview",isMobile?"📊":`📊 ${t("pd_tab_overview","Overview")}`,null,false],
+          ["maps",isMobile?`🗺 (${regularMaps.length})`:`🗺 ${t("pd_tab_maps","Карты")} (${regularMaps.length})`,null,false],
+          ["scenarios",isMobile?`⎇ (${scenarios.length})`:`⎇ ${t("pd_tab_scenarios","Сценарии")} (${scenarios.length})`,null,false],
+          ["content",isMobile?"✍️":"✍️ "+t("content_plan_tab","Контент-план"),null,false],
+          ["ai",isMobile?"✦":"✦ "+t("project_ai_tab","AI"),null,false],
+          ["team",isMobile?`👥 (${(proj.members||[]).length})`:`👥 ${t("pd_tab_team","Команда")} (${(proj.members||[]).length})`,null,false],
+          ["settings","⚙ "+t("settings_title","Настройки"),null,false],
+        ] as const)).map(([k,lbl,count,pro])=>(
+          <button key={k} type="button" role="tab" aria-selected={tab===k} className={"proj-tab"+(tab===k?" on":"")} onClick={()=>setTab(k as typeof tab)}>
+            {lbl}
+            {count!=null&&count>0?<span className="proj-tab-badge">{count}</span>:null}
+            {pro?<span style={{fontSize:8,background:"rgba(240,148,40,.15)",color:"rgba(240,148,40,.9)",borderRadius:4,padding:"1px 5px",fontWeight:700}}>PRO</span>:null}
+          </button>
         ))}
       </div>
 
       <div className={shellUi?"scr":undefined} style={{flex:1,overflowY:"auto",minHeight:0}}>
       <div className="sa-page-reveal sa-pr-d3" style={{maxWidth:shellUi?"min(1000px,100%)":1000,margin:"0 auto",padding:isMobile?"24px 20px":"36px 32px",flex:1}}>
+        {/* Overview Tab */}
+        {tab==="overview"&&(
+          <div>
+            <div className="po-grid">
+              <div className="po-stat card">
+                <div className="kglow" style={{background:"radial-gradient(#6836f5,transparent)"}} aria-hidden />
+                <div className="po-val" style={{color:"var(--acc)"}}>{avgProgress}%</div>
+                <div className="po-lbl">{t("overall_progress","Overall progress")}</div>
+                <div className={`po-sub ${avgProgress>60?"up":"dn"}`}>{avgProgress>60?`↑ ${t("on_track","On track")}`:`↓ ${t("dash_review_needed","Needs focus")}`}</div>
+              </div>
+              <div className="po-stat card">
+                <div className="kglow" style={{background:"radial-gradient(#12c482,transparent)"}} aria-hidden />
+                <div className="po-val" style={{color:"var(--green)"}}>{totalNodes}</div>
+                <div className="po-lbl">{t("total_steps","Total steps")}</div>
+                <div className="po-sub neu">{t("completed_n","{n} completed").replace("{n}",String(doneNodes))}</div>
+              </div>
+              <div className="po-stat card">
+                <div className="kglow" style={{background:"radial-gradient(#f09428,transparent)"}} aria-hidden />
+                <div className="po-val" style={{color:"var(--amber)"}}>{regularMaps.length}</div>
+                <div className="po-lbl">{t("strategy_maps","Strategy maps")}</div>
+                <div className="po-sub neu">{t("pd_sub_sc","{n} scenarios").replace("{n}",String(scenarios.length))}</div>
+              </div>
+              <div className="po-stat card">
+                <div className="kglow" style={{background:"radial-gradient(#06b6d4,transparent)"}} aria-hidden />
+                <div className="po-val" style={{color:"var(--cyan)"}}>{(proj.members||[]).length||1}</div>
+                <div className="po-lbl">{t("members","Members")}</div>
+                <div className="po-sub neu">{roleReadable}</div>
+              </div>
+            </div>
+            <div className="slbl">{t("strategy_maps","Strategy maps")}</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20}}>
+              {loading?(
+                [1,2].map(i=><div key={i} style={{height:72,borderRadius:12,background:"var(--card)",animation:"pulse 1.5s ease infinite",border:".5px solid var(--b1)"}}/>)
+              ):(
+                <>
+                  {regularMaps.slice(0,5).map(m=>{
+                    const ns=m.nodes||[];
+                    const prog=calcMapProg(m);
+                    return(
+                      <ReferenceMapListItem
+                        key={m.id}
+                        icon="🗺"
+                        name={m.name||t("untitled","Untitled")}
+                        meta={<><span>{ns.length} {t("steps_label","nodes")}</span><span>{(m.edges||[]).length} {t("connections","connections")}</span><span>{fmtMapRel(m)}</span></>}
+                        progress={prog}
+                        onClick={()=>onOpenMap(m,proj,false,myRole==="viewer")}
+                      />
+                    );
+                  })}
+                  {canEdit&&<ReferenceMapListItem dashed name={<><span style={{fontSize:18}}>+</span><span style={{fontSize:13,color:"var(--t3)",fontWeight:500}}>{t("new_map","New map")}</span></>} onClick={()=>createMap()}/>}
+                </>
+              )}
+            </div>
+            {recentActs.length>0&&(
+              <>
+                <div className="slbl">{t("dash_recent_activity","Recent activity")}</div>
+                <div className="card" style={{display:"flex",flexDirection:"column",gap:0}}>
+                  {recentActs.map((a,i)=>{
+                    const diff=Date.now()-(a.at||0);const h=Math.floor(diff/3.6e6);const d=Math.floor(h/24);
+                    const rel=h<1?t("just_now","just now"):h<24?t("hours_ago","{n}h ago").replace("{n}",String(h)):d===1?t("yesterday","yesterday"):t("days_ago_n","{n}d ago").replace("{n}",String(d));
+                    return(
+                      <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",borderBottom:i<recentActs.length-1?".5px solid var(--b0)":"none"}}>
+                        <div style={{width:28,height:28,borderRadius:8,background:"rgba(104,54,245,.12)",color:"#a278ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}} aria-hidden>🗺</div>
+                        <div style={{flex:1,fontSize:12,color:"var(--t2)"}}><strong>{a.name}</strong> · {t("dash_nodes_count","{n} nodes").replace("{n}",String(a.n))}</div>
+                        <div style={{fontSize:10,color:"var(--t3)",flexShrink:0}}>{rel}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Maps Tab */}
         {tab==="maps"&&(
           <div>
+            {!shellUi&&(
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
               <div style={{flex:1,fontSize:13,fontWeight:700,color:"var(--text)"}}>{t("strategy_maps","Стратегические карты")}</div>
               {canEdit&&tier.templates&&<button onClick={()=>setShowTmpls(true)} style={{padding:"7px 14px",borderRadius:9,border:"1px solid rgba(245,158,11,.25)",background:"rgba(245,158,11,.07)",color:"#fbbf24",cursor:"pointer",fontSize:13,fontWeight:700}}>📋 Из шаблона</button>}
               {canEdit&&<button className="btn-interactive" onClick={()=>createMap()} style={{padding:"7px 16px",borderRadius:9,border:"none",background:"var(--gradient-accent)",color:"var(--accent-on-bg)",cursor:"pointer",fontSize:13,fontWeight:800,boxShadow:"0 2px 12px var(--accent-glow)"}}>+ {t("new_map","Новая карта")}</button>}
             </div>
+            )}
             {loading?(
+              shellUi?(
+                [1,2,3].map(i=><div key={i} style={{height:72,borderRadius:12,background:"var(--card)",animation:"pulse 1.5s ease infinite",border:".5px solid var(--b1)",marginBottom:8}}/>)
+              ):(
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:12}}>
                 {[1,2,3].map(i=><div key={i} style={{height:140,borderRadius:14,background:"var(--surface)",animation:"pulse 1.5s ease infinite",border:"1px solid var(--border)"}}/>)}
               </div>
+              )
             ):regularMaps.length===0?(
               <div className="sa-empty-state">
                 <div style={{fontSize:36,marginBottom:10}}>🗺️</div>
@@ -1106,12 +1113,31 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
                 <div style={{fontSize:13,color:"var(--text5)",marginBottom:16,maxWidth:320,margin:"0 auto 16px"}}>{t("create_first_map","Создайте первую стратегическую карту")}. {t("create_first_map_hint","Добавьте шаги, свяжите их — AI подскажет следующий ход.")}</div>
                 {canEdit&&<button className="btn-interactive" onClick={()=>createMap()} style={{padding:"9px 20px",borderRadius:10,border:"none",background:"var(--gradient-accent)",color:"var(--accent-on-bg)",cursor:"pointer",fontSize:13,fontWeight:800,boxShadow:"0 4px 18px var(--accent-glow)"}}>+ {t("create_map","Создать карту")}</button>}
               </div>
+            ):shellUi?(
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {regularMaps.map(m=>{
+                  const ns=m.nodes||[];
+                  const prog=calcMapProg(m);
+                  return(
+                    <ReferenceMapListItem
+                      key={m.id}
+                      icon="🗺"
+                      name={m.name||t("untitled","Untitled")}
+                      meta={<><span>{ns.length} {t("steps_label","nodes")}</span><span>{fmtMapRel(m)}</span></>}
+                      progress={prog}
+                      onClick={()=>onOpenMap(m,proj,false,!canEdit)}
+                      trailing={canEdit?<button type="button" className="btn-g" style={{height:28,fontSize:11}} onClick={e=>{e.stopPropagation();onOpenMap(m,proj,false,!canEdit);}}>{t("open","Open")}</button>:undefined}
+                    />
+                  );
+                })}
+                {canEdit&&<ReferenceMapListItem dashed name={<><span style={{fontSize:18}}>+</span><span style={{fontSize:13,color:"var(--t3)"}}>{t("new_map","New strategy map")}</span></>} onClick={()=>createMap()}/>}
+              </div>
             ):(
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(auto-fill,minmax(280px,1fr))",gap:isMobile?16:20}}>
                 {regularMaps.map((m,i)=><MapCard key={m.id} m={m} isSc={false} staggerIndex={i}/>)}
               </div>
             )}
-            {(()=>{
+            {!shellUi&&(()=>{
               const acts=[...maps].filter(m=>(m as any).updatedAt||(m as any).updated_at).map(m=>({name:m.name||t("untitled","Без названия"),at:(m as any).updatedAt||(m as any).updated_at,n:(m.nodes||[]).length})).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
               if(acts.length===0)return null;
               return(
@@ -1169,6 +1195,26 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
                 <div style={{fontSize:13,color:"var(--text5)",marginBottom:16}}>{t("create_first_scenario","Создайте первый сценарий вручную или с помощью AI шаблонов")}</div>
                 {canEdit&&<button className="btn-interactive" onClick={tryCreateScenario} style={{padding:"9px 20px",borderRadius:10,border:"none",background:"var(--gradient-accent)",color:"var(--accent-on-bg)",cursor:"pointer",fontSize:13,fontWeight:800,boxShadow:"0 4px 18px var(--accent-glow)"}}>+ {t("create_scenario","Создать сценарий")}</button>}
               </div>
+            ):shellUi?(
+              <div className="sc-grid">
+                {scenarios.map(m=>{
+                  const ns=m.nodes||[];
+                  const prog=calcMapProg(m);
+                  return(
+                    <div key={m.id} className="sc-card" onClick={()=>onOpenMap(m,proj,false,myRole==="viewer")} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")onOpenMap(m,proj,false,myRole==="viewer");}} role="button" tabIndex={0}>
+                      <div className="sc-icon" style={{background:"rgba(104,54,245,.12)"}}>⎇</div>
+                      <div className="sc-name">{m.name||t("untitled","Untitled")}</div>
+                      <div className="sc-desc">{ns.length} {t("steps_label","steps")} · {prog}%</div>
+                      <div className="sc-meta"><span className="sc-date">{fmtMapRel(m)}</span></div>
+                    </div>
+                  );
+                })}
+                {canEdit&&tier.scenarios>0&&(
+                  <div className="sc-card" onClick={tryCreateScenario} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")tryCreateScenario();}} role="button" tabIndex={0} style={{borderStyle:"dashed",background:"var(--inp)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:8,minHeight:160}}>
+                    <span style={{fontSize:24}}>+</span><span style={{fontSize:12,color:"var(--t3)"}}>{t("new_scenario","New scenario")}</span>
+                  </div>
+                )}
+              </div>
             ):(
               <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(auto-fill,minmax(260px,1fr))",gap:isMobile?16:12}}>
                 {scenarios.map((m,i)=><MapCard key={m.id} m={m} isSc={true} staggerIndex={i}/>)}
@@ -1206,6 +1252,26 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
 
         {/* AI Tab */}
         {tab==="ai"&&(
+          shellUi?(
+            <div style={{display:"flex",flex:1,overflow:"hidden",flexDirection:"row",minHeight:480,margin:"0 -32px -36px"}}>
+              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",borderRight:".5px solid var(--b1)",minWidth:0}}>
+                <div className="chat-area" style={{flex:1,minHeight:0}}>
+                  <AiPanel embedded={true} isMobile={isMobile} nodes={allNodes} edges={allEdges} ctx={projCtx||""} tier={user?.tier||"free"} projectName={proj?.name||""} mapName={t("project_scope","Проект")} userName={user?.name||user?.email||""} msgs={aiChatMsgs||[]} onMsgsChange={aiChatSetMsgs||(()=>{})} onAddNode={()=>{}} onClose={()=>{}} externalMsgs={[]} onClearExternal={()=>{}} onError={(msg)=>setToast({msg,type:"error"})} statusMap={getSTATUS(t)}/>
+                </div>
+              </div>
+              <div className="ai-sidebar">
+                <div className="ais-head">{t("project_ai_context","Project context")}</div>
+                <div className="ais-body">
+                  <div style={{fontSize:11.5,color:"var(--t2)",lineHeight:1.6,background:"var(--card)",border:".5px solid var(--b1)",borderRadius:10,padding:"10px 12px"}}>
+                    <div style={{fontWeight:600,color:"var(--t1)",marginBottom:6}}>{proj.name}</div>
+                    <div>📊 {totalNodes} {t("steps_label","steps")} · {avgProgress}%</div>
+                    <div>🗺️ {regularMaps.length} {t("maps_cap","maps")} · {scenarios.length} {t("pd_tab_scenarios","scenarios")}</div>
+                    <div>👥 {(proj.members||[]).length||1} {t("members","members")}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ):(
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             <div className="sa-panel" style={{padding:"14px 18px"}}>
               <div style={{fontSize:14,fontWeight:900,color:"var(--text)",display:"flex",alignItems:"center",gap:10}}>
@@ -1217,31 +1283,49 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
               </div>
             </div>
             <div className="sa-ai-chat-shell">
-              <AiPanel
-                embedded={true}
-                isMobile={isMobile}
-                nodes={allNodes}
-                edges={allEdges}
-                ctx={projCtx||""}
-                tier={user?.tier||"free"}
-                projectName={proj?.name||""}
-                mapName={t("project_scope","Проект")}
-                userName={user?.name||user?.email||""}
-                msgs={aiChatMsgs||[]}
-                onMsgsChange={aiChatSetMsgs||(()=>{})}
-                onAddNode={()=>{}}
-                onClose={()=>{}}
-                externalMsgs={[]}
-                onClearExternal={()=>{}}
-                onError={(msg)=>setToast({msg,type:"error"})}
-                statusMap={getSTATUS(t)}
-              />
+              <AiPanel embedded={true} isMobile={isMobile} nodes={allNodes} edges={allEdges} ctx={projCtx||""} tier={user?.tier||"free"} projectName={proj?.name||""} mapName={t("project_scope","Проект")} userName={user?.name||user?.email||""} msgs={aiChatMsgs||[]} onMsgsChange={aiChatSetMsgs||(()=>{})} onAddNode={()=>{}} onClose={()=>{}} externalMsgs={[]} onClearExternal={()=>{}} onError={(msg)=>setToast({msg,type:"error"})} statusMap={getSTATUS(t)}/>
             </div>
           </div>
+          )
         )}
 
         {/* Team Tab */}
         {tab==="team"&&(
+          shellUi?(
+            <div>
+              <div className="slbl">{t("pd_tab_team","Team members")}</div>
+              <div className="card"><div className="team-list">
+                {(proj.members||[]).map(m=>(
+                  <div key={m.email} className="team-item">
+                    <div className="team-av" style={{background:"rgba(104,54,245,.15)",color:"var(--acc)"}}>{(m.email||"?")[0].toUpperCase()}</div>
+                    <div className="team-info">
+                      <div className="team-name">{m.email}</div>
+                      <div className="team-email">{m.role==="owner"?t("role_owner","Owner"):m.role==="editor"?t("role_editor","Editor"):t("observer","Viewer")}</div>
+                    </div>
+                    <div className="team-role-badge" style={{background:m.role==="owner"?"rgba(104,54,245,.12)":"rgba(18,196,130,.12)",color:m.role==="owner"?"var(--acc)":"var(--green)"}}>{(m.role||"editor").toUpperCase()}</div>
+                    {isOwner&&m.email!==proj.owner&&(
+                      <div className="team-actions">
+                        <button type="button" className="btn-g" style={{height:26,fontSize:11}} onClick={()=>removeMember(m.email)}>{t("remove","Remove")}</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div></div>
+              {isOwner&&(
+                <>
+                  <div className="slbl">{t("invite_member","Invite")}</div>
+                  <div className="card" style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+                    <input value={newMember} onChange={e=>setNewMember(e.target.value)} placeholder={t("email_ph","Enter email…")} style={{flex:1,minWidth:180,background:"var(--inp)",border:".5px solid var(--b1)",borderRadius:8,padding:"9px 13px",fontSize:13,color:"var(--t1)",fontFamily:"inherit",outline:"none"}}/>
+                    <select value={nmRole} onChange={e=>setNmRole(e.target.value)} className="btn-g" style={{height:36,fontSize:12}}>
+                      <option value="editor">{t("role_editor","Editor")}</option>
+                      <option value="viewer">{t("observer","Viewer")}</option>
+                    </select>
+                    <button type="button" className="btn-p" onClick={addMember}>{t("send_invite","Send invite")}</button>
+                  </div>
+                </>
+              )}
+            </div>
+          ):(
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             {(proj.members||[]).map(m=>(
               <div key={m.email} className="sa-card-pro sa-lift" style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderRadius:14}}>
@@ -1286,6 +1370,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
             )}
             {(proj.members||[]).length>=tier.users&&<div style={{fontSize:13.5,color:"var(--text5)",textAlign:"center",padding:"8px",borderRadius:8,border:"1px dashed var(--border2)"}}>{t("member_limit","Лимит участников для {plan}: {n}.").replace("{plan}",tier.label).replace("{n}",String(tier.users))} <span onClick={()=>onUpgrade&&onUpgrade()} style={{color:"var(--accent-2)",cursor:"pointer",fontWeight:700}}>{t("upgrade_tier_arrow","Улучшить тариф →")}</span></div>}
           </div>
+          )
         )}
 
         {/* Settings Tab */}
@@ -1399,7 +1484,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
         <StrategyShellSidebar
           theme={theme}
           onToggleTheme={onToggleTheme}
-          activeNav="projects"
+          activeNav={detailSidebarNav}
           onNavigate={handleDetailShellNav}
           tierLabel={tier.label}
           tierColor={tier.color}
@@ -1412,10 +1497,12 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           projectCount={1}
           onUserCard={onProfile}
           onLogout={onLogout}
-          showContentPlan={!!onOpenContentPlanHub}
-          onContentPlan={onOpenContentPlanHub?()=>onOpenContentPlanHub():undefined}
+          showContentPlan={!!onOpenContentPlanHub||!!onOpenContentPlanProject}
+          onContentPlan={onOpenContentPlanProject?()=>setTab("content"):onOpenContentPlanHub?()=>onOpenContentPlanHub():undefined}
           showTrialBanner={(user?.tier||"free")==="free"}
           onLogoClick={onBack}
+          layoutMode="reference"
+          showProjectNav={true}
           t={t}
         />
         <div className="sa-main" style={{flex:1,minWidth:0,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden"}}>{detailBody}</div>

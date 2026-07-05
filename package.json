@@ -12,6 +12,7 @@
     "test:strict-lib": "tsc --noEmit -p tsconfig.strict-lib.json",
     "test:e2e": "playwright test",
     "start": "node server/index.js",
+    "sync:shell-css": "node scripts/gen-strategy-shell-css.js && node -e \"require('fs').copyFileSync('client/strategy-shell.css','public/strategy-shell.css')\"",
     "dev": "node scripts/sync-css.js && nodemon server/index.js",
     "seed": "node server/seed.js",
     "prepare": "node -e \"if (process.env.CI === 'true' || process.env.HUSKY === '0') process.exit(0); require('child_process').execSync('npx husky', {stdio:'inherit'})\"",

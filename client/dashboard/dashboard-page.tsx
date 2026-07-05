@@ -503,7 +503,7 @@ export function DashboardPage({
           trialDaysLeft={trialDays}
           onWeeklyBriefing={() => setShowBriefing(true)}
           briefingHint={briefingHint}
-          layoutMode="ref"
+          layoutMode="reference"
           onLogoClick={() => { try { document.querySelector(".sa-main .scr")?.scrollTo({ top: 0, behavior: "smooth" }); } catch { /* — */ } }}
           t={t}
         />

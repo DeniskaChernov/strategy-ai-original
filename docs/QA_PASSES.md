@@ -1,5 +1,22 @@
 # QA passes (post design-sync)
 
+## Visual regression checklist (design parity P1–P5)
+
+| # | Screen | Viewport | Pass criteria | P1 | P2 | P3 | P4 | P5 |
+|---|--------|----------|---------------|----|----|----|----|-----|
+| 1 | Projects | 1280 | `.proj-grid`, `.proj-card`, reference sidebar | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 2 | Project Overview | 1280 | `.po-grid`, default tab Overview | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 3 | Project Maps | 1280 | `.map-list-item` rows | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 4 | Dashboard | 1280 | `.r4`, `.kpi-card` | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 5 | Map | 1280 | `.map-filter-bar`, `.map-toolbar` | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 6 | AI Advisor | 1280 | `.chat-area`, `.ai-sidebar` | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 7 | Insights | 1280 | `.insight-card` grid | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 8 | Content Plan | 1280 | `.cp-kanban`, `.cp-col` | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 9 | Settings | 1280 | `.settings-layout`, `.sni` | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 10 | Projects mobile | 375 | `.proj-card` compact | ☐ | ☐ | ☐ | ☐ | ☐ |
+
+*Обновлено: design parity P5.*
+
 ## Прогон 1–10
 
 См. коммит `33eed62`.

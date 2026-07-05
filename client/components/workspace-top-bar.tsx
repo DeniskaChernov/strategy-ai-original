@@ -16,6 +16,7 @@ export function WorkspaceTopBar({
   newProjectLabel,
   onBack,
   primaryCta,
+  saveIndicator,
 }: {
   title: string;
   subtitle?: string;
@@ -33,6 +34,8 @@ export function WorkspaceTopBar({
   newProjectLabel: string;
   onBack?: () => void;
   primaryCta?: { label: string; onClick: () => void };
+  /** Reference `.save-ind` — e.g. "Saved ✓" */
+  saveIndicator?: string | null;
 }) {
   const isDark = theme === "dark";
 
@@ -143,13 +146,14 @@ export function WorkspaceTopBar({
             </svg>
           </div>
         ) : null}
+        {saveIndicator ? <div className="save-ind">{saveIndicator}</div> : null}
         {primaryCta ? (
           <button type="button" className="btn-p" onClick={primaryCta.onClick}>
-            {primaryCta.label}
+            {primaryCta.label.startsWith("+") ? primaryCta.label : `+ ${primaryCta.label}`}
           </button>
         ) : onNewProject ? (
           <button type="button" className="btn-p" onClick={onNewProject}>
-            + {newProjectLabel}
+            + {newProjectLabel.replace(/^\+\s*/, "")}
           </button>
         ) : null}
       </div>
