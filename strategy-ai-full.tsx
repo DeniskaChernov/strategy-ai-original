@@ -431,7 +431,7 @@ export default function App(){
     if(screen==="splash"||screen==="landing"||screen==="sharedMap"||screen==="legal"||screen==="notFound")return;
     const h=()=>{
       const st=history.state?.screen as AppScreen|undefined;
-      if(st==="dashboard"||st==="insights"||st==="ai"||st==="projects"){
+      if(st==="dashboard"||st==="insights"||st==="ai"||st==="projects"||st==="settings"){
         navigateTo(st,{clearProject:true,clearMap:true,clearCp:true});
         return;
       }
@@ -450,6 +450,7 @@ export default function App(){
     if(screen==="dashboard"&&history.state?.screen!=="dashboard")history.pushState({screen:"dashboard"},"","/app");
     else if(screen==="insights"&&history.state?.screen!=="insights")history.pushState({screen:"insights"},"","/app");
     else if(screen==="ai"&&history.state?.screen!=="ai")history.pushState({screen:"ai"},"","/app");
+    else if(screen==="settings"&&history.state?.screen!=="settings")history.pushState({screen:"settings"},"","/app");
     else if(screen==="projects"&&history.state?.screen!=="projects")history.pushState({screen:"projects"},"","/app");
     else if(screen==="project"&&project&&history.state?.screen!=="project")history.pushState({screen:"project",projectId:project.id},"","");
     else if(screen==="map"&&mapData&&history.state?.screen!=="map")history.pushState({screen:"map",mapId:mapData.id},"","");
@@ -524,6 +525,23 @@ export default function App(){
       return;
     }
     navigateTo("projects");
+  }
+
+  async function followAppNotifLink(link:string){
+    if(!user?.email)return false;
+    try{
+      const u=new URL(link,window.location.origin);
+      const openRaw=(u.searchParams.get("open")||"").toLowerCase();
+      if(!openRaw)return false;
+      const dl:any={
+        open:openRaw==="contentplan"?"contentPlan":openRaw,
+        projectId:u.searchParams.get("projectId")||"",
+        mapId:u.searchParams.get("mapId")||"",
+        nodeId:u.searchParams.get("nodeId")||"",
+      };
+      if(openRaw==="contentplan"&&!dl.projectId)delete dl.projectId;
+      return openDeepLink(dl,user);
+    }catch{return false;}
   }
 
   function openSettings(){setShowProfile(false);navigateTo("settings");}
@@ -860,6 +878,7 @@ export default function App(){
                   }catch{}
                 }}
                 onShellGlobalNav={handleGlobalNav}
+                onFollowNotifLink={followAppNotifLink}
                 aiChatMsgs={aiChatMsgs}
                 aiChatSetMsgs={setAiChatMsgs}
                 focusNodeId={mapFocusNodeId}

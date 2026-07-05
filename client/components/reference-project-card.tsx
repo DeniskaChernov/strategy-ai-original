@@ -64,6 +64,7 @@ export function ReferenceProjectCard({
   membersLabel,
   progressLabel,
   onClick,
+  ariaLabel,
 }: {
   name: string;
   roleLabel: string;
@@ -83,6 +84,7 @@ export function ReferenceProjectCard({
   membersLabel: string;
   progressLabel: string;
   onClick: () => void;
+  ariaLabel?: string;
 }) {
   return (
     <div
@@ -96,6 +98,7 @@ export function ReferenceProjectCard({
       }}
       role="button"
       tabIndex={0}
+      aria-label={ariaLabel || name}
     >
       <div className="proj-header">
         <div className="proj-icon" style={{ background: iconColor }}>

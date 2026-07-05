@@ -9,6 +9,13 @@ describe("followNotificationLink", () => {
     expect(onContentPlan).toHaveBeenCalledWith("p1");
   });
 
+  it("routes contentplan hub without projectId", async () => {
+    const onContentPlanHub = vi.fn();
+    const ok = await followNotificationLink("/app?open=contentplan", { onContentPlanHub });
+    expect(ok).toBe(true);
+    expect(onContentPlanHub).toHaveBeenCalled();
+  });
+
   it("routes project open", async () => {
     const onProject = vi.fn();
     const ok = await followNotificationLink("/app?open=project&projectId=abc", { onProject });

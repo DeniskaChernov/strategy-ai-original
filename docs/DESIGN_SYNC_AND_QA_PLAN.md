@@ -49,7 +49,7 @@
 | 21 | Viewer: read-only на карте + shares API + Socket.IO | e2e/manual | [—] |
 | 22 | Offline / без `API_BASE`: search affordance скрыт или stub | topbar без ложного ⌘K | [x] |
 | 23 | AI `onAddNode` wired там, где UI обещает действие | map editor ✅; portfolio no-op | [~] |
-| 24 | Notifications deep links (`open=map/project/contentplan`) | dashboard, insights, ai, cp, projects | [x] |
+| 24 | Notifications deep links (`open=map/project/contentplan`) | dashboard, insights, ai, cp, projects, map | [x] |
 | 25 | Weekly briefing auto-trigger + sidebar CTA | не дублировать на projects shell | [x] |
 
 ---
@@ -60,14 +60,14 @@
 |---|-----|----------|--------|
 | 26 | Vitest: shell nav, tier limits, map utils | `npm test` | [x] |
 | 27 | Playwright smoke: landing + `/app` + health | `npm run test:e2e` | [~] |
-| 28 | a11y: keyboard на `.proj-card`, `.ni`, modals | tab/enter/escape | [—] |
+| 28 | a11y: keyboard на `.proj-card`, `.ni`, modals | tab/enter/escape | [~] |
 | 29 | Theme `dk`/`lt` на всех shell-экранах | без смешения `global.css` токенов | [~] |
 | 30 | Lazy routes + chunk load после deploy | SW network-first | [—] |
 | 31 | Railway env preflight (`preflightEnv.js`) | fail-fast без secrets | [x] |
 | 32 | Stripe webhook вне rate limit | оплата не 429 | [x] |
 | 33 | Cron deadline reminders single-leader | advisory lock | [x] |
 | 34 | `docs/ARCHITECTURE_AND_ROADMAP.md` + deploy doc | актуальны | [x] |
-| 35 | Security pass: shares, JWT, CORS, viewer WS | review checklist | [—] |
+| 35 | Security pass: shares, JWT, CORS, viewer WS | `docs/SECURITY_CHECKLIST.md` | [~] |
 
 ---
 

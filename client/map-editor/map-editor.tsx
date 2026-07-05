@@ -227,7 +227,7 @@ ${mapHint} X:150–900, Y:80–520.`;
 
 
 // ── MapEditor ──
-export function MapEditor({user,mapData,project,onBack,isNew,onProfile,onToggleTheme,theme,readOnly=false,aiChatMsgs,aiChatSetMsgs,focusNodeId=null,palette="indigo",onOpenContentPlanHub=null,onOpenContentPlanProject=null,onShellGlobalNav}){
+export function MapEditor({user,mapData,project,onBack,isNew,onProfile,onToggleTheme,theme,readOnly=false,aiChatMsgs,aiChatSetMsgs,focusNodeId=null,palette="indigo",onOpenContentPlanHub=null,onOpenContentPlanProject=null,onShellGlobalNav,onFollowNotifLink=null}){
   const{t,lang,setLang}=useLang();
   const isMobile=useIsMobile();
   const[accHex,setAccHex]=useState({a1:"#6836f5",a2:"#a050ff"});
@@ -1396,7 +1396,14 @@ ${ctx}
             loadNotifications={loadNotifications}
             showItemMeta={false}
             deleteGlyph="×"
-            onFollowLink={async(n:any)=>{if(n.link)window.location.href=n.link;}}
+            onFollowLink={async(n:any)=>{
+              if(!n.link)return;
+              if(onFollowNotifLink){
+                const ok=await onFollowNotifLink(n.link);
+                if(ok){setShowNotifs(false);return;}
+              }
+              window.location.href=n.link;
+            }}
           />
         )}
         {!zenMode&&(

@@ -71,6 +71,7 @@ import { ThemeTogglePill } from "../components/theme-toggle-pill";
 import { MapTour } from "../components/map-tour";
 import { WorkspaceTopBar } from "../components/workspace-top-bar";
 import { ReferenceProjectCard, projectVisual, memberAvatarStyle } from "../components/reference-project-card";
+import { createNotifFollowHandler } from "../lib/notif-deep-link";
 import { NewProjectModal } from "../strategy-modals/new-project-modal";
 import { GlobalSearchOverlay } from "../components/global-search-overlay";
 import { SimulationModal } from "../strategy-modals/simulation-modal";
@@ -278,6 +279,30 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
     if(nav==="timeline"){setToast({msg:t("shell_timeline_hint","Откройте карту — диаграмма Gantt на панели инструментов."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
     if(nav==="team"){setToast({msg:t("shell_team_hint","Участники отображаются в карточке каждого проекта."),type:"info"});setTimeout(()=>setToast(null),3500);return;}
   }
+
+  const handleNotifLink = useMemo(
+    () =>
+      createNotifFollowHandler(
+        {
+          onContentPlanHub: () => onOpenContentPlanHub?.(),
+          onContentPlan: async (projectId) => {
+            const p = projects.find((x: ProjectLite) => x.id === projectId);
+            if (p && onOpenContentPlanProject) onOpenContentPlanProject(p, (maps as Record<string, MapLite[]>)[p.id] || []);
+          },
+          onProject: async (projectId) => {
+            const p = projects.find((x: ProjectLite) => x.id === projectId);
+            if (p) onSelectProject(p);
+          },
+          onMap: async (projectId, mapId, nodeId) => {
+            const p = projects.find((x: ProjectLite) => x.id === projectId);
+            if (p) onOpenMap({ id: mapId }, p, false, false, nodeId);
+          },
+        },
+        { onSuccess: () => setShowNotifs(false) }
+      ),
+    [projects, maps, onOpenContentPlanHub, onOpenContentPlanProject, onSelectProject, onOpenMap]
+  );
+
   const shellUi=!isMobile;
   const scenarioBadgeCount=allMapsForAI.filter((m:any)=>m.isScenario).length;
   const openGlobalSearch=useCallback(()=>setShowMobileSearch(true),[]);
@@ -718,32 +743,7 @@ export function ProjectsPage({user,onSelectProject,onOpenMap,onLogout,onChangeTi
           lang={lang}
           t={t}
           loadNotifications={loadNotifications}
-          onFollowLink={async(n:any)=>{
-            if(!n.link)return;
-            try{
-              const u=new URL(n.link,window.location.origin);
-              const open=(u.searchParams.get("open")||"").toLowerCase();
-              const projectId=u.searchParams.get("projectId")||"";
-              const mapId=u.searchParams.get("mapId")||"";
-              const nodeId=u.searchParams.get("nodeId")||"";
-              if(open==="contentplan"){
-                if(!projectId&&onOpenContentPlanHub){setShowNotifs(false);onOpenContentPlanHub();return;}
-                if(projectId&&onOpenContentPlanProject){
-                  const p=projects.find((x:any)=>x.id===projectId);
-                  if(p){setShowNotifs(false);onOpenContentPlanProject(p,(maps as any)[p.id]||[]);return;}
-                }
-              }
-              if(open==="project"&&projectId){
-                const p=projects.find((x:any)=>x.id===projectId);
-                if(p){setShowNotifs(false);onSelectProject(p);return;}
-              }
-              if(open==="map"&&projectId&&mapId){
-                const p=projects.find((x:any)=>x.id===projectId);
-                if(p){setShowNotifs(false);onOpenMap({id:mapId},p,false,false,nodeId||null);return;}
-              }
-            }catch{}
-            window.location.href=n.link;
-          }}
+          onFollowLink={handleNotifLink}
         />
       )}
 
@@ -831,6 +831,19 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
   const[showNotifs,setShowNotifs]=useState(false);
   const{notifs,setNotifs,notifUnread,setNotifUnread,notifLoading,loadNotifications}=useNotifications(showNotifs,user?.email);
   const creatingRef=useRef(false);
+
+  const handleNotifLink = useMemo(
+    () =>
+      createNotifFollowHandler(
+        {
+          onMap: async (projectId, mapId, nodeId) => {
+            if (projectId === proj.id) onOpenMap({ id: mapId }, proj, false, false, nodeId);
+          },
+        },
+        { onSuccess: () => setShowNotifs(false) }
+      ),
+    [proj, onOpenMap]
+  );
 
   const tier=TIERS[user.tier]||TIERS.free;
   const ROLES=getROLES(t);
@@ -1340,22 +1353,7 @@ export function ProjectDetail({user,project,onBack,onOpenMap,onProfile,theme,onT
           t={t}
           loadNotifications={loadNotifications}
           deleteGlyph="×"
-          onFollowLink={async(n:any)=>{
-            if(!n.link)return;
-            try{
-              const u=new URL(n.link,window.location.origin);
-              const open=(u.searchParams.get("open")||"").toLowerCase();
-              const projectId=u.searchParams.get("projectId")||"";
-              const mapId=u.searchParams.get("mapId")||"";
-              const nodeId=u.searchParams.get("nodeId")||"";
-              if(open==="map"&&projectId&&mapId&&projectId===proj.id){
-                setShowNotifs(false);
-                onOpenMap({id:mapId},proj,false,false,nodeId||null);
-                return;
-              }
-            }catch{}
-            window.location.href=n.link;
-          }}
+          onFollowLink={handleNotifLink}
         />
       )}
 

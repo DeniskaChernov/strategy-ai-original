@@ -9,6 +9,7 @@ test.describe("Strategy AI smoke", () => {
   test("app shell route loads", async ({ page }) => {
     await page.goto("/app");
     await expect(page.locator("#root")).toBeVisible();
+    await expect(page.locator('link[href*="strategy-shell.css"]')).toHaveCount(1);
   });
 
   test("health API", async ({ request }) => {
