@@ -71,7 +71,7 @@ import { Toast } from "../components/toast";
 import { NotifBell } from "../components/notif-bell";
 import { MapTour } from "../components/map-tour";
 import { AppTopBar } from "../components/app-top-bar";
-import { WorkspaceTopBar } from "../components/workspace-top-bar";
+import { MapCanvasTopBar, MapToolRail, MapCornerControls, MapCanvasPrompt } from "../components/map-canvas-chrome";
 import { SimulationModal } from "../strategy-modals/simulation-modal";
 import { PillGroup } from "../components/pill-group";
 import { MapConflictModal } from "../strategy-modals/map-conflict-modal";
@@ -233,7 +233,11 @@ export function MapEditor({user,mapData,project,onBack,isNew,onProfile,onToggleT
   const isMobile=useIsMobile();
   const[accHex,setAccHex]=useState({a1:"#6836f5",a2:"#a050ff"});
   const[sidebarCollapsed,setSidebarCollapsed]=useState<boolean>(()=>{
-    try{return localStorage.getItem("sa_map_sb_collapsed")==="1";}catch{return false;}
+    try{
+      const v=localStorage.getItem("sa_map_sb_collapsed");
+      if(v===null)return true;
+      return v==="1";
+    }catch{return true;}
   });
   useEffect(()=>{try{localStorage.setItem("sa_map_sb_collapsed",sidebarCollapsed?"1":"0");}catch{}},[sidebarCollapsed]);
   const ZEN_LS_KEY="sa_map_zen";
@@ -266,6 +270,7 @@ export function MapEditor({user,mapData,project,onBack,isNew,onProfile,onToggleT
   const[ctxMenu,setCtxMenu]=useState<{x:number,y:number,node?:any}|null>(null);
   const[selNodes,setSelNodes]=useState<Set<string>>(new Set());
   const[showAI,setShowAI]=useState(false);
+  const[canvasAiPrompt,setCanvasAiPrompt]=useState<string|null>(null);
   const[showStats,setShowStats]=useState(false);
   const[connecting,setConnecting]=useState(false);
   const[connectSrc,setConnectSrc]=useState(null);
@@ -918,24 +923,21 @@ ${ctx}
           <span>👁</span> {t("read_only_banner","Режим просмотра — вы можете просматривать карту, но не редактировать")}
         </div>
       )}
-      {shellUi&&(
-        <WorkspaceTopBar
+      {shellUi?(
+        <MapCanvasTopBar
           title={mapData?.name||t("shell_strategy_map","Strategy Map")}
-          subtitle={project?.name||""}
-          theme={theme}
-          onToggleTheme={onToggleTheme}
+          saveLabel={readOnly?null:saveState==="saving"?t("saving","Saving…"):saveState==="error"?t("save_error","Error"):t("saved_short","Saved ✓")}
+          userName={user?.name}
+          userEmail={user?.email}
+          onMenu={()=>setSidebarCollapsed(c=>!c)}
           onBack={onBack}
-          searchPlaceholder={t("dash_search_ph","Search… (⌘K)")}
-          showSearch={false}
-          notifUnread={notifUnread}
-          onNotifs={()=>setShowNotifs(true)}
-          showNotifs={!!API_BASE}
-          onSettings={onProfile}
-          newProjectLabel={t("step_short","Step")}
-          primaryCta={!readOnly?{label:"+ "+t("step_short","Step"),onClick:()=>addNode()}:undefined}
-          saveIndicator={readOnly?null:saveState==="saving"?t("saving","Saving…"):saveState==="error"?t("save_error","Error"):t("saved_short","Saved ✓")}
+          onExport={exportPNG}
+          onShare={readOnly?undefined:shareMap}
+          onProfile={onProfile}
+          readOnly={readOnly}
+          t={t}
         />
-      )}
+      ):null}
       {!shellUi&&(<>
       {/* ── TOOLBAR — 2 rows (mobile / legacy) ── */}
       <div style={{flexShrink:0,zIndex:30,borderBottom:"1px solid var(--glass-border-accent,var(--border))",background:"var(--bg2)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",boxShadow:"0 1px 0 var(--glass-border-accent,var(--border))"}}>
@@ -1164,6 +1166,53 @@ ${ctx}
             <SparklesCanvas density={175} speed={0.35} minSz={0.3} maxSz={1.0} color="#ffffff" style={{opacity:.4}}/>
           </div>
         )}
+        {shellUi&&!zenMode&&onlineUsers.length>0&&(
+          <div className="presence-bar" style={{pointerEvents:"none"}}>
+            <div className="presence-avatars">
+              {onlineUsers.slice(0,4).map(u=>(
+                <div key={u.email} title={u.name||u.email} style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,#12c482,#34d399)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:"#fff",border:"2px solid var(--sb)",marginLeft:-4}}>
+                  {(u.name||u.email||"?")[0].toUpperCase()}
+                </div>
+              ))}
+            </div>
+            <span className="presence-txt">{onlineUsers.length} online</span>
+          </div>
+        )}
+        {shellUi&&!zenMode&&(
+          <>
+            <MapToolRail
+              connecting={connecting}
+              showAI={showAI}
+              readOnly={readOnly}
+              onSelect={()=>{setConnecting(false);setConnectSrc(null);}}
+              onConnect={()=>{setConnecting(c=>!c);setConnectSrc(null);}}
+              onAddNode={addNode}
+              onToggleAI={()=>setShowAI(a=>!a)}
+              onToggleMini={()=>setShowMini(m=>!m)}
+              onStats={()=>setShowStats(true)}
+              onShortcuts={()=>setShowShortcuts(true)}
+              t={t}
+            />
+            <MapCornerControls
+              zoomPct={Math.round(view.zoom*100)}
+              canUndo={undoStack.length>0}
+              canRedo={redoStack.length>0}
+              onZoomOut={()=>{const nz=Math.max(.2,view.zoom*.83);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}}
+              onZoomIn={()=>{const nz=Math.min(3,view.zoom*1.2);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}}
+              onFit={fitView}
+              onUndo={undo}
+              onRedo={redo}
+              onShortcuts={()=>setShowShortcuts(true)}
+              t={t}
+            />
+            <MapCanvasPrompt
+              placeholder={t("map_canvas_prompt_ph","Что вы хотите изменить или создать?")}
+              readOnly={readOnly}
+              hint={t("map_canvas_hint","Совет: Ctrl+0 — вписать карту · Ctrl+Shift+A — AI")}
+              onSubmit={(text)=>{setShowAI(true);setCanvasAiPrompt(text);}}
+            />
+          </>
+        )}
         {shellUi&&!zenMode&&(
           <div className="map-filter-bar">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{opacity:.4,flexShrink:0}} aria-hidden><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.3"/><line x1="7.8" y1="7.8" x2="11" y2="11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
@@ -1277,7 +1326,7 @@ ${ctx}
           </div>
         )}
         {ctxMenu&&<div style={{position:"fixed",inset:0,zIndex:399}} onClick={()=>setCtxMenu(null)}/>}
-        {showMini&&!zenMode&&<MiniMap nodes={nodes} edges={edges} viewX={view.x} viewY={view.y} zoom={view.zoom} canvasW={W} canvasH={H} onJump={(x,y)=>{viewRef.current={...viewRef.current,x,y};setView(v=>({...v,x,y}));}} theme={theme} statusMap={STATUS}/>}
+        {showMini&&!zenMode&&<MiniMap nodes={nodes} edges={edges} viewX={view.x} viewY={view.y} zoom={view.zoom} canvasW={W} canvasH={H} onJump={(x,y)=>{viewRef.current={...viewRef.current,x,y};setView(v=>({...v,x,y}));}} theme={theme} statusMap={STATUS} shellDock={shellUi}/>}
         {toasts.map(toast=><Toast key={toast.id} msg={toast.msg} type={toast.type} onClose={()=>setToasts(ts=>ts.filter(x=>x.id!==toast.id))}/>)}
         {selNode&&(
           <RichEditorPanel
@@ -1315,7 +1364,7 @@ ${ctx}
             etypeMap={ETYPE}
           />
         )}
-        {showAI&&<AiPanel isMobile={isMobile} nodes={nodes} edges={edges} ctx={mapData?.ctx||""} tier={user?.tier||"free"} projectName={project?.name||""} mapName={mapData?.name||""} userName={user?.name||user?.email||""} msgs={aiChatMsgsLocal} onMsgsChange={setAiChatMsgsLocal} onAddNode={(n)=>{const nn={...n,id:uid(),x:snap((-view.x/view.zoom)+W/view.zoom/2-120+Math.random()*80),y:snap((-view.y/view.zoom)+H/view.zoom/2-64+Math.random()*80),comments:[],history:[]};pushUndo(nodes,edges);setNodes(ns=>[...ns,nn]);if(!readOnly)socketRef.current?.emit("node-add",{mapId:mapData?.id,node:nn});}} onClose={()=>setShowAI(false)} externalMsgs={pendingAiMsgs} onClearExternal={()=>setPendingAiMsgs([])} onError={(msg)=>addToast(msg,"error")} statusMap={STATUS}/>}
+        {showAI&&<AiPanel referenceShell={shellUi} isMobile={isMobile} nodes={nodes} edges={edges} ctx={mapData?.ctx||""} tier={user?.tier||"free"} projectName={project?.name||""} mapName={mapData?.name||""} userName={user?.name||user?.email||""} msgs={aiChatMsgsLocal} onMsgsChange={setAiChatMsgsLocal} onAddNode={(n)=>{const nn={...n,id:uid(),x:snap((-view.x/view.zoom)+W/view.zoom/2-120+Math.random()*80),y:snap((-view.y/view.zoom)+H/view.zoom/2-64+Math.random()*80),comments:[],history:[]};pushUndo(nodes,edges);setNodes(ns=>[...ns,nn]);if(!readOnly)socketRef.current?.emit("node-add",{mapId:mapData?.id,node:nn});}} onClose={()=>setShowAI(false)} externalMsgs={pendingAiMsgs} onClearExternal={()=>setPendingAiMsgs([])} onError={(msg)=>addToast(msg,"error")} statusMap={STATUS} promptToSend={canvasAiPrompt} onPromptSent={()=>setCanvasAiPrompt(null)}/>}
         {showStats&&<StatsPopup nodes={nodes} edges={edges} onClose={()=>setShowStats(false)} statusMap={STATUS}/>}
         {showTemplates&&<TemplateModal tier={user?.tier} onSelect={(tmpl:any)=>{setShowTemplates(false);if(tmpl){pushUndo(nodes,edges);setNodes(tmpl.nodes.map((n:any)=>({...n,comments:[],history:[]})));setEdges(tmpl.edges);emitEdgeUpdate(tmpl.edges);setTimeout(fitView,100);setPendingAiMsgs([{role:"ai",text:t("ai_customize_template_offer","Я применил шаблон. Хотите подстроить его под ваш бизнес? Напишите, чем вы занимаетесь и какая цель — я адаптирую шаги под вас.")}]);setShowAI(true);}}} onClose={()=>setShowTemplates(false)} theme={theme}/>}
         {showGantt&&<GanttView nodes={nodes} onClose={()=>setShowGantt(false)} statusMap={STATUS} onRowClick={(n:any)=>{setSelNode(n);setShowGantt(false);}}/>}
@@ -1392,30 +1441,11 @@ ${ctx}
             }}
           />
         )}
-        {!zenMode&&(
-        <div className={shellUi?"map-toolbar":"zoom-ctrl glass-card"} style={shellUi?undefined:{position:"absolute",bottom:28,left:28,display:"flex",gap:8,alignItems:"center",zIndex:30,padding:"10px 16px",borderRadius:16,boxShadow:"var(--glass-shadow-accent,none),0 8px 32px rgba(0,0,0,.2)"}}>
-          {!readOnly&&shellUi&&(
-            <>
-              <button type="button" className={"mt-btn"+(!connecting?" on":"")} onClick={()=>{setConnecting(false);setConnectSrc(null);}} title={t("tool_select","Select (V)")} aria-label={t("tool_select","Select")}>▣</button>
-              <button type="button" className={"mt-btn"+(connecting?" on":"")} onClick={()=>{setConnecting(c=>!c);setConnectSrc(null);}} title={t("link_mode_hint","Connect")} aria-label={t("link_btn","Связать")}>⇒</button>
-              <button type="button" className="mt-btn" onClick={addNode} title={t("add_step_hint","Add node")} aria-label={t("step_short","Шаг")}>+</button>
-              <div className="mt-sep" aria-hidden/>
-            </>
-          )}
-          <button className={shellUi?"mt-btn":"zoom-ctrl-btn"} onClick={()=>{const nz=Math.max(.2,view.zoom*.83);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}} title={t("zoom_out","Уменьшить")} style={shellUi?undefined:{width:36,height:36,borderRadius:10,border:"none",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
-          <div className={shellUi?"mt-zoom":undefined} style={shellUi?undefined:{fontSize:14,color:"var(--text3)",fontWeight:700,minWidth:48,textAlign:"center"}} onClick={shellUi?fitView:undefined} role={shellUi?"button":undefined} tabIndex={shellUi?0:undefined} onKeyDown={shellUi?(e=>{if(e.key==="Enter"||e.key===" ")fitView();}):undefined}>{Math.round(view.zoom*100)}%</div>
-          <button className={shellUi?"mt-btn":"zoom-ctrl-btn"} onClick={()=>{const nz=Math.min(3,view.zoom*1.2);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}} title={t("zoom_in","Увеличить")} style={shellUi?undefined:{width:36,height:36,borderRadius:10,border:"none",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
-          {shellUi&&(
-            <>
-              <button type="button" className="mt-btn" onClick={fitView} title={t("fit_view_hint","Fit (Ctrl+0)")} aria-label={t("fit_view","Вписать")}>⊡</button>
-              {!readOnly&&<button type="button" className="mt-btn" onClick={autoLayout} title={t("auto_layout_hint","Auto layout")} aria-label={t("auto_layout","Расклад")}>⌥</button>}
-              <button type="button" className="mt-btn" onClick={exportJSON} title={t("export_json_title","Export JSON")} aria-label={t("export_label","Экспорт")}>⬇</button>
-              {!readOnly&&<button type="button" className="mt-btn" onClick={shareMap} title={t("share_map","Share")} aria-label={t("share_btn","Поделиться")}>🔗</button>}
-              <button type="button" className="mt-btn" onClick={()=>setShowShortcuts(true)} title={t("shortcuts_title","Shortcuts (?)")} aria-label={t("shortcuts_title","Горячие клавиши")}>⌨</button>
-              <div className="mt-sep" aria-hidden/>
-              <button type="button" className={"mt-btn"+(showAI?" on":"")} onClick={()=>setShowAI(a=>!a)} title={t("ai_consultant_hint","AI")} aria-label={t("ai_consultant","AI Советник")}><span aria-hidden>✦</span></button>
-            </>
-          )}
+        {!zenMode&&!shellUi&&(
+        <div className="zoom-ctrl glass-card" style={{position:"absolute",bottom:28,left:28,display:"flex",gap:8,alignItems:"center",zIndex:30,padding:"10px 16px",borderRadius:16,boxShadow:"var(--glass-shadow-accent,none),0 8px 32px rgba(0,0,0,.2)"}}>
+          <button className="zoom-ctrl-btn" onClick={()=>{const nz=Math.max(.2,view.zoom*.83);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}} title={t("zoom_out","Уменьшить")} style={{width:36,height:36,borderRadius:10,border:"none",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>−</button>
+          <div style={{fontSize:14,color:"var(--text3)",fontWeight:700,minWidth:48,textAlign:"center"}}>{Math.round(view.zoom*100)}%</div>
+          <button className="zoom-ctrl-btn" onClick={()=>{const nz=Math.min(3,view.zoom*1.2);viewRef.current={...viewRef.current,zoom:nz};setView(v=>({...v,zoom:nz}));}} title={t("zoom_in","Увеличить")} style={{width:36,height:36,borderRadius:10,border:"none",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
         </div>
         )}
       </div>
@@ -1452,7 +1482,6 @@ ${ctx}
           t={t}
         />
         <div className="sa-main" style={{flex:1,minWidth:0,minHeight:0,display:"flex",flexDirection:"column",overflow:"hidden"}}>{_mapMain}</div>
-        {!zenMode&&<FloatingAiAssistant t={t} variant="app" onOpenFullChat={() => setShowAI(true)} />}
       </div>
     </div>
   ):(

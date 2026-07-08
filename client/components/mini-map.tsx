@@ -13,6 +13,7 @@ export function MiniMap({
   onJump,
   theme: _theme,
   statusMap,
+  shellDock,
 }: {
   nodes: Array<{ id: string; x: number; y: number; status?: string }>;
   edges: Array<{ id: string; source: string; target: string }>;
@@ -24,6 +25,8 @@ export function MiniMap({
   onJump: (x: number, y: number) => void;
   theme?: string;
   statusMap?: Record<string, { c: string; label?: string }>;
+  /** Canvas-first map: dock above corner controls / prompt */
+  shellDock?: boolean;
 }) {
   const { t } = useLang();
   const STATUS = statusMap || getSTATUS(t);
@@ -67,8 +70,8 @@ export function MiniMap({
       title={t("minimap_hint", "Миникарта")}
       style={{
         position: "absolute",
-        bottom: 28,
-        right: 28,
+        bottom: shellDock ? 132 : 28,
+        right: shellDock ? 14 : 28,
         width: W,
         height: H,
         borderRadius: 14,
